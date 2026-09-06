@@ -2,6 +2,7 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
@@ -59,10 +60,14 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::post('events/{event}/ideas', [IdeaController::class, 'store'])->name('ideas.store');
     Route::put('ideas/{idea}', [IdeaController::class, 'update'])->name('ideas.update');
     Route::delete('ideas/{idea}', [IdeaController::class, 'destroy'])->name('ideas.destroy');
+    Route::post('ideas/{idea}/comments', [CommentController::class, 'storeForIdea'])->name('ideas.comments.store');
 
     Route::post('events/{event}/tasks', [TaskController::class, 'store'])->name('tasks.store');
     Route::put('tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
     Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+    Route::post('tasks/{task}/comments', [CommentController::class, 'storeForTask'])->name('tasks.comments.store');
+
+    Route::delete('comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
     Route::post('tasks/{task}/checklist-items', [TaskChecklistItemController::class, 'store'])->name('checklist-items.store');
     Route::patch('checklist-items/{checklistItem}', [TaskChecklistItemController::class, 'update'])->name('checklist-items.update');

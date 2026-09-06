@@ -1,3 +1,4 @@
+import CommentsPanel from '@/Components/CommentsPanel';
 import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
@@ -26,7 +27,10 @@ const emptyIdea = { title: '', description: '', category: '', status: 'New' };
 export default function IdeasTab({ event, ideas, statuses }) {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingIdea, setEditingIdea] = useState(null);
+    const [commentsIdeaId, setCommentsIdeaId] = useState(null);
     const form = useForm(emptyIdea);
+
+    const commentsIdea = ideas.find((i) => i.id === commentsIdeaId) ?? null;
 
     function openCreateModal() {
         setEditingIdea(null);
@@ -80,6 +84,19 @@ export default function IdeasTab({ event, ideas, statuses }) {
             key: 'creator',
             header: 'Submitted By',
             render: (idea) => idea.creator?.name ?? '—',
+        },
+        {
+            key: 'comments',
+            header: 'Comments',
+            render: (idea) => (
+                <button
+                    type="button"
+                    onClick={() => setCommentsIdeaId(idea.id)}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                    {idea.comments.length}
+                </button>
+            ),
         },
         {
             key: 'actions',
@@ -208,6 +225,16 @@ export default function IdeasTab({ event, ideas, statuses }) {
                     </div>
                 </form>
             </Modal>
+
+            {commentsIdea && (
+                <CommentsPanel
+                    show
+                    onClose={() => setCommentsIdeaId(null)}
+                    title={commentsIdea.title}
+                    comments={commentsIdea.comments}
+                    storeUrl={route('ideas.comments.store', commentsIdea.id)}
+                />
+            )}
         </>
     );
 }

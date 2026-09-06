@@ -1,3 +1,4 @@
+import CommentsPanel from '@/Components/CommentsPanel';
 import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import Checkbox from '@/Components/Checkbox';
@@ -44,11 +45,13 @@ export default function TasksTab({
     const [taskModalOpen, setTaskModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [checklistTaskId, setChecklistTaskId] = useState(null);
+    const [commentsTaskId, setCommentsTaskId] = useState(null);
 
     const taskForm = useForm(emptyTask);
     const checklistForm = useForm({ label: '' });
 
     const checklistTask = tasks.find((t) => t.id === checklistTaskId) ?? null;
+    const commentsTask = tasks.find((t) => t.id === commentsTaskId) ?? null;
 
     function openCreateModal() {
         setEditingTask(null);
@@ -162,6 +165,19 @@ export default function TasksTab({
                     </button>
                 );
             },
+        },
+        {
+            key: 'comments',
+            header: 'Comments',
+            render: (task) => (
+                <button
+                    type="button"
+                    onClick={() => setCommentsTaskId(task.id)}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                    {task.comments.length}
+                </button>
+            ),
         },
         {
             key: 'actions',
@@ -434,6 +450,16 @@ export default function TasksTab({
                     </div>
                 )}
             </Modal>
+
+            {commentsTask && (
+                <CommentsPanel
+                    show
+                    onClose={() => setCommentsTaskId(null)}
+                    title={commentsTask.title}
+                    comments={commentsTask.comments}
+                    storeUrl={route('tasks.comments.store', commentsTask.id)}
+                />
+            )}
         </>
     );
 }
