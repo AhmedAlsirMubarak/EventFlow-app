@@ -10,6 +10,7 @@ use App\Http\Controllers\DocumentShareController;
 use App\Http\Controllers\DocumentVersionController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\IdeaController;
+use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\ProfileController;
@@ -81,6 +82,13 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
 
     Route::post('documents/{document}/shares', [DocumentShareController::class, 'store'])->name('documents.shares.store');
     Route::delete('document-shares/{documentShare}', [DocumentShareController::class, 'destroy'])->name('document-shares.destroy');
+
+    Route::post('events/{event}/meetings', [MeetingController::class, 'store'])->name('meetings.store');
+    Route::put('meetings/{meeting}', [MeetingController::class, 'update'])->name('meetings.update');
+    Route::delete('meetings/{meeting}', [MeetingController::class, 'destroy'])->name('meetings.destroy');
+    Route::post('meetings/{meeting}/action-items', [MeetingController::class, 'storeActionItem'])->name('meetings.action-items.store');
+    Route::post('meetings/{meeting}/documents', [MeetingController::class, 'attachDocument'])->name('meetings.documents.store');
+    Route::delete('meetings/{meeting}/documents/{document}', [MeetingController::class, 'detachDocument'])->name('meetings.documents.destroy');
 });
 
 Route::middleware(['auth', 'verified', 'external'])

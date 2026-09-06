@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['event_id', 'title', 'description', 'department', 'assigned_to', 'organization_id', 'priority', 'due_date', 'status', 'created_by'])]
+#[Fillable(['event_id', 'meeting_id', 'title', 'description', 'department', 'assigned_to', 'organization_id', 'priority', 'due_date', 'status', 'created_by'])]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
@@ -48,6 +48,14 @@ class Task extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    /**
+     * @return BelongsTo<Meeting, $this>
+     */
+    public function meeting(): BelongsTo
+    {
+        return $this->belongsTo(Meeting::class);
     }
 
     /**

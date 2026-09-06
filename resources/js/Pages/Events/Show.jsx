@@ -4,6 +4,7 @@ import { Head, usePoll } from '@inertiajs/react';
 import { useState } from 'react';
 import DocumentsTab from './Partials/DocumentsTab';
 import IdeasTab from './Partials/IdeasTab';
+import MeetingsTab from './Partials/MeetingsTab';
 import OrganizationsTab from './Partials/OrganizationsTab';
 import OverviewTab from './Partials/OverviewTab';
 import TasksTab from './Partials/TasksTab';
@@ -15,6 +16,7 @@ const tabs = [
     { key: 'organizations', label: 'Organizations' },
     { key: 'ideas', label: 'Ideas' },
     { key: 'tasks', label: 'Tasks' },
+    { key: 'meetings', label: 'Meetings' },
     { key: 'documents', label: 'Documents' },
 ];
 
@@ -35,6 +37,7 @@ export default function Show({
     ideas,
     tasks,
     documents,
+    meetings,
     availableUsers,
     availableOrganizations,
     availableContacts,
@@ -108,6 +111,18 @@ export default function Show({
                     availableUsers={availableUsers}
                     availableOrganizations={availableOrganizations}
                     taskStatuses={taskStatuses}
+                    taskPriorities={taskPriorities}
+                />
+            )}
+
+            {activeTab === 'meetings' && (
+                <MeetingsTab
+                    event={event}
+                    meetings={meetings}
+                    availableUsers={availableUsers}
+                    availableContacts={availableContacts}
+                    availableOrganizations={availableOrganizations}
+                    documents={documents}
                     taskPriorities={taskPriorities}
                 />
             )}

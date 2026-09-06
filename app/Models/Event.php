@@ -70,6 +70,14 @@ class Event extends Model
     }
 
     /**
+     * @return HasMany<Meeting, $this>
+     */
+    public function meetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

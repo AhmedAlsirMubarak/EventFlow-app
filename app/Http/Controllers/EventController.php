@@ -77,6 +77,10 @@ class EventController extends Controller
             'ideas' => $event->ideas()->with(['creator:id,name', 'comments.user:id,name'])->latest()->get(),
             'tasks' => $event->tasks()->with(['assignee:id,name', 'organization:id,name', 'checklistItems', 'comments.user:id,name'])->latest()->get(),
             'documents' => $event->documents()->with(['currentVersion', 'versions.uploader:id,name', 'creator:id,name', 'organization:id,name', 'shares.organization:id,name', 'shares.contact:id,full_name,organization_id'])->withCount('versions')->latest()->get(),
+            'meetings' => $event->meetings()
+                ->with(['organization:id,name', 'participants:id,name', 'externalParticipants:id,full_name', 'documents:id,title', 'actionItems.assignee:id,name'])
+                ->orderByDesc('held_at')
+                ->get(),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'availableContacts' => Contact::query()->orderBy('full_name')->get(['id', 'full_name', 'organization_id']),
