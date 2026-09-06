@@ -68,13 +68,31 @@ class ContactController extends Controller
 
         $contact->update(['user_id' => $user->id]);
 
+        return $this->sendPortalAccessLink($contact->fresh(), 'Portal access granted.');
+    }
+
+    public function resendPortalAccess(Contact $contact): RedirectResponse
+    {
+        Gate::authorize('update', $contact);
+
+        if (! $contact->user_id) {
+            return back()->with('status', 'Grant portal access first before resending a link.');
+        }
+
+        return $this->sendPortalAccessLink($contact, 'Portal access link resent.');
+    }
+
+    private function sendPortalAccessLink(Contact $contact, string $statusMessage): RedirectResponse
+    {
+        $user = $contact->user;
+
         $token = Password::broker()->createToken($user);
         $resetLink = route('password.reset', ['token' => $token, 'email' => $user->email]);
 
         $contact->notify(new PortalAccessGrantedNotification($resetLink));
 
         return back()->with([
-            'status' => 'Portal access granted.',
+            'status' => $statusMessage,
             'resetLink' => $resetLink,
         ]);
     }

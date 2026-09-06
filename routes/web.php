@@ -48,6 +48,7 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::put('contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
     Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
     Route::post('contacts/{contact}/portal-access', [ContactController::class, 'grantPortalAccess'])->name('contacts.portal-access');
+    Route::post('contacts/{contact}/portal-access/resend', [ContactController::class, 'resendPortalAccess'])->name('contacts.portal-access.resend');
 
     Route::resource('events', EventController::class);
     Route::post('events/{event}/team', [EventController::class, 'attachUser'])->name('events.team.store');

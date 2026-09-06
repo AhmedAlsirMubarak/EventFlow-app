@@ -110,3 +110,24 @@ test('granting portal access twice does not create a second account', function (
 
     expect($contact->refresh()->user_id)->toBe($firstUserId);
 });
+
+test('a contact with existing portal access can have their access link resent', function () {
+    $contact = Contact::factory()->create(['email' => 'stakeholder@example.com', 'user_id' => null]);
+    $this->actingAs($this->member)->post(route('contacts.portal-access', $contact));
+    $contact->refresh();
+
+    $response = $this->actingAs($this->member)->post(route('contacts.portal-access.resend', $contact));
+
+    $response->assertRedirect();
+    $response->assertSessionHas('resetLink');
+    $response->assertSessionHas('status', 'Portal access link resent.');
+});
+
+test('resending portal access without an existing account fails gracefully', function () {
+    $contact = Contact::factory()->create(['user_id' => null]);
+
+    $response = $this->actingAs($this->member)->post(route('contacts.portal-access.resend', $contact));
+
+    $response->assertRedirect();
+    $response->assertSessionMissing('resetLink');
+});

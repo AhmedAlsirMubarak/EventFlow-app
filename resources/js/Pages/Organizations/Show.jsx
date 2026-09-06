@@ -84,6 +84,10 @@ export default function Show({
         router.post(route('contacts.portal-access', contact.id));
     }
 
+    function resendPortalAccess(contact) {
+        router.post(route('contacts.portal-access.resend', contact.id));
+    }
+
     const columns = [
         { key: 'full_name', header: 'Name' },
         { key: 'job_title', header: 'Title' },
@@ -104,7 +108,16 @@ export default function Show({
             header: 'Portal Access',
             render: (contact) =>
                 contact.user_id ? (
-                    <Badge color="emerald">Active</Badge>
+                    <div className="flex items-center gap-2">
+                        <Badge color="emerald">Active</Badge>
+                        <button
+                            type="button"
+                            onClick={() => resendPortalAccess(contact)}
+                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                        >
+                            Resend Link
+                        </button>
+                    </div>
                 ) : (
                     <button
                         type="button"
