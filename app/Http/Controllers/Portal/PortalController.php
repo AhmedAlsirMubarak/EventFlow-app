@@ -32,10 +32,7 @@ class PortalController extends Controller
                 ->first();
 
             $acknowledged = $document->acknowledgment_required
-                ? DocumentAcknowledgment::where('document_share_id', $share->id)
-                    ->where('contact_id', $contact->id)
-                    ->where('document_version_id', $document->current_version_id)
-                    ->exists()
+                ? $document->isAcknowledgedBy($contact, $share)
                 : null;
 
             return [
@@ -78,6 +75,7 @@ class PortalController extends Controller
         return Inertia::render('Portal/Show', [
             'document' => $document->load('currentVersion', 'event:id,name'),
             'acknowledgment' => $acknowledgment,
+            'canDownload' => ! $document->acknowledgment_required || $acknowledgment !== null,
         ]);
     }
 
@@ -88,6 +86,11 @@ class PortalController extends Controller
         $share = $document->shareFor($contact);
 
         abort_unless($share, 403);
+        abort_if(
+            $document->acknowledgment_required && ! $document->isAcknowledgedBy($contact, $share),
+            403,
+            'Please acknowledge this document before downloading it.'
+        );
 
         $document->activities()->create([
             'document_share_id' => $share->id,

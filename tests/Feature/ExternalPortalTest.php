@@ -79,7 +79,16 @@ test('an external user cannot view a document not shared with them', function ()
     $this->actingAs($this->externalUser)->get(route('portal.documents.show', $otherDocument))->assertForbidden();
 });
 
-test('downloading a shared document logs a Downloaded activity', function () {
+test('downloading a shared document logs a Downloaded activity once acknowledged', function () {
+    DocumentAcknowledgment::create([
+        'document_share_id' => $this->share->id,
+        'contact_id' => $this->contact->id,
+        'document_version_id' => $this->document->current_version_id,
+        'name' => 'Jane Stakeholder',
+        'statement' => 'I acknowledge that I have received and reviewed this document.',
+        'acknowledged_at' => now(),
+    ]);
+
     $response = $this->actingAs($this->externalUser)->get(
         route('portal.document-versions.download', $this->document->current_version_id),
     );
@@ -89,6 +98,27 @@ test('downloading a shared document logs a Downloaded activity', function () {
         ->where('contact_id', $this->contact->id)
         ->where('type', DocumentActivityType::Downloaded)
         ->exists())->toBeTrue();
+});
+
+test('downloading a document requiring acknowledgment is blocked until acknowledged', function () {
+    $response = $this->actingAs($this->externalUser)->get(
+        route('portal.document-versions.download', $this->document->current_version_id),
+    );
+
+    $response->assertForbidden();
+    expect($this->document->activities()
+        ->where('type', DocumentActivityType::Downloaded)
+        ->exists())->toBeFalse();
+});
+
+test('the document page reports canDownload as false until acknowledged', function () {
+    $response = $this->actingAs($this->externalUser)->get(route('portal.documents.show', $this->document));
+
+    $response->assertInertia(fn ($page) => $page
+        ->component('Portal/Show')
+        ->where('canDownload', false)
+        ->etc()
+    );
 });
 
 test('a contact from a different organization cannot download the document', function () {

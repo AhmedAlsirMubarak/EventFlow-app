@@ -7,7 +7,7 @@ import TextInput from '@/Components/TextInput';
 import PortalLayout from '@/Layouts/PortalLayout';
 import { Head, useForm } from '@inertiajs/react';
 
-export default function Show({ document, acknowledgment }) {
+export default function Show({ document, acknowledgment, canDownload }) {
     const { data, setData, post, processing, errors } = useForm({ name: '' });
 
     function submit(e) {
@@ -46,7 +46,7 @@ export default function Show({ document, acknowledgment }) {
                         )}
                     </dl>
 
-                    {document.current_version && (
+                    {document.current_version && canDownload && (
                         <a
                             href={route(
                                 'portal.document-versions.download',
@@ -56,6 +56,13 @@ export default function Show({ document, acknowledgment }) {
                         >
                             Download {document.current_version.original_filename}
                         </a>
+                    )}
+
+                    {document.current_version && !canDownload && (
+                        <p className="mt-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                            Please acknowledge this document below before
+                            downloading it.
+                        </p>
                     )}
                 </Card>
 

@@ -87,6 +87,18 @@ class Document extends Model
     }
 
     /**
+     * Whether the given contact has acknowledged the current version via the given share.
+     */
+    public function isAcknowledgedBy(Contact $contact, DocumentShare $share): bool
+    {
+        return DocumentAcknowledgment::query()
+            ->where('document_share_id', $share->id)
+            ->where('contact_id', $contact->id)
+            ->where('document_version_id', $this->current_version_id)
+            ->exists();
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
