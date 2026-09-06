@@ -6,8 +6,10 @@ use App\Enums\DocumentActivityType;
 use App\Http\Requests\Admin\StoreDocumentShareRequest;
 use App\Models\Document;
 use App\Models\DocumentShare;
+use App\Notifications\DocumentSharedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 
 class DocumentShareController extends Controller
 {
@@ -23,6 +25,9 @@ class DocumentShareController extends Controller
             'user_id' => $request->user()->id,
             'type' => DocumentActivityType::Shared,
         ]);
+
+        $recipients = $share->recipientContacts()->filter(fn ($contact) => $contact->hasPortalAccess());
+        Notification::send($recipients, new DocumentSharedNotification($document));
 
         return to_route('events.show', ['event' => $document->event_id, 'tab' => 'documents'])->with('status', 'Document shared.');
     }

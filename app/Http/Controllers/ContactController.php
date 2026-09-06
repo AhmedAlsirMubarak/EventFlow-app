@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\UpdateContactRequest;
 use App\Models\Contact;
 use App\Models\Organization;
 use App\Models\User;
+use App\Notifications\PortalAccessGrantedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
@@ -69,6 +70,8 @@ class ContactController extends Controller
 
         $token = Password::broker()->createToken($user);
         $resetLink = route('password.reset', ['token' => $token, 'email' => $user->email]);
+
+        $contact->notify(new PortalAccessGrantedNotification($resetLink));
 
         return back()->with([
             'status' => 'Portal access granted.',

@@ -433,6 +433,11 @@ export default function DocumentsTab({
                         </ul>
 
                         <form onSubmit={submitShare} className="space-y-3 border-t border-slate-100 pt-4">
+                            <p className="text-xs text-slate-500">
+                                Only contacts with portal access will be
+                                emailed. Grant access from the organization
+                                page first if needed.
+                            </p>
                             <div className="flex gap-4 text-sm text-slate-700">
                                 <label className="flex items-center gap-1.5">
                                     <input

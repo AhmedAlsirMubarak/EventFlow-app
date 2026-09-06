@@ -9,13 +9,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 
 #[Fillable(['organization_id', 'user_id', 'full_name', 'job_title', 'department', 'email', 'mobile', 'preferred_channel'])]
 class Contact extends Model
 {
     /** @use HasFactory<ContactFactory> */
-    use HasFactory;
+    use HasFactory, Notifiable;
+
+    /**
+     * Route notifications for the mail channel.
+     */
+    public function routeNotificationForMail(): ?string
+    {
+        return $this->email;
+    }
 
     /**
      * @return BelongsTo<Organization, $this>
@@ -31,6 +40,14 @@ class Contact extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Whether this contact can log in to the stakeholder portal.
+     */
+    public function hasPortalAccess(): bool
+    {
+        return $this->user_id !== null;
     }
 
     /**

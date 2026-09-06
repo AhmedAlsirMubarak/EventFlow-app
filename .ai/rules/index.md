@@ -4,5 +4,6 @@ Before planning or editing, find the row whose globs match the file's path and r
 
 | Applies to | Rule file |
 | --- | --- |
+| app/Http/Controllers/Document*Controller.php | .ai/rules/controllers.md |
 | app/Enums/** | .ai/rules/enums.md |
 | .env* | .ai/rules/general.md |

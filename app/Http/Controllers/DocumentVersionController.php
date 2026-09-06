@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Admin\StoreDocumentVersionRequest;
 use App\Models\Document;
 use App\Models\DocumentVersion;
+use App\Notifications\DocumentVersionUploadedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -15,7 +17,7 @@ class DocumentVersionController extends Controller
 {
     public function store(StoreDocumentVersionRequest $request, Document $document): RedirectResponse
     {
-        DB::transaction(function () use ($request, $document) {
+        $version = DB::transaction(function () use ($request, $document) {
             $file = $request->file('file');
             $path = $file->store('documents/'.$document->id, 'local');
             $nextVersionNumber = $document->versions()->max('version_number') + 1;
@@ -30,7 +32,15 @@ class DocumentVersionController extends Controller
             ]);
 
             $document->update(['current_version_id' => $version->id]);
+
+            return $version;
         });
+
+        $recipients = $document->shares()->get()
+            ->flatMap(fn ($share) => $share->recipientContacts())
+            ->unique('id')
+            ->filter(fn ($contact) => $contact->hasPortalAccess());
+        Notification::send($recipients, new DocumentVersionUploadedNotification($document, $version));
 
         return to_route('events.show', ['event' => $document->event_id, 'tab' => 'documents'])->with('status', 'New version uploaded.');
     }
