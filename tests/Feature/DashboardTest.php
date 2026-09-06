@@ -29,6 +29,7 @@ test('authenticated users see the dashboard with accurate stats', function () {
             ->where('internal_users', 3)
             ->where('external_users', 1)
             ->where('roles_configured', 12)
+            ->etc()
         )
     );
 });

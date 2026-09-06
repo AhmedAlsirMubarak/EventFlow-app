@@ -15,6 +15,7 @@ use App\Http\Requests\Admin\AttachEventMemberRequest;
 use App\Http\Requests\Admin\AttachEventOrganizationRequest;
 use App\Http\Requests\Admin\StoreEventRequest;
 use App\Http\Requests\Admin\UpdateEventRequest;
+use App\Models\ActivityLog;
 use App\Models\Contact;
 use App\Models\Event;
 use App\Models\Organization;
@@ -59,6 +60,8 @@ class EventController extends Controller
         ]);
 
         $event->users()->attach($request->user()->id, ['role_in_event' => null]);
+
+        ActivityLog::log($event, 'Event created', $event->id, $request->user()->id);
 
         return to_route('events.show', $event)->with('status', 'Event created.');
     }
@@ -134,8 +137,14 @@ class EventController extends Controller
 
     public function attachOrganization(AttachEventOrganizationRequest $request, Event $event): RedirectResponse
     {
+        $organization = Organization::findOrFail($request->validated('organization_id'));
+
         $event->organizations()->syncWithoutDetaching([
-            $request->validated('organization_id') => ['relationship_type' => $request->validated('relationship_type')],
+            $organization->id => ['relationship_type' => $request->validated('relationship_type')],
+        ]);
+
+        ActivityLog::log($organization, 'Organization added to event', $event->id, $request->user()->id, [
+            'organization_name' => $organization->name,
         ]);
 
         return to_route('events.show', $event)->with('status', 'Organization added.');

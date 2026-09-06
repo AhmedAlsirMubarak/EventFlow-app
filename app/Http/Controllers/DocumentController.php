@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\StoreDocumentRequest;
 use App\Http\Requests\Admin\UpdateDocumentRequest;
+use App\Models\ActivityLog;
 use App\Models\Document;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +26,8 @@ class DocumentController extends Controller
 
             return $document;
         });
+
+        ActivityLog::log($document, 'Document uploaded: '.$document->title, $event->id, $request->user()->id);
 
         return to_route('events.show', ['event' => $event, 'tab' => 'documents'])->with('status', 'Document uploaded.');
     }

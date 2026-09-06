@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TaskStatus;
 use App\Http\Requests\Admin\StoreTaskRequest;
 use App\Http\Requests\Admin\UpdateTaskRequest;
+use App\Models\ActivityLog;
 use App\Models\Event;
 use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
@@ -13,17 +15,29 @@ class TaskController extends Controller
 {
     public function store(StoreTaskRequest $request, Event $event): RedirectResponse
     {
-        $event->tasks()->create([
+        $task = $event->tasks()->create([
             ...$request->validated(),
             'created_by' => $request->user()->id,
         ]);
+
+        ActivityLog::log($task, 'Task created: '.$task->title, $event->id, $request->user()->id);
 
         return to_route('events.show', ['event' => $event, 'tab' => 'tasks'])->with('status', 'Task added.');
     }
 
     public function update(UpdateTaskRequest $request, Task $task): RedirectResponse
     {
+        $previousStatus = $task->status;
+
         $task->update($request->validated());
+
+        if ($task->status !== $previousStatus) {
+            $description = $task->status === TaskStatus::Completed
+                ? 'Task completed: '.$task->title
+                : "Task status changed to {$task->status->value}: {$task->title}";
+
+            ActivityLog::log($task, $description, $task->event_id, $request->user()->id);
+        }
 
         return to_route('events.show', ['event' => $task->event_id, 'tab' => 'tasks'])->with('status', 'Task updated.');
     }
