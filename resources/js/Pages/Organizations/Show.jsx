@@ -21,7 +21,13 @@ const emptyContact = {
     preferred_channel: '',
 };
 
-export default function Show({ organization, contacts, preferredChannels, status }) {
+export default function Show({
+    organization,
+    contacts,
+    preferredChannels,
+    status,
+    resetLink,
+}) {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState(null);
 
@@ -74,6 +80,10 @@ export default function Show({ organization, contacts, preferredChannels, status
         }
     }
 
+    function grantPortalAccess(contact) {
+        router.post(route('contacts.portal-access', contact.id));
+    }
+
     const columns = [
         { key: 'full_name', header: 'Name' },
         { key: 'job_title', header: 'Title' },
@@ -87,6 +97,22 @@ export default function Show({ organization, contacts, preferredChannels, status
                     <Badge color="slate">{contact.preferred_channel}</Badge>
                 ) : (
                     '—'
+                ),
+        },
+        {
+            key: 'portal_access',
+            header: 'Portal Access',
+            render: (contact) =>
+                contact.user_id ? (
+                    <Badge color="emerald">Active</Badge>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => grantPortalAccess(contact)}
+                        className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                    >
+                        Grant Access
+                    </button>
                 ),
         },
         {
@@ -120,6 +146,18 @@ export default function Show({ organization, contacts, preferredChannels, status
             {status && (
                 <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
                     {status}
+                </div>
+            )}
+
+            {resetLink && (
+                <div className="mb-4 rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+                    <p className="font-medium">
+                        Portal access link (share this with the contact — email
+                        delivery isn&apos;t wired up yet):
+                    </p>
+                    <p className="mt-1 break-all font-mono text-xs">
+                        {resetLink}
+                    </p>
                 </div>
             )}
 

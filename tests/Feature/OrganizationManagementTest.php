@@ -20,7 +20,7 @@ test('guests are redirected to login', function () {
 test('external users cannot access organizations', function () {
     $external = User::factory()->external()->create();
 
-    $this->actingAs($external)->get(route('organizations.index'))->assertForbidden();
+    $this->actingAs($external)->get(route('organizations.index'))->assertRedirect(route('portal.dashboard'));
 });
 
 test('any internal user can view and create organizations', function () {

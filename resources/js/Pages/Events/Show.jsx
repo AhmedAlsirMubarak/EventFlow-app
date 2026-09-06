@@ -36,6 +36,7 @@ export default function Show({
     documents,
     availableUsers,
     availableOrganizations,
+    availableContacts,
     roles,
     relationshipTypes,
     ideaStatuses,
@@ -114,6 +115,7 @@ export default function Show({
                     event={event}
                     documents={documents}
                     availableOrganizations={availableOrganizations}
+                    availableContacts={availableContacts}
                     documentCategories={documentCategories}
                     documentVisibilities={documentVisibilities}
                 />

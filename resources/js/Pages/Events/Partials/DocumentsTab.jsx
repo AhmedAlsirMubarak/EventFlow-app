@@ -38,17 +38,48 @@ export default function DocumentsTab({
     event,
     documents,
     availableOrganizations,
+    availableContacts,
     documentCategories,
     documentVisibilities,
 }) {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingDocument, setEditingDocument] = useState(null);
     const [historyDocumentId, setHistoryDocumentId] = useState(null);
+    const [shareDocumentId, setShareDocumentId] = useState(null);
+    const [shareType, setShareType] = useState('organization');
 
     const form = useForm(emptyDocument);
     const versionForm = useForm({ file: null });
+    const shareForm = useForm({ organization_id: '', contact_id: '' });
 
     const historyDocument = documents.find((d) => d.id === historyDocumentId) ?? null;
+    const shareDocument = documents.find((d) => d.id === shareDocumentId) ?? null;
+
+    function openShareModal(document) {
+        setShareDocumentId(document.id);
+        setShareType('organization');
+        shareForm.reset();
+        shareForm.clearErrors();
+    }
+
+    function submitShare(e) {
+        e.preventDefault();
+        const payload =
+            shareType === 'organization'
+                ? { organization_id: shareForm.data.organization_id, contact_id: '' }
+                : { organization_id: '', contact_id: shareForm.data.contact_id };
+
+        shareForm.transform(() => payload).post(route('documents.shares.store', shareDocumentId), {
+            preserveScroll: true,
+            onSuccess: () => shareForm.reset(),
+        });
+    }
+
+    function revokeShare(share) {
+        if (confirm('Revoke this share? The stakeholder will lose access immediately.')) {
+            router.delete(route('document-shares.destroy', share.id), { preserveScroll: true });
+        }
+    }
 
     function openCreateModal() {
         setEditingDocument(null);
@@ -138,6 +169,19 @@ export default function DocumentsTab({
                     className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                 >
                     {document.versions_count}
+                </button>
+            ),
+        },
+        {
+            key: 'shares',
+            header: 'Shared With',
+            render: (document) => (
+                <button
+                    type="button"
+                    onClick={() => openShareModal(document)}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                    {document.shares.length} recipient{document.shares.length === 1 ? '' : 's'}
                 </button>
             ),
         },
@@ -353,6 +397,103 @@ export default function DocumentsTab({
                             </PrimaryButton>
                         </form>
                         <InputError message={versionForm.errors.file} />
+                    </div>
+                )}
+            </Modal>
+
+            <Modal show={shareDocument !== null} onClose={() => setShareDocumentId(null)} maxWidth="md">
+                {shareDocument && (
+                    <div className="space-y-4 p-6">
+                        <h3 className="text-lg font-semibold text-slate-900">
+                            Share — {shareDocument.title}
+                        </h3>
+
+                        <ul className="divide-y divide-slate-100">
+                            {shareDocument.shares.length === 0 && (
+                                <li className="py-2 text-sm text-slate-400">
+                                    Not shared with anyone yet.
+                                </li>
+                            )}
+                            {shareDocument.shares.map((share) => (
+                                <li key={share.id} className="flex items-center justify-between py-2">
+                                    <span className="text-sm text-slate-700">
+                                        {share.organization
+                                            ? `${share.organization.name} (entire organization)`
+                                            : share.contact?.full_name}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => revokeShare(share)}
+                                        className="text-xs font-medium text-rose-600 hover:text-rose-500"
+                                    >
+                                        Revoke
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+
+                        <form onSubmit={submitShare} className="space-y-3 border-t border-slate-100 pt-4">
+                            <div className="flex gap-4 text-sm text-slate-700">
+                                <label className="flex items-center gap-1.5">
+                                    <input
+                                        type="radio"
+                                        checked={shareType === 'organization'}
+                                        onChange={() => setShareType('organization')}
+                                    />
+                                    Entire organization
+                                </label>
+                                <label className="flex items-center gap-1.5">
+                                    <input
+                                        type="radio"
+                                        checked={shareType === 'contact'}
+                                        onChange={() => setShareType('contact')}
+                                    />
+                                    Specific contact
+                                </label>
+                            </div>
+
+                            {shareType === 'organization' ? (
+                                <SelectInput
+                                    className="block w-full"
+                                    value={shareForm.data.organization_id}
+                                    onChange={(e) =>
+                                        shareForm.setData('organization_id', e.target.value)
+                                    }
+                                >
+                                    <option value="">Select an organization</option>
+                                    {availableOrganizations.map((org) => (
+                                        <option key={org.id} value={org.id}>
+                                            {org.name}
+                                        </option>
+                                    ))}
+                                </SelectInput>
+                            ) : (
+                                <SelectInput
+                                    className="block w-full"
+                                    value={shareForm.data.contact_id}
+                                    onChange={(e) =>
+                                        shareForm.setData('contact_id', e.target.value)
+                                    }
+                                >
+                                    <option value="">Select a contact</option>
+                                    {availableContacts.map((contact) => (
+                                        <option key={contact.id} value={contact.id}>
+                                            {contact.full_name}
+                                        </option>
+                                    ))}
+                                </SelectInput>
+                            )}
+                            <InputError
+                                message={shareForm.errors.organization_id || shareForm.errors.contact_id}
+                            />
+
+                            <PrimaryButton
+                                disabled={shareForm.processing}
+                                className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                            >
+                                Share
+                            </PrimaryButton>
+                        </form>
                     </div>
                 )}
             </Modal>

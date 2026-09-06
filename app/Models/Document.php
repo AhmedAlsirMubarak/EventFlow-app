@@ -58,6 +58,35 @@ class Document extends Model
     }
 
     /**
+     * @return HasMany<DocumentShare, $this>
+     */
+    public function shares(): HasMany
+    {
+        return $this->hasMany(DocumentShare::class);
+    }
+
+    /**
+     * @return HasMany<DocumentActivity, $this>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(DocumentActivity::class);
+    }
+
+    /**
+     * The share record granting the given contact access to this document, if any
+     * (either shared directly with them or with their organization).
+     */
+    public function shareFor(Contact $contact): ?DocumentShare
+    {
+        return $this->shares()
+            ->where(fn ($query) => $query
+                ->where('contact_id', $contact->id)
+                ->orWhere('organization_id', $contact->organization_id))
+            ->first();
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

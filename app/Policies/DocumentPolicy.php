@@ -53,6 +53,14 @@ class DocumentPolicy
     }
 
     /**
+     * Determine whether the user can share the document externally.
+     */
+    public function share(User $user, Document $document): bool
+    {
+        return $this->canAccessEvent($user, $document->event);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Document $document): bool

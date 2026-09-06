@@ -5,10 +5,12 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentShareController;
 use App\Http\Controllers\DocumentVersionController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\IdeaController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TaskChecklistItemController;
 use App\Http\Controllers\TaskController;
@@ -25,28 +27,27 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'verified', 'role:'.Role::SuperAdministrator->value.'|'.Role::Management->value])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::resource('users', UserController::class)->except('show');
-    });
+Route::middleware(['auth', 'verified', 'internal'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+    Route::middleware('role:'.Role::SuperAdministrator->value.'|'.Role::Management->value)
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::resource('users', UserController::class)->except('show');
+        });
+
     Route::resource('organizations', OrganizationController::class);
     Route::post('organizations/{organization}/contacts', [ContactController::class, 'store'])->name('organizations.contacts.store');
     Route::put('contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
     Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+    Route::post('contacts/{contact}/portal-access', [ContactController::class, 'grantPortalAccess'])->name('contacts.portal-access');
 
     Route::resource('events', EventController::class);
     Route::post('events/{event}/team', [EventController::class, 'attachUser'])->name('events.team.store');
@@ -71,6 +72,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::post('documents/{document}/versions', [DocumentVersionController::class, 'store'])->name('documents.versions.store');
     Route::get('document-versions/{version}/download', [DocumentVersionController::class, 'download'])->name('document-versions.download');
+
+    Route::post('documents/{document}/shares', [DocumentShareController::class, 'store'])->name('documents.shares.store');
+    Route::delete('document-shares/{documentShare}', [DocumentShareController::class, 'destroy'])->name('document-shares.destroy');
 });
+
+Route::middleware(['auth', 'verified', 'external'])
+    ->prefix('portal')
+    ->name('portal.')
+    ->group(function () {
+        Route::get('/', [PortalController::class, 'index'])->name('dashboard');
+        Route::get('documents/{document}', [PortalController::class, 'show'])->name('documents.show');
+        Route::post('documents/{document}/acknowledge', [PortalController::class, 'acknowledge'])->name('documents.acknowledge');
+        Route::get('document-versions/{version}/download', [PortalController::class, 'download'])->name('document-versions.download');
+    });
 
 require __DIR__.'/auth.php';

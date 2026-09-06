@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureUserIsExternal;
+use App\Http\Middleware\EnsureUserIsInternal;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -26,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'internal' => EnsureUserIsInternal::class,
+            'external' => EnsureUserIsExternal::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

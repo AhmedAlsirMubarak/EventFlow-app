@@ -24,7 +24,7 @@ test('external users cannot manage contacts', function () {
         ['full_name' => 'Jane Doe'],
     );
 
-    $response->assertForbidden();
+    $response->assertRedirect(route('portal.dashboard'));
 });
 
 test('an internal user can add a contact to an organization', function () {

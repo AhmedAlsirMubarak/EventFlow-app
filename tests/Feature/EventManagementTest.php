@@ -24,7 +24,7 @@ test('guests are redirected to login', function () {
 test('external users cannot access events', function () {
     $external = User::factory()->external()->create();
 
-    $this->actingAs($external)->get(route('events.index'))->assertForbidden();
+    $this->actingAs($external)->get(route('events.index'))->assertRedirect(route('portal.dashboard'));
 });
 
 test('creating an event automatically adds the creator to the team', function () {

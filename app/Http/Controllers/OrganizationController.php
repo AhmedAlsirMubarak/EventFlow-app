@@ -57,6 +57,7 @@ class OrganizationController extends Controller
             'contacts' => $organization->contacts()->orderBy('full_name')->get(),
             'preferredChannels' => array_column(PreferredChannel::cases(), 'value'),
             'status' => session('status'),
+            'resetLink' => session('resetLink'),
         ]);
     }
 

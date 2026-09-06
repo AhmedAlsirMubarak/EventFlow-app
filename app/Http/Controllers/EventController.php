@@ -15,6 +15,7 @@ use App\Http\Requests\Admin\AttachEventMemberRequest;
 use App\Http\Requests\Admin\AttachEventOrganizationRequest;
 use App\Http\Requests\Admin\StoreEventRequest;
 use App\Http\Requests\Admin\UpdateEventRequest;
+use App\Models\Contact;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
@@ -72,9 +73,10 @@ class EventController extends Controller
             'organizations' => $event->organizations()->orderBy('name')->get(),
             'ideas' => $event->ideas()->with('creator:id,name')->latest()->get(),
             'tasks' => $event->tasks()->with(['assignee:id,name', 'organization:id,name', 'checklistItems'])->latest()->get(),
-            'documents' => $event->documents()->with(['currentVersion', 'versions.uploader:id,name', 'creator:id,name', 'organization:id,name'])->withCount('versions')->latest()->get(),
+            'documents' => $event->documents()->with(['currentVersion', 'versions.uploader:id,name', 'creator:id,name', 'organization:id,name', 'shares.organization:id,name', 'shares.contact:id,full_name,organization_id'])->withCount('versions')->latest()->get(),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
+            'availableContacts' => Contact::query()->orderBy('full_name')->get(['id', 'full_name', 'organization_id']),
             'roles' => array_column(Role::cases(), 'value'),
             'relationshipTypes' => array_column(OrganizationCategory::cases(), 'value'),
             'ideaStatuses' => array_column(IdeaStatus::cases(), 'value'),
