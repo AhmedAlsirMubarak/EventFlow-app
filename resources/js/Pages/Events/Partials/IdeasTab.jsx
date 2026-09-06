@@ -194,14 +194,14 @@ export default function IdeasTab({ event, ideas, statuses }) {
                     <div className="flex items-center gap-3 pt-2">
                         <PrimaryButton
                             disabled={form.processing}
-                            className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                         >
                             {editingIdea ? 'Save Changes' : 'Add Idea'}
                         </PrimaryButton>
                         <SecondaryButton
                             type="button"
                             onClick={() => setModalOpen(false)}
-                            className="text-sm normal-case tracking-normal"
+                            className="!text-sm !normal-case !tracking-normal"
                         >
                             Cancel
                         </SecondaryButton>

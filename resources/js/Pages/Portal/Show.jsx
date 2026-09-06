@@ -94,7 +94,7 @@ export default function Show({ document, acknowledgment }) {
                                 </div>
                                 <PrimaryButton
                                     disabled={processing}
-                                    className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                                    className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                                 >
                                     Acknowledge Document
                                 </PrimaryButton>

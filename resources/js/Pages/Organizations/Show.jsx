@@ -349,14 +349,14 @@ export default function Show({
                     <div className="flex items-center gap-3 pt-2">
                         <PrimaryButton
                             disabled={processing}
-                            className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                         >
                             {editingContact ? 'Save Changes' : 'Add Contact'}
                         </PrimaryButton>
                         <SecondaryButton
                             type="button"
                             onClick={closeModal}
-                            className="text-sm normal-case tracking-normal"
+                            className="!text-sm !normal-case !tracking-normal"
                         >
                             Cancel
                         </SecondaryButton>

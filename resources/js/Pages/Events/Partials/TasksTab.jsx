@@ -354,14 +354,14 @@ export default function TasksTab({
                     <div className="flex items-center gap-3 pt-2">
                         <PrimaryButton
                             disabled={taskForm.processing}
-                            className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                         >
                             {editingTask ? 'Save Changes' : 'Add Task'}
                         </PrimaryButton>
                         <SecondaryButton
                             type="button"
                             onClick={() => setTaskModalOpen(false)}
-                            className="text-sm normal-case tracking-normal"
+                            className="!text-sm !normal-case !tracking-normal"
                         >
                             Cancel
                         </SecondaryButton>
@@ -426,7 +426,7 @@ export default function TasksTab({
                             />
                             <PrimaryButton
                                 disabled={checklistForm.processing}
-                                className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                             >
                                 Add
                             </PrimaryButton>

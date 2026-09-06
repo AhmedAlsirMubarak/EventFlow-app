@@ -123,14 +123,14 @@ export default function Create({ availableRoles }) {
                     <div className="flex items-center gap-3">
                         <PrimaryButton
                             disabled={processing}
-                            className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                         >
                             Create User
                         </PrimaryButton>
                         <Link href={route('admin.users.index')}>
                             <SecondaryButton
                                 type="button"
-                                className="text-sm normal-case tracking-normal"
+                                className="!text-sm !normal-case !tracking-normal"
                             >
                                 Cancel
                             </SecondaryButton>

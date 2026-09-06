@@ -339,14 +339,14 @@ export default function DocumentsTab({
                     <div className="flex items-center gap-3 pt-2">
                         <PrimaryButton
                             disabled={form.processing}
-                            className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                         >
                             {editingDocument ? 'Save Changes' : 'Upload'}
                         </PrimaryButton>
                         <SecondaryButton
                             type="button"
                             onClick={() => setModalOpen(false)}
-                            className="text-sm normal-case tracking-normal"
+                            className="!text-sm !normal-case !tracking-normal"
                         >
                             Cancel
                         </SecondaryButton>
@@ -391,7 +391,7 @@ export default function DocumentsTab({
                             />
                             <PrimaryButton
                                 disabled={versionForm.processing || !versionForm.data.file}
-                                className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                             >
                                 Upload New Version
                             </PrimaryButton>
@@ -494,7 +494,7 @@ export default function DocumentsTab({
 
                             <PrimaryButton
                                 disabled={shareForm.processing}
-                                className="bg-indigo-600 text-sm normal-case tracking-normal hover:bg-indigo-500 focus:bg-indigo-500 active:bg-indigo-700"
+                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                             >
                                 Share
                             </PrimaryButton>
