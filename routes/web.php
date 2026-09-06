@@ -2,7 +2,9 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -33,5 +35,12 @@ Route::middleware(['auth', 'verified', 'role:'.Role::SuperAdministrator->value.'
     ->group(function () {
         Route::resource('users', UserController::class)->except('show');
     });
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('organizations', OrganizationController::class);
+    Route::post('organizations/{organization}/contacts', [ContactController::class, 'store'])->name('organizations.contacts.store');
+    Route::put('contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
+    Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+});
 
 require __DIR__.'/auth.php';

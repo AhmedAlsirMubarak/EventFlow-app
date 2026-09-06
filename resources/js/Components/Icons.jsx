@@ -45,3 +45,11 @@ export function IconUserCircle(props) {
         </svg>
     );
 }
+
+export function IconBuildingOffice(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h9a.75.75 0 01.75.75V21H4.5V3.75A.75.75 0 014.5 3zM13.5 21V9.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75V21M7.5 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m4.5 3h1.5m-1.5-3h1.5" />
+        </svg>
+    );
+}

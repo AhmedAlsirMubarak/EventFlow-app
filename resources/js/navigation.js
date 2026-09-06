@@ -1,4 +1,9 @@
-import { IconDashboard, IconUserCircle, IconUsers } from '@/Components/Icons';
+import {
+    IconBuildingOffice,
+    IconDashboard,
+    IconUserCircle,
+    IconUsers,
+} from '@/Components/Icons';
 
 /**
  * Sidebar navigation entries. `roles`, when present, restricts visibility to
@@ -10,6 +15,11 @@ export const navigation = [
         name: 'Dashboard',
         routeName: 'dashboard',
         icon: IconDashboard,
+    },
+    {
+        name: 'Organizations',
+        routeName: 'organizations.index',
+        icon: IconBuildingOffice,
     },
     {
         name: 'Users',
