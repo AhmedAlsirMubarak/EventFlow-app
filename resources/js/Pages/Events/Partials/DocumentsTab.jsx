@@ -69,7 +69,8 @@ export default function DocumentsTab({
                 ? { organization_id: shareForm.data.organization_id, contact_id: '' }
                 : { organization_id: '', contact_id: shareForm.data.contact_id };
 
-        shareForm.transform(() => payload).post(route('documents.shares.store', shareDocumentId), {
+        shareForm.transform(() => payload);
+        shareForm.post(route('documents.shares.store', shareDocumentId), {
             preserveScroll: true,
             onSuccess: () => shareForm.reset(),
         });
