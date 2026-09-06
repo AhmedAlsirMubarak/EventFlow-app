@@ -4,6 +4,7 @@ use App\Enums\Role;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -41,6 +42,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('organizations/{organization}/contacts', [ContactController::class, 'store'])->name('organizations.contacts.store');
     Route::put('contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
     Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+
+    Route::resource('events', EventController::class);
+    Route::post('events/{event}/team', [EventController::class, 'attachUser'])->name('events.team.store');
+    Route::delete('events/{event}/team/{user}', [EventController::class, 'detachUser'])->name('events.team.destroy');
+    Route::post('events/{event}/organizations', [EventController::class, 'attachOrganization'])->name('events.organizations.store');
+    Route::delete('events/{event}/organizations/{organization}', [EventController::class, 'detachOrganization'])->name('events.organizations.destroy');
 });
 
 require __DIR__.'/auth.php';

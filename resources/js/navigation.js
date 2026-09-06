@@ -1,5 +1,6 @@
 import {
     IconBuildingOffice,
+    IconCalendar,
     IconDashboard,
     IconUserCircle,
     IconUsers,
@@ -15,6 +16,11 @@ export const navigation = [
         name: 'Dashboard',
         routeName: 'dashboard',
         icon: IconDashboard,
+    },
+    {
+        name: 'Events',
+        routeName: 'events.index',
+        icon: IconCalendar,
     },
     {
         name: 'Organizations',
