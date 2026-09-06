@@ -10,6 +10,12 @@ function isRouteAllowed(item, roles) {
     return item.roles.some((role) => roles.includes(role));
 }
 
+function isActive(routeName) {
+    const section = routeName.replace(/\.index$/, '.*');
+
+    return route().current(routeName) || route().current(section);
+}
+
 export default function Sidebar({ roles, open, onClose }) {
     const items = navigation.filter((item) => isRouteAllowed(item, roles));
 
@@ -38,7 +44,7 @@ export default function Sidebar({ roles, open, onClose }) {
 
                 <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
                     {items.map((item) => {
-                        const active = route().current(item.routeName);
+                        const active = isActive(item.routeName);
                         const Icon = item.icon;
 
                         return (

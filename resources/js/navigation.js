@@ -1,4 +1,4 @@
-import { IconDashboard, IconUserCircle } from '@/Components/Icons';
+import { IconDashboard, IconUserCircle, IconUsers } from '@/Components/Icons';
 
 /**
  * Sidebar navigation entries. `roles`, when present, restricts visibility to
@@ -10,6 +10,12 @@ export const navigation = [
         name: 'Dashboard',
         routeName: 'dashboard',
         icon: IconDashboard,
+    },
+    {
+        name: 'Users',
+        routeName: 'admin.users.index',
+        icon: IconUsers,
+        roles: ['Super Administrator', 'Management'],
     },
     {
         name: 'My Profile',
