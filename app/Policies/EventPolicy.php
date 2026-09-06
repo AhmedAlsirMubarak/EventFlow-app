@@ -5,9 +5,12 @@ namespace App\Policies;
 use App\Enums\Role;
 use App\Models\Event;
 use App\Models\User;
+use App\Policies\Concerns\ChecksEventAccess;
 
 class EventPolicy
 {
+    use ChecksEventAccess;
+
     /**
      * Determine whether the user can view any models.
      */
@@ -21,7 +24,7 @@ class EventPolicy
      */
     public function view(User $user, Event $event): bool
     {
-        return $this->isElevated($user) || $event->users()->where('users.id', $user->id)->exists();
+        return $this->canAccessEvent($user, $event);
     }
 
     /**
@@ -37,7 +40,7 @@ class EventPolicy
      */
     public function update(User $user, Event $event): bool
     {
-        return $this->view($user, $event);
+        return $this->canAccessEvent($user, $event);
     }
 
     /**
@@ -45,7 +48,7 @@ class EventPolicy
      */
     public function delete(User $user, Event $event): bool
     {
-        return $this->isElevated($user);
+        return $user->hasAnyRole([Role::SuperAdministrator->value, Role::Management->value]);
     }
 
     /**
@@ -53,11 +56,6 @@ class EventPolicy
      */
     public function manageMembers(User $user, Event $event): bool
     {
-        return $this->view($user, $event);
-    }
-
-    private function isElevated(User $user): bool
-    {
-        return $user->hasAnyRole([Role::SuperAdministrator->value, Role::Management->value]);
+        return $this->canAccessEvent($user, $event);
     }
 }

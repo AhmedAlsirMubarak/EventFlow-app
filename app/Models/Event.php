@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['name', 'code', 'description', 'start_date', 'end_date', 'status', 'created_by'])]
 class Event extends Model
@@ -42,6 +43,22 @@ class Event extends Model
         return $this->belongsToMany(Organization::class)
             ->withPivot('relationship_type')
             ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<Idea, $this>
+     */
+    public function ideas(): HasMany
+    {
+        return $this->hasMany(Idea::class);
+    }
+
+    /**
+     * @return HasMany<Task, $this>
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 
     /**

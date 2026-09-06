@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\EventStatus;
+use App\Enums\IdeaStatus;
 use App\Enums\OrganizationCategory;
 use App\Enums\Role;
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Enums\UserType;
 use App\Http\Requests\Admin\AttachEventMemberRequest;
 use App\Http\Requests\Admin\AttachEventOrganizationRequest;
@@ -65,10 +68,15 @@ class EventController extends Controller
             'event' => $event,
             'team' => $event->users()->orderBy('name')->get(),
             'organizations' => $event->organizations()->orderBy('name')->get(),
+            'ideas' => $event->ideas()->with('creator:id,name')->latest()->get(),
+            'tasks' => $event->tasks()->with(['assignee:id,name', 'organization:id,name', 'checklistItems'])->latest()->get(),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'roles' => array_column(Role::cases(), 'value'),
             'relationshipTypes' => array_column(OrganizationCategory::cases(), 'value'),
+            'ideaStatuses' => array_column(IdeaStatus::cases(), 'value'),
+            'taskStatuses' => array_column(TaskStatus::cases(), 'value'),
+            'taskPriorities' => array_column(TaskPriority::cases(), 'value'),
             'status' => session('status'),
         ]);
     }
