@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { POLL_INTERVAL } from '@/pollInterval';
+import { Head, usePoll } from '@inertiajs/react';
 import { useState } from 'react';
 import DocumentsTab from './Partials/DocumentsTab';
 import IdeasTab from './Partials/IdeasTab';
@@ -47,6 +48,7 @@ export default function Show({
     status,
 }) {
     const [activeTab, setActiveTab] = useState(initialTab);
+    usePoll(POLL_INTERVAL, { preserveScroll: true });
 
     return (
         <AuthenticatedLayout header={event.name}>

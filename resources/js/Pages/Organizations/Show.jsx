@@ -9,8 +9,9 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { POLL_INTERVAL } from '@/pollInterval';
+import { Head, Link, router, useForm, usePoll } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 const emptyContact = {
     full_name: '',
@@ -28,8 +29,19 @@ export default function Show({
     status,
     resetLink,
 }) {
+    usePoll(POLL_INTERVAL, { preserveScroll: true });
+
     const [modalOpen, setModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState(null);
+
+    // Latched into local state so the one-time flash isn't lost to a
+    // background poll refresh before the user has copied it.
+    const [displayedResetLink, setDisplayedResetLink] = useState(resetLink);
+    useEffect(() => {
+        if (resetLink) {
+            setDisplayedResetLink(resetLink);
+        }
+    }, [resetLink]);
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } =
         useForm(emptyContact);
@@ -162,14 +174,23 @@ export default function Show({
                 </div>
             )}
 
-            {resetLink && (
+            {displayedResetLink && (
                 <div className="mb-4 rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
-                    <p className="font-medium">
-                        Portal access link (share this with the contact — email
-                        delivery isn&apos;t wired up yet):
-                    </p>
+                    <div className="flex items-start justify-between gap-4">
+                        <p className="font-medium">
+                            Portal access link (share this with the contact —
+                            email delivery isn&apos;t wired up yet):
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => setDisplayedResetLink(null)}
+                            className="shrink-0 text-xs font-medium text-indigo-500 hover:text-indigo-700"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
                     <p className="mt-1 break-all font-mono text-xs">
-                        {resetLink}
+                        {displayedResetLink}
                     </p>
                 </div>
             )}

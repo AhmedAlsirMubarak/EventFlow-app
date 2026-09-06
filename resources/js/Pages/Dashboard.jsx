@@ -9,7 +9,8 @@ import {
     IconUsers,
 } from '@/Components/Icons';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router, usePage } from '@inertiajs/react';
+import { POLL_INTERVAL } from '@/pollInterval';
+import { Head, router, usePage, usePoll } from '@inertiajs/react';
 import { useState } from 'react';
 
 function formatDateTime(value) {
@@ -20,6 +21,8 @@ function formatDateTime(value) {
 }
 
 export default function Dashboard({ stats, recentActivity, filters, filterOptions }) {
+    usePoll(POLL_INTERVAL, { preserveScroll: true });
+
     const { auth } = usePage().props;
     const [form, setForm] = useState({
         event_id: filters.event_id ?? '',

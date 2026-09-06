@@ -2,7 +2,8 @@ import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
 import PortalLayout from '@/Layouts/PortalLayout';
-import { Head, Link } from '@inertiajs/react';
+import { POLL_INTERVAL } from '@/pollInterval';
+import { Head, Link, usePoll } from '@inertiajs/react';
 
 const statusColors = {
     Shared: 'slate',
@@ -12,6 +13,8 @@ const statusColors = {
 };
 
 export default function Dashboard({ documents }) {
+    usePoll(POLL_INTERVAL);
+
     const columns = [
         {
             key: 'title',

@@ -2,7 +2,8 @@ import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { POLL_INTERVAL } from '@/pollInterval';
+import { Head, Link, usePoll } from '@inertiajs/react';
 
 const statusColors = {
     Planning: 'amber',
@@ -12,6 +13,8 @@ const statusColors = {
 };
 
 export default function Index({ events }) {
+    usePoll(POLL_INTERVAL);
+
     const columns = [
         {
             key: 'name',

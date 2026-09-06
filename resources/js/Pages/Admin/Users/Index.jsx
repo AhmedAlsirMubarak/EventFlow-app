@@ -2,9 +2,12 @@ import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router } from '@inertiajs/react';
+import { POLL_INTERVAL } from '@/pollInterval';
+import { Head, Link, router, usePoll } from '@inertiajs/react';
 
 export default function Index({ users, status }) {
+    usePoll(POLL_INTERVAL);
+
     function destroy(user) {
         if (
             confirm(`Remove ${user.name}? They will lose access immediately.`)
