@@ -62,6 +62,14 @@ class Event extends Model
     }
 
     /**
+     * @return HasMany<Document, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

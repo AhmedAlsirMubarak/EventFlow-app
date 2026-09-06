@@ -4,6 +4,8 @@ use App\Enums\Role;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentVersionController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\IdeaController;
 use App\Http\Controllers\OrganizationController;
@@ -63,6 +65,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('tasks/{task}/checklist-items', [TaskChecklistItemController::class, 'store'])->name('checklist-items.store');
     Route::patch('checklist-items/{checklistItem}', [TaskChecklistItemController::class, 'update'])->name('checklist-items.update');
     Route::delete('checklist-items/{checklistItem}', [TaskChecklistItemController::class, 'destroy'])->name('checklist-items.destroy');
+
+    Route::post('events/{event}/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::put('documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
+    Route::delete('documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+    Route::post('documents/{document}/versions', [DocumentVersionController::class, 'store'])->name('documents.versions.store');
+    Route::get('document-versions/{version}/download', [DocumentVersionController::class, 'download'])->name('document-versions.download');
 });
 
 require __DIR__.'/auth.php';

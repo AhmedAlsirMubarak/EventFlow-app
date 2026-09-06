@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DocumentCategory;
+use App\Enums\DocumentVisibility;
 use App\Enums\EventStatus;
 use App\Enums\IdeaStatus;
 use App\Enums\OrganizationCategory;
@@ -70,6 +72,7 @@ class EventController extends Controller
             'organizations' => $event->organizations()->orderBy('name')->get(),
             'ideas' => $event->ideas()->with('creator:id,name')->latest()->get(),
             'tasks' => $event->tasks()->with(['assignee:id,name', 'organization:id,name', 'checklistItems'])->latest()->get(),
+            'documents' => $event->documents()->with(['currentVersion', 'versions.uploader:id,name', 'creator:id,name', 'organization:id,name'])->withCount('versions')->latest()->get(),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'roles' => array_column(Role::cases(), 'value'),
@@ -77,6 +80,8 @@ class EventController extends Controller
             'ideaStatuses' => array_column(IdeaStatus::cases(), 'value'),
             'taskStatuses' => array_column(TaskStatus::cases(), 'value'),
             'taskPriorities' => array_column(TaskPriority::cases(), 'value'),
+            'documentCategories' => array_column(DocumentCategory::cases(), 'value'),
+            'documentVisibilities' => array_column(DocumentVisibility::cases(), 'value'),
             'status' => session('status'),
         ]);
     }

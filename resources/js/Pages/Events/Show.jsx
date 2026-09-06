@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
+import DocumentsTab from './Partials/DocumentsTab';
 import IdeasTab from './Partials/IdeasTab';
 import OrganizationsTab from './Partials/OrganizationsTab';
 import OverviewTab from './Partials/OverviewTab';
@@ -13,6 +14,7 @@ const tabs = [
     { key: 'organizations', label: 'Organizations' },
     { key: 'ideas', label: 'Ideas' },
     { key: 'tasks', label: 'Tasks' },
+    { key: 'documents', label: 'Documents' },
 ];
 
 function initialTab() {
@@ -31,6 +33,7 @@ export default function Show({
     organizations,
     ideas,
     tasks,
+    documents,
     availableUsers,
     availableOrganizations,
     roles,
@@ -38,6 +41,8 @@ export default function Show({
     ideaStatuses,
     taskStatuses,
     taskPriorities,
+    documentCategories,
+    documentVisibilities,
     status,
 }) {
     const [activeTab, setActiveTab] = useState(initialTab);
@@ -101,6 +106,16 @@ export default function Show({
                     availableOrganizations={availableOrganizations}
                     taskStatuses={taskStatuses}
                     taskPriorities={taskPriorities}
+                />
+            )}
+
+            {activeTab === 'documents' && (
+                <DocumentsTab
+                    event={event}
+                    documents={documents}
+                    availableOrganizations={availableOrganizations}
+                    documentCategories={documentCategories}
+                    documentVisibilities={documentVisibilities}
                 />
             )}
         </AuthenticatedLayout>
