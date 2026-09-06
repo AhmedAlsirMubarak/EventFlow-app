@@ -1,17 +1,19 @@
+import Badge from '@/Components/UI/Badge';
+import Checkbox from '@/Components/Checkbox';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextareaInput from '@/Components/TextareaInput';
 import { router, useForm, usePage } from '@inertiajs/react';
 
-export default function CommentsPanel({ show, onClose, title, comments, storeUrl }) {
+export default function CommentsPanel({ show, onClose, title, comments, storeUrl, allowVisibilityToggle = false }) {
     const { auth } = usePage().props;
-    const form = useForm({ body: '' });
+    const form = useForm({ body: '', visibility: 'Internal' });
 
     function submit(e) {
         e.preventDefault();
         form.post(storeUrl, {
             preserveScroll: true,
-            onSuccess: () => form.reset(),
+            onSuccess: () => form.reset('body'),
         });
     }
 
@@ -21,6 +23,14 @@ export default function CommentsPanel({ show, onClose, title, comments, storeUrl
                 preserveScroll: true,
             });
         }
+    }
+
+    function isOwnComment(comment) {
+        if (comment.user) {
+            return comment.user.id === auth.user.id;
+        }
+
+        return comment.contact?.id === auth.contactId;
     }
 
     return (
@@ -42,10 +52,15 @@ export default function CommentsPanel({ show, onClose, title, comments, storeUrl
                             className="rounded-lg bg-slate-50 p-3 text-sm"
                         >
                             <div className="flex items-center justify-between">
-                                <span className="font-medium text-slate-900">
-                                    {comment.user?.name ?? 'Unknown'}
-                                </span>
-                                {comment.user?.id === auth.user.id && (
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-900">
+                                        {comment.user?.name ?? comment.contact?.full_name ?? 'Unknown'}
+                                    </span>
+                                    {comment.visibility === 'External' && (
+                                        <Badge color="indigo">Visible to stakeholder</Badge>
+                                    )}
+                                </div>
+                                {isOwnComment(comment) && (
                                     <button
                                         type="button"
                                         onClick={() => destroy(comment)}
@@ -70,6 +85,17 @@ export default function CommentsPanel({ show, onClose, title, comments, storeUrl
                         value={form.data.body}
                         onChange={(e) => form.setData('body', e.target.value)}
                     />
+                    {allowVisibilityToggle && (
+                        <label className="flex items-center gap-2 text-sm text-slate-600">
+                            <Checkbox
+                                checked={form.data.visibility === 'External'}
+                                onChange={(e) =>
+                                    form.setData('visibility', e.target.checked ? 'External' : 'Internal')
+                                }
+                            />
+                            Visible to the stakeholder
+                        </label>
+                    )}
                     <PrimaryButton
                         disabled={form.processing || !form.data.body}
                         className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"

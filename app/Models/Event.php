@@ -86,6 +86,14 @@ class Event extends Model
     }
 
     /**
+     * @return HasMany<StakeholderRequest, $this>
+     */
+    public function stakeholderRequests(): HasMany
+    {
+        return $this->hasMany(StakeholderRequest::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

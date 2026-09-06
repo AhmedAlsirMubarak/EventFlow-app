@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\CommentVisibility;
 use App\Models\Comment;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class StoreCommentRequest extends FormRequest
 {
@@ -13,7 +15,7 @@ class StoreCommentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $commentable = $this->route('idea') ?? $this->route('task');
+        $commentable = $this->route('idea') ?? $this->route('task') ?? $this->route('stakeholderRequest');
 
         return $this->user()->can('create', [Comment::class, $commentable]);
     }
@@ -27,6 +29,7 @@ class StoreCommentRequest extends FormRequest
     {
         return [
             'body' => ['required', 'string', 'max:5000'],
+            'visibility' => ['sometimes', new Enum(CommentVisibility::class)],
         ];
     }
 }

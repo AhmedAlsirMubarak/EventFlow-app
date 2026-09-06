@@ -7,6 +7,7 @@ use App\Enums\DocumentVisibility;
 use App\Enums\EventStatus;
 use App\Enums\IdeaStatus;
 use App\Enums\OrganizationCategory;
+use App\Enums\RequestStatus;
 use App\Enums\Role;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
@@ -85,6 +86,17 @@ class EventController extends Controller
                 ->with(['decidedBy:id,name', 'organization:id,name', 'meeting:id,title', 'relatedDocument:id,title', 'supportingDocuments:id,title'])
                 ->orderByDesc('decision_date')
                 ->get(),
+            'stakeholderRequests' => $event->stakeholderRequests()
+                ->with([
+                    'organization:id,name',
+                    'contact:id,full_name,organization_id',
+                    'assignee:id,name',
+                    'creator:id,name',
+                    'comments.user:id,name',
+                    'comments.contact:id,full_name',
+                ])
+                ->latest()
+                ->get(),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'availableContacts' => Contact::query()->orderBy('full_name')->get(['id', 'full_name', 'organization_id']),
@@ -95,6 +107,7 @@ class EventController extends Controller
             'taskPriorities' => array_column(TaskPriority::cases(), 'value'),
             'documentCategories' => array_column(DocumentCategory::cases(), 'value'),
             'documentVisibilities' => array_column(DocumentVisibility::cases(), 'value'),
+            'requestStatuses' => array_column(RequestStatus::cases(), 'value'),
             'status' => session('status'),
         ]);
     }

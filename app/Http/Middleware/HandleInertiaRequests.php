@@ -36,6 +36,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
                 'roles' => $user?->getRoleNames() ?? [],
+                'contactId' => $user?->contact?->id,
             ],
         ];
     }

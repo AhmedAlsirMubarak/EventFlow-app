@@ -10,12 +10,29 @@ export default function PortalLayout({ header, children }) {
         <div className="min-h-screen bg-slate-50">
             <header className="border-b border-slate-200 bg-white">
                 <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-                    <Link href={route('portal.dashboard')} className="flex items-center gap-2">
-                        <ApplicationLogo className="h-8 w-8 fill-current text-indigo-600" />
-                        <span className="text-lg font-semibold text-slate-900">
-                            EventFlow
-                        </span>
-                    </Link>
+                    <div className="flex items-center gap-8">
+                        <Link href={route('portal.dashboard')} className="flex items-center gap-2">
+                            <ApplicationLogo className="h-8 w-8 fill-current text-indigo-600" />
+                            <span className="text-lg font-semibold text-slate-900">
+                                EventFlow
+                            </span>
+                        </Link>
+
+                        <nav className="hidden items-center gap-6 sm:flex">
+                            <Link
+                                href={route('portal.dashboard')}
+                                className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                            >
+                                Documents
+                            </Link>
+                            <Link
+                                href={route('portal.requests.index')}
+                                className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                            >
+                                My Requests
+                            </Link>
+                        </nav>
+                    </div>
 
                     <Dropdown>
                         <Dropdown.Trigger>

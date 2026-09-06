@@ -59,6 +59,31 @@ class Contact extends Model
     }
 
     /**
+     * @return HasMany<StakeholderRequest, $this>
+     */
+    public function stakeholderRequests(): HasMany
+    {
+        return $this->hasMany(StakeholderRequest::class);
+    }
+
+    /**
+     * Events this contact's organization participates in, and can therefore submit requests against.
+     *
+     * @return Collection<int, Event>
+     */
+    public function accessibleEvents(): Collection
+    {
+        if (! $this->organization_id) {
+            return collect();
+        }
+
+        return Event::query()
+            ->whereHas('organizations', fn ($query) => $query->where('organizations.id', $this->organization_id))
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
      * Documents shared directly with this contact or with their organization.
      *
      * @return Collection<int, DocumentShare>

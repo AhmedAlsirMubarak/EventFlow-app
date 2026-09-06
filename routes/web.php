@@ -14,7 +14,9 @@ use App\Http\Controllers\IdeaController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\Portal\PortalController;
+use App\Http\Controllers\Portal\StakeholderRequestController as PortalStakeholderRequestController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StakeholderRequestController;
 use App\Http\Controllers\TaskChecklistItemController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Foundation\Application;
@@ -94,6 +96,11 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::post('events/{event}/decisions', [DecisionController::class, 'store'])->name('decisions.store');
     Route::put('decisions/{decision}', [DecisionController::class, 'update'])->name('decisions.update');
     Route::delete('decisions/{decision}', [DecisionController::class, 'destroy'])->name('decisions.destroy');
+
+    Route::post('events/{event}/requests', [StakeholderRequestController::class, 'store'])->name('requests.store');
+    Route::put('requests/{stakeholderRequest}', [StakeholderRequestController::class, 'update'])->name('requests.update');
+    Route::delete('requests/{stakeholderRequest}', [StakeholderRequestController::class, 'destroy'])->name('requests.destroy');
+    Route::post('requests/{stakeholderRequest}/comments', [CommentController::class, 'storeForRequest'])->name('requests.comments.store');
 });
 
 Route::middleware(['auth', 'verified', 'external'])
@@ -104,6 +111,11 @@ Route::middleware(['auth', 'verified', 'external'])
         Route::get('documents/{document}', [PortalController::class, 'show'])->name('documents.show');
         Route::post('documents/{document}/acknowledge', [PortalController::class, 'acknowledge'])->name('documents.acknowledge');
         Route::get('document-versions/{version}/download', [PortalController::class, 'download'])->name('document-versions.download');
+
+        Route::get('requests', [PortalStakeholderRequestController::class, 'index'])->name('requests.index');
+        Route::post('requests', [PortalStakeholderRequestController::class, 'store'])->name('requests.store');
+        Route::get('requests/{stakeholderRequest}', [PortalStakeholderRequestController::class, 'show'])->name('requests.show');
+        Route::post('requests/{stakeholderRequest}/comments', [CommentController::class, 'storeForRequest'])->name('requests.comments.store');
     });
 
 require __DIR__.'/auth.php';
