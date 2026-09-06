@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DecisionController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentShareController;
 use App\Http\Controllers\DocumentVersionController;
@@ -89,6 +90,10 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::post('meetings/{meeting}/action-items', [MeetingController::class, 'storeActionItem'])->name('meetings.action-items.store');
     Route::post('meetings/{meeting}/documents', [MeetingController::class, 'attachDocument'])->name('meetings.documents.store');
     Route::delete('meetings/{meeting}/documents/{document}', [MeetingController::class, 'detachDocument'])->name('meetings.documents.destroy');
+
+    Route::post('events/{event}/decisions', [DecisionController::class, 'store'])->name('decisions.store');
+    Route::put('decisions/{decision}', [DecisionController::class, 'update'])->name('decisions.update');
+    Route::delete('decisions/{decision}', [DecisionController::class, 'destroy'])->name('decisions.destroy');
 });
 
 Route::middleware(['auth', 'verified', 'external'])

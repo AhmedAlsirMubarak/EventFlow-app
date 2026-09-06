@@ -78,6 +78,14 @@ class Event extends Model
     }
 
     /**
+     * @return HasMany<Decision, $this>
+     */
+    public function decisions(): HasMany
+    {
+        return $this->hasMany(Decision::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

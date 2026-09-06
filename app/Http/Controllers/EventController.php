@@ -81,6 +81,10 @@ class EventController extends Controller
                 ->with(['organization:id,name', 'participants:id,name', 'externalParticipants:id,full_name', 'documents:id,title', 'actionItems.assignee:id,name'])
                 ->orderByDesc('held_at')
                 ->get(),
+            'decisions' => $event->decisions()
+                ->with(['decidedBy:id,name', 'organization:id,name', 'meeting:id,title', 'relatedDocument:id,title', 'supportingDocuments:id,title'])
+                ->orderByDesc('decision_date')
+                ->get(),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'availableContacts' => Contact::query()->orderBy('full_name')->get(['id', 'full_name', 'organization_id']),

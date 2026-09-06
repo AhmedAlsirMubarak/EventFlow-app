@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, usePoll } from '@inertiajs/react';
 import { useState } from 'react';
+import DecisionsTab from './Partials/DecisionsTab';
 import DocumentsTab from './Partials/DocumentsTab';
 import IdeasTab from './Partials/IdeasTab';
 import MeetingsTab from './Partials/MeetingsTab';
@@ -17,6 +18,7 @@ const tabs = [
     { key: 'ideas', label: 'Ideas' },
     { key: 'tasks', label: 'Tasks' },
     { key: 'meetings', label: 'Meetings' },
+    { key: 'decisions', label: 'Decisions' },
     { key: 'documents', label: 'Documents' },
 ];
 
@@ -38,6 +40,7 @@ export default function Show({
     tasks,
     documents,
     meetings,
+    decisions,
     availableUsers,
     availableOrganizations,
     availableContacts,
@@ -124,6 +127,17 @@ export default function Show({
                     availableOrganizations={availableOrganizations}
                     documents={documents}
                     taskPriorities={taskPriorities}
+                />
+            )}
+
+            {activeTab === 'decisions' && (
+                <DecisionsTab
+                    event={event}
+                    decisions={decisions}
+                    availableUsers={availableUsers}
+                    availableOrganizations={availableOrganizations}
+                    meetings={meetings}
+                    documents={documents}
                 />
             )}
 
