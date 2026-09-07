@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'code', 'description', 'start_date', 'end_date', 'status', 'created_by'])]
+#[Fillable(['name', 'code', 'description', 'start_date', 'end_date', 'status', 'created_by', 'closure_summary', 'closed_at', 'closed_by'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -102,6 +102,27 @@ class Event extends Model
     }
 
     /**
+     * @return HasMany<LessonLearned, $this>
+     */
+    public function lessonsLearned(): HasMany
+    {
+        return $this->hasMany(LessonLearned::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function closedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'closed_by');
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->closed_at !== null;
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -110,6 +131,7 @@ class Event extends Model
             'start_date' => 'date:Y-m-d',
             'end_date' => 'date:Y-m-d',
             'status' => EventStatus::class,
+            'closed_at' => 'datetime',
         ];
     }
 }

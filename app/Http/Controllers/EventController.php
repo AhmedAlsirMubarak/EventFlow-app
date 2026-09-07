@@ -6,6 +6,7 @@ use App\Enums\DocumentCategory;
 use App\Enums\DocumentVisibility;
 use App\Enums\EventStatus;
 use App\Enums\IdeaStatus;
+use App\Enums\LessonCategory;
 use App\Enums\OrganizationCategory;
 use App\Enums\ReminderStatus;
 use App\Enums\RequestStatus;
@@ -73,7 +74,7 @@ class EventController extends Controller
         Gate::authorize('view', $event);
 
         return Inertia::render('Events/Show', [
-            'event' => $event,
+            'event' => $event->load('closedBy:id,name'),
             'team' => $event->users()->orderBy('name')->get(),
             'organizations' => $event->organizations()->orderBy('name')->get(),
             'ideas' => $event->ideas()->with(['creator:id,name', 'comments.user:id,name'])->latest()->get(),
@@ -102,6 +103,10 @@ class EventController extends Controller
                 ->with(['organization:id,name', 'contact:id,full_name', 'assignee:id,name', 'creator:id,name'])
                 ->orderBy('remind_at')
                 ->get(),
+            'lessonsLearned' => $event->lessonsLearned()
+                ->with('creator:id,name')
+                ->latest()
+                ->get(),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'availableContacts' => Contact::query()->orderBy('full_name')->get(['id', 'full_name', 'organization_id']),
@@ -114,6 +119,7 @@ class EventController extends Controller
             'documentVisibilities' => array_column(DocumentVisibility::cases(), 'value'),
             'requestStatuses' => array_column(RequestStatus::cases(), 'value'),
             'reminderStatuses' => array_column(ReminderStatus::cases(), 'value'),
+            'lessonCategories' => array_column(LessonCategory::cases(), 'value'),
             'status' => session('status'),
         ]);
     }

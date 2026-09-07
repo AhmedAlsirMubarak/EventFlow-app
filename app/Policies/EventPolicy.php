@@ -58,4 +58,13 @@ class EventPolicy
     {
         return $this->canAccessEvent($user, $event);
     }
+
+    /**
+     * Determine whether the user can close or reopen the event.
+     */
+    public function close(User $user, Event $event): bool
+    {
+        return $this->canAccessEvent($user, $event)
+            && $user->hasAnyRole([Role::SuperAdministrator->value, Role::Management->value]);
+    }
 }

@@ -11,8 +11,10 @@ use App\Http\Controllers\DocumentApprovalController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentShareController;
 use App\Http\Controllers\DocumentVersionController;
+use App\Http\Controllers\EventClosureController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\IdeaController;
+use App\Http\Controllers\LessonLearnedController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\Portal\PortalController;
@@ -60,6 +62,8 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
 
     Route::resource('events', EventController::class);
     Route::get('events/{event}/communication-report', [CommunicationReportController::class, 'show'])->name('events.communication-report');
+    Route::post('events/{event}/close', [EventClosureController::class, 'close'])->name('events.close');
+    Route::post('events/{event}/reopen', [EventClosureController::class, 'reopen'])->name('events.reopen');
     Route::post('events/{event}/team', [EventController::class, 'attachUser'])->name('events.team.store');
     Route::delete('events/{event}/team/{user}', [EventController::class, 'detachUser'])->name('events.team.destroy');
     Route::post('events/{event}/organizations', [EventController::class, 'attachOrganization'])->name('events.organizations.store');
@@ -110,6 +114,10 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::post('events/{event}/reminders', [ReminderController::class, 'store'])->name('reminders.store');
     Route::put('reminders/{reminder}', [ReminderController::class, 'update'])->name('reminders.update');
     Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
+
+    Route::post('events/{event}/lessons', [LessonLearnedController::class, 'store'])->name('lessons.store');
+    Route::put('lessons/{lessonLearned}', [LessonLearnedController::class, 'update'])->name('lessons.update');
+    Route::delete('lessons/{lessonLearned}', [LessonLearnedController::class, 'destroy'])->name('lessons.destroy');
 });
 
 Route::middleware(['auth', 'verified', 'external'])
