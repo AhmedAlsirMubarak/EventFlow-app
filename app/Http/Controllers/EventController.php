@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CommitteeRole;
 use App\Enums\DocumentCategory;
 use App\Enums\DocumentVisibility;
 use App\Enums\EventStatus;
@@ -14,11 +15,13 @@ use App\Enums\Role;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Enums\UserType;
+use App\Http\Requests\Admin\AttachCommitteeMemberRequest;
 use App\Http\Requests\Admin\AttachEventMemberRequest;
 use App\Http\Requests\Admin\AttachEventOrganizationRequest;
 use App\Http\Requests\Admin\StoreEventRequest;
 use App\Http\Requests\Admin\UpdateEventRequest;
 use App\Models\ActivityLog;
+use App\Models\CommitteeMember;
 use App\Models\Contact;
 use App\Models\DocumentActivity;
 use App\Models\Event;
@@ -115,6 +118,9 @@ class EventController extends Controller
                 ->latest()
                 ->limit(150)
                 ->get(),
+            'committeeMembers' => $event->committeeMembers()->with('user:id,name')->get(),
+            'abstractCall' => $event->abstractCall()->with('tracks')->first(),
+            'committeeRoles' => array_column(CommitteeRole::cases(), 'value'),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'availableContacts' => Contact::query()->orderBy('full_name')->get(['id', 'full_name', 'organization_id']),
@@ -198,5 +204,25 @@ class EventController extends Controller
         $event->organizations()->detach($organization->id);
 
         return to_route('events.show', $event)->with('status', 'Organization removed.');
+    }
+
+    public function attachCommitteeMember(AttachCommitteeMemberRequest $request, Event $event): RedirectResponse
+    {
+        $event->committeeMembers()->updateOrCreate(
+            ['user_id' => $request->validated('user_id')],
+            ['committee_role' => $request->validated('committee_role')],
+        );
+
+        return to_route('events.show', ['event' => $event, 'tab' => 'abstracts'])->with('status', 'Committee member added.');
+    }
+
+    public function detachCommitteeMember(CommitteeMember $committeeMember): RedirectResponse
+    {
+        Gate::authorize('manageCommittee', $committeeMember->event);
+
+        $event = $committeeMember->event;
+        $committeeMember->delete();
+
+        return to_route('events.show', ['event' => $event, 'tab' => 'abstracts'])->with('status', 'Committee member removed.');
     }
 }

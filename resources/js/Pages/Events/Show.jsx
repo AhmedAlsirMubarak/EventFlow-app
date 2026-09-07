@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, usePoll } from '@inertiajs/react';
 import { useState } from 'react';
+import AbstractsTab from './Partials/AbstractsTab';
 import ActivityTab from './Partials/ActivityTab';
 import ClosureTab from './Partials/ClosureTab';
 import DeadlinesTab from './Partials/DeadlinesTab';
@@ -28,6 +29,7 @@ const tabs = [
     { key: 'requests', label: 'Requests' },
     { key: 'reminders', label: 'Reminders' },
     { key: 'documents', label: 'Documents' },
+    { key: 'abstracts', label: 'Abstracts' },
     { key: 'activity', label: 'Activity' },
     { key: 'closure', label: 'Closure' },
 ];
@@ -56,6 +58,9 @@ export default function Show({
     lessonsLearned,
     activityLogs,
     documentActivities,
+    committeeMembers,
+    abstractCall,
+    committeeRoles,
     availableUsers,
     availableOrganizations,
     availableContacts,
@@ -203,6 +208,16 @@ export default function Show({
                     availableContacts={availableContacts}
                     documentCategories={documentCategories}
                     documentVisibilities={documentVisibilities}
+                />
+            )}
+
+            {activeTab === 'abstracts' && (
+                <AbstractsTab
+                    event={event}
+                    abstractCall={abstractCall}
+                    committeeMembers={committeeMembers}
+                    availableUsers={availableUsers}
+                    committeeRoles={committeeRoles}
                 />
             )}
 

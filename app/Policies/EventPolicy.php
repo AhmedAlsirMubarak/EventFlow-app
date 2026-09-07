@@ -5,11 +5,12 @@ namespace App\Policies;
 use App\Enums\Role;
 use App\Models\Event;
 use App\Models\User;
+use App\Policies\Concerns\ChecksCommitteeAccess;
 use App\Policies\Concerns\ChecksEventAccess;
 
 class EventPolicy
 {
-    use ChecksEventAccess;
+    use ChecksCommitteeAccess, ChecksEventAccess;
 
     /**
      * Determine whether the user can view any models.
@@ -66,5 +67,14 @@ class EventPolicy
     {
         return $this->canAccessEvent($user, $event)
             && $user->hasAnyRole([Role::SuperAdministrator->value, Role::Management->value]);
+    }
+
+    /**
+     * Determine whether the user can manage the event's review committee, call for
+     * abstracts settings, and tracks.
+     */
+    public function manageCommittee(User $user, Event $event): bool
+    {
+        return $this->canAccessEvent($user, $event) && $this->isCommitteeChairOrElevated($user, $event);
     }
 }

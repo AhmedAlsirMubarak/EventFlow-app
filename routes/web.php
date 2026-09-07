@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\Role;
+use App\Http\Controllers\AbstractCallController;
+use App\Http\Controllers\AbstractTrackController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommunicationReportController;
@@ -83,6 +85,15 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::delete('events/{event}/team/{user}', [EventController::class, 'detachUser'])->name('events.team.destroy');
     Route::post('events/{event}/organizations', [EventController::class, 'attachOrganization'])->name('events.organizations.store');
     Route::delete('events/{event}/organizations/{organization}', [EventController::class, 'detachOrganization'])->name('events.organizations.destroy');
+
+    Route::post('events/{event}/committee', [EventController::class, 'attachCommitteeMember'])->name('committee.store');
+    Route::delete('committee-members/{committeeMember}', [EventController::class, 'detachCommitteeMember'])->name('committee.destroy');
+
+    Route::post('events/{event}/abstract-call', [AbstractCallController::class, 'store'])->name('abstract-calls.store');
+    Route::put('abstract-calls/{abstractCall}', [AbstractCallController::class, 'update'])->name('abstract-calls.update');
+    Route::post('abstract-calls/{abstractCall}/tracks', [AbstractTrackController::class, 'store'])->name('abstract-tracks.store');
+    Route::put('abstract-tracks/{abstractTrack}', [AbstractTrackController::class, 'update'])->name('abstract-tracks.update');
+    Route::delete('abstract-tracks/{abstractTrack}', [AbstractTrackController::class, 'destroy'])->name('abstract-tracks.destroy');
 
     Route::post('events/{event}/ideas', [IdeaController::class, 'store'])->name('ideas.store');
     Route::put('ideas/{idea}', [IdeaController::class, 'update'])->name('ideas.update');

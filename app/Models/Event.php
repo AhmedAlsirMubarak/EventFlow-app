@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['name', 'code', 'description', 'start_date', 'end_date', 'status', 'created_by', 'closure_summary', 'closed_at', 'closed_by'])]
 class Event extends Model
@@ -117,6 +118,22 @@ class Event extends Model
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * @return HasMany<CommitteeMember, $this>
+     */
+    public function committeeMembers(): HasMany
+    {
+        return $this->hasMany(CommitteeMember::class);
+    }
+
+    /**
+     * @return HasOne<AbstractCall, $this>
+     */
+    public function abstractCall(): HasOne
+    {
+        return $this->hasOne(AbstractCall::class);
     }
 
     /**
