@@ -5,6 +5,7 @@ use App\Http\Controllers\AbstractCallController;
 use App\Http\Controllers\AbstractReviewController;
 use App\Http\Controllers\AbstractSubmissionController;
 use App\Http\Controllers\AbstractTrackController;
+use App\Http\Controllers\AcceptedSpeakersExportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommunicationReportController;
@@ -107,6 +108,9 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
 
     Route::get('abstract-submissions/{abstractSubmission}/download', [AbstractSubmissionController::class, 'download'])->name('abstract-submissions.download');
     Route::post('abstract-submissions/{abstractSubmission}/reviews', [AbstractReviewController::class, 'store'])->name('abstract-submissions.reviews.store');
+    Route::put('abstract-submissions/{abstractSubmission}/decision', [AbstractSubmissionController::class, 'decide'])->name('abstract-submissions.decide');
+
+    Route::get('events/{event}/accepted-speakers.csv', [AcceptedSpeakersExportController::class, 'index'])->name('events.accepted-speakers');
 
     Route::post('events/{event}/ideas', [IdeaController::class, 'store'])->name('ideas.store');
     Route::put('ideas/{idea}', [IdeaController::class, 'update'])->name('ideas.update');

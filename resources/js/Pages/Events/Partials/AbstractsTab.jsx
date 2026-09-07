@@ -60,11 +60,18 @@ export default function AbstractsTab({
     const trackForm = useForm({ name: '', description: '' });
     const committeeForm = useForm({ user_id: '', committee_role: 'Reviewer' });
     const reviewForm = useForm({ score: 3, recommendation: 'Accept', comments: '' });
+    const decisionForm = useForm({ status: 'Accepted', decision_notes: '' });
 
     const committeeUserIds = committeeMembers.map((member) => member.user.id);
     const addableUsers = availableUsers.filter((u) => !committeeUserIds.includes(u.id));
 
+    const canDecide =
+        auth.roles.includes('Super Administrator') ||
+        auth.roles.includes('Management') ||
+        committeeMembers.some((m) => m.user.id === auth.user.id && m.committee_role === 'Chair');
+
     const submissions = abstractCall?.submissions ?? [];
+    const acceptedSubmissions = submissions.filter((s) => s.status === 'Accepted');
     const detailsSubmission = submissions.find((s) => s.id === detailsSubmissionId) ?? null;
     const myReview = detailsSubmission?.reviews.find((r) => r.user_id === auth.user.id) ?? null;
 
@@ -77,11 +84,23 @@ export default function AbstractsTab({
             comments: existing?.comments ?? '',
         });
         reviewForm.clearErrors();
+        decisionForm.setData({
+            status: submission.status === 'Submitted' || submission.status === 'Under Review' ? 'Accepted' : submission.status,
+            decision_notes: submission.decision_notes ?? '',
+        });
+        decisionForm.clearErrors();
     }
 
     function submitReview(e) {
         e.preventDefault();
         reviewForm.post(route('abstract-submissions.reviews.store', detailsSubmissionId), {
+            preserveScroll: true,
+        });
+    }
+
+    function submitDecision(e) {
+        e.preventDefault();
+        decisionForm.put(route('abstract-submissions.decide', detailsSubmissionId), {
             preserveScroll: true,
         });
     }
@@ -342,6 +361,31 @@ export default function AbstractsTab({
                         columns={submissionColumns}
                         rows={submissions}
                         emptyMessage="No submissions yet."
+                    />
+                </Card>
+            )}
+
+            {abstractCall && acceptedSubmissions.length > 0 && (
+                <Card
+                    title="Accepted Speakers"
+                    actions={
+                        <a
+                            href={route('events.accepted-speakers', event.id)}
+                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                        >
+                            Export CSV
+                        </a>
+                    }
+                    className="p-0"
+                >
+                    <DataTable
+                        columns={[
+                            { key: 'title', header: 'Title' },
+                            { key: 'speaker_name', header: 'Speaker' },
+                            { key: 'track', header: 'Track', render: (s) => s.track?.name ?? '—' },
+                        ]}
+                        rows={acceptedSubmissions}
+                        emptyMessage="No accepted speakers yet."
                     />
                 </Card>
             )}
@@ -685,6 +729,42 @@ export default function AbstractsTab({
                                 {myReview ? 'Update Review' : 'Save Review'}
                             </PrimaryButton>
                         </form>
+
+                        {canDecide && (
+                            <form onSubmit={submitDecision} className="space-y-3 border-t border-slate-100 pt-4">
+                                <h4 className="text-sm font-medium text-slate-500">Decision</h4>
+                                <div>
+                                    <InputLabel htmlFor="decision_status" value="Status" />
+                                    <SelectInput
+                                        id="decision_status"
+                                        className="mt-1 block w-full"
+                                        value={decisionForm.data.status}
+                                        onChange={(e) => decisionForm.setData('status', e.target.value)}
+                                    >
+                                        <option value="Accepted">Accepted</option>
+                                        <option value="Rejected">Rejected</option>
+                                        <option value="Waitlisted">Waitlisted</option>
+                                    </SelectInput>
+                                </div>
+                                <div>
+                                    <InputLabel htmlFor="decision_notes" value="Notes to Submitter (optional)" />
+                                    <TextareaInput
+                                        id="decision_notes"
+                                        rows={3}
+                                        className="mt-1 block w-full"
+                                        value={decisionForm.data.decision_notes}
+                                        onChange={(e) => decisionForm.setData('decision_notes', e.target.value)}
+                                    />
+                                    <InputError className="mt-2" message={decisionForm.errors.decision_notes} />
+                                </div>
+                                <PrimaryButton
+                                    disabled={decisionForm.processing}
+                                    className="!bg-emerald-600 !text-sm !normal-case !tracking-normal hover:!bg-emerald-500 focus:!bg-emerald-500 active:!bg-emerald-700"
+                                >
+                                    Record Decision
+                                </PrimaryButton>
+                            </form>
+                        )}
                     </div>
                 )}
             </Modal>
