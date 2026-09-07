@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'abstract_call_id', 'abstract_track_id', 'reference', 'title', 'abstract_body', 'keywords',
@@ -42,6 +43,14 @@ class AbstractSubmission extends Model
     public function decider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'decided_by');
+    }
+
+    /**
+     * @return HasMany<AbstractReview, $this>
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(AbstractReview::class);
     }
 
     public function hasAttachment(): bool

@@ -7,6 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\StoreAbstractSubmissionRequest;
 use App\Models\AbstractCall;
 use App\Models\AbstractSubmission;
+use App\Models\CommitteeMember;
+use App\Models\User;
+use App\Notifications\AbstractAwaitingReviewNotification;
 use App\Notifications\AbstractSubmittedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +55,11 @@ class CallForAbstractsController extends Controller
 
         Notification::route('mail', $submission->speaker_email)
             ->notify(new AbstractSubmittedNotification($submission));
+
+        $reviewers = User::query()
+            ->whereIn('id', CommitteeMember::where('event_id', $abstractCall->event_id)->pluck('user_id'))
+            ->get();
+        Notification::send($reviewers, new AbstractAwaitingReviewNotification($submission));
 
         return to_route('public.abstracts.status', $submission->public_token)
             ->with('status', 'Your submission has been received.');

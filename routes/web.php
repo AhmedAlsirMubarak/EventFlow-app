@@ -2,6 +2,8 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\AbstractCallController;
+use App\Http\Controllers\AbstractReviewController;
+use App\Http\Controllers\AbstractSubmissionController;
 use App\Http\Controllers\AbstractTrackController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CommentController;
@@ -102,6 +104,9 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::post('abstract-calls/{abstractCall}/tracks', [AbstractTrackController::class, 'store'])->name('abstract-tracks.store');
     Route::put('abstract-tracks/{abstractTrack}', [AbstractTrackController::class, 'update'])->name('abstract-tracks.update');
     Route::delete('abstract-tracks/{abstractTrack}', [AbstractTrackController::class, 'destroy'])->name('abstract-tracks.destroy');
+
+    Route::get('abstract-submissions/{abstractSubmission}/download', [AbstractSubmissionController::class, 'download'])->name('abstract-submissions.download');
+    Route::post('abstract-submissions/{abstractSubmission}/reviews', [AbstractReviewController::class, 'store'])->name('abstract-submissions.reviews.store');
 
     Route::post('events/{event}/ideas', [IdeaController::class, 'store'])->name('ideas.store');
     Route::put('ideas/{idea}', [IdeaController::class, 'update'])->name('ideas.update');

@@ -10,21 +10,46 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
-import { router, useForm } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 const roleColors = { Chair: 'indigo', Reviewer: 'slate' };
+const statusColors = {
+    Submitted: 'slate',
+    'Under Review': 'indigo',
+    Accepted: 'emerald',
+    Rejected: 'rose',
+    Waitlisted: 'amber',
+    Withdrawn: 'slate',
+};
 
 function toDatetimeLocal(value) {
     return value ? value.slice(0, 16) : '';
 }
 
-export default function AbstractsTab({ event, abstractCall, committeeMembers, availableUsers, committeeRoles }) {
+function averageScore(reviews) {
+    if (reviews.length === 0) {
+        return null;
+    }
+
+    return (reviews.reduce((sum, review) => sum + review.score, 0) / reviews.length).toFixed(1);
+}
+
+export default function AbstractsTab({
+    event,
+    abstractCall,
+    committeeMembers,
+    availableUsers,
+    committeeRoles,
+    reviewRecommendations,
+}) {
+    const { auth } = usePage().props;
     const [callModalOpen, setCallModalOpen] = useState(false);
     const [trackModalOpen, setTrackModalOpen] = useState(false);
     const [editingTrack, setEditingTrack] = useState(null);
     const [committeeModalOpen, setCommitteeModalOpen] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
+    const [detailsSubmissionId, setDetailsSubmissionId] = useState(null);
 
     const callForm = useForm({
         instructions: abstractCall?.instructions ?? '',
@@ -34,9 +59,32 @@ export default function AbstractsTab({ event, abstractCall, committeeMembers, av
     });
     const trackForm = useForm({ name: '', description: '' });
     const committeeForm = useForm({ user_id: '', committee_role: 'Reviewer' });
+    const reviewForm = useForm({ score: 3, recommendation: 'Accept', comments: '' });
 
     const committeeUserIds = committeeMembers.map((member) => member.user.id);
     const addableUsers = availableUsers.filter((u) => !committeeUserIds.includes(u.id));
+
+    const submissions = abstractCall?.submissions ?? [];
+    const detailsSubmission = submissions.find((s) => s.id === detailsSubmissionId) ?? null;
+    const myReview = detailsSubmission?.reviews.find((r) => r.user_id === auth.user.id) ?? null;
+
+    function openDetails(submission) {
+        setDetailsSubmissionId(submission.id);
+        const existing = submission.reviews.find((r) => r.user_id === auth.user.id);
+        reviewForm.setData({
+            score: existing?.score ?? 3,
+            recommendation: existing?.recommendation ?? 'Accept',
+            comments: existing?.comments ?? '',
+        });
+        reviewForm.clearErrors();
+    }
+
+    function submitReview(e) {
+        e.preventDefault();
+        reviewForm.post(route('abstract-submissions.reviews.store', detailsSubmissionId), {
+            preserveScroll: true,
+        });
+    }
 
     function openCallModal() {
         callForm.setData({
@@ -169,6 +217,41 @@ export default function AbstractsTab({ event, abstractCall, committeeMembers, av
         },
     ];
 
+    const submissionColumns = [
+        {
+            key: 'title',
+            header: 'Title',
+            render: (submission) => (
+                <button
+                    type="button"
+                    onClick={() => openDetails(submission)}
+                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                    {submission.title}
+                </button>
+            ),
+        },
+        { key: 'speaker_name', header: 'Speaker' },
+        { key: 'track', header: 'Track', render: (submission) => submission.track?.name ?? '—' },
+        {
+            key: 'score',
+            header: 'Avg Score',
+            render: (submission) => averageScore(submission.reviews) ?? '—',
+        },
+        {
+            key: 'reviews',
+            header: 'Reviews',
+            render: (submission) => submission.reviews.length,
+        },
+        {
+            key: 'status',
+            header: 'Status',
+            render: (submission) => (
+                <Badge color={statusColors[submission.status] ?? 'slate'}>{submission.status}</Badge>
+            ),
+        },
+    ];
+
     return (
         <div className="space-y-6">
             <Card
@@ -249,6 +332,16 @@ export default function AbstractsTab({ event, abstractCall, committeeMembers, av
                         columns={trackColumns}
                         rows={abstractCall.tracks}
                         emptyMessage="No tracks yet — submitters will see a single general category."
+                    />
+                </Card>
+            )}
+
+            {abstractCall && (
+                <Card title="Submissions" className="p-0">
+                    <DataTable
+                        columns={submissionColumns}
+                        rows={submissions}
+                        emptyMessage="No submissions yet."
                     />
                 </Card>
             )}
@@ -445,6 +538,155 @@ export default function AbstractsTab({ event, abstractCall, committeeMembers, av
                         </SecondaryButton>
                     </div>
                 </form>
+            </Modal>
+
+            <Modal show={detailsSubmission !== null} onClose={() => setDetailsSubmissionId(null)} maxWidth="lg">
+                {detailsSubmission && (
+                    <div className="max-h-[80vh] space-y-5 overflow-y-auto p-6">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <p className="text-xs uppercase tracking-wide text-slate-400">
+                                    {detailsSubmission.reference}
+                                </p>
+                                <h3 className="text-lg font-semibold text-slate-900">
+                                    {detailsSubmission.title}
+                                </h3>
+                            </div>
+                            <Badge color={statusColors[detailsSubmission.status] ?? 'slate'}>
+                                {detailsSubmission.status}
+                            </Badge>
+                        </div>
+
+                        <div>
+                            <h4 className="text-sm font-medium text-slate-500">Abstract</h4>
+                            <p className="mt-1 whitespace-pre-line text-sm text-slate-700">
+                                {detailsSubmission.abstract_body}
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-3 text-sm">
+                            <div>
+                                <span className="text-slate-500">Speaker: </span>
+                                {detailsSubmission.speaker_name}
+                            </div>
+                            <div>
+                                <span className="text-slate-500">Email: </span>
+                                {detailsSubmission.speaker_email}
+                            </div>
+                            {detailsSubmission.speaker_organization && (
+                                <div>
+                                    <span className="text-slate-500">Organization: </span>
+                                    {detailsSubmission.speaker_organization}
+                                </div>
+                            )}
+                            {detailsSubmission.speaker_phone && (
+                                <div>
+                                    <span className="text-slate-500">Phone: </span>
+                                    {detailsSubmission.speaker_phone}
+                                </div>
+                            )}
+                            {detailsSubmission.speaker_bio && (
+                                <div className="col-span-2">
+                                    <span className="text-slate-500">Bio: </span>
+                                    {detailsSubmission.speaker_bio}
+                                </div>
+                            )}
+                        </div>
+
+                        {detailsSubmission.disk_path && (
+                            <a
+                                href={route('abstract-submissions.download', detailsSubmission.id)}
+                                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                            >
+                                Download attachment ({detailsSubmission.original_filename})
+                            </a>
+                        )}
+
+                        <div>
+                            <h4 className="text-sm font-medium text-slate-500">
+                                Reviews ({detailsSubmission.reviews.length})
+                            </h4>
+                            <ul className="mt-2 space-y-2">
+                                {detailsSubmission.reviews.length === 0 && (
+                                    <li className="text-sm text-slate-400">No reviews yet.</li>
+                                )}
+                                {detailsSubmission.reviews.map((review) => (
+                                    <li key={review.id} className="rounded-lg bg-slate-50 p-3 text-sm">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-medium text-slate-900">
+                                                {review.reviewer.name}
+                                            </span>
+                                            <span className="flex items-center gap-2">
+                                                <Badge color="indigo">Score {review.score}/5</Badge>
+                                                <Badge color="slate">{review.recommendation}</Badge>
+                                            </span>
+                                        </div>
+                                        {review.comments && (
+                                            <p className="mt-1 whitespace-pre-line text-slate-700">
+                                                {review.comments}
+                                            </p>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <form onSubmit={submitReview} className="space-y-3 border-t border-slate-100 pt-4">
+                            <h4 className="text-sm font-medium text-slate-500">
+                                {myReview ? 'Update Your Review' : 'Add Your Review'}
+                            </h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <InputLabel htmlFor="score" value="Score (1-5)" />
+                                    <SelectInput
+                                        id="score"
+                                        className="mt-1 block w-full"
+                                        value={reviewForm.data.score}
+                                        onChange={(e) => reviewForm.setData('score', Number(e.target.value))}
+                                    >
+                                        {[1, 2, 3, 4, 5].map((n) => (
+                                            <option key={n} value={n}>
+                                                {n}
+                                            </option>
+                                        ))}
+                                    </SelectInput>
+                                </div>
+                                <div>
+                                    <InputLabel htmlFor="recommendation" value="Recommendation" />
+                                    <SelectInput
+                                        id="recommendation"
+                                        className="mt-1 block w-full"
+                                        value={reviewForm.data.recommendation}
+                                        onChange={(e) => reviewForm.setData('recommendation', e.target.value)}
+                                    >
+                                        {reviewRecommendations.map((rec) => (
+                                            <option key={rec} value={rec}>
+                                                {rec}
+                                            </option>
+                                        ))}
+                                    </SelectInput>
+                                </div>
+                            </div>
+                            <div>
+                                <InputLabel htmlFor="review_comments" value="Comments" />
+                                <TextareaInput
+                                    id="review_comments"
+                                    rows={3}
+                                    className="mt-1 block w-full"
+                                    value={reviewForm.data.comments}
+                                    onChange={(e) => reviewForm.setData('comments', e.target.value)}
+                                />
+                                <InputError className="mt-2" message={reviewForm.errors.comments} />
+                            </div>
+                            <PrimaryButton
+                                disabled={reviewForm.processing}
+                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
+                            >
+                                {myReview ? 'Update Review' : 'Save Review'}
+                            </PrimaryButton>
+                        </form>
+                    </div>
+                )}
             </Modal>
         </div>
     );

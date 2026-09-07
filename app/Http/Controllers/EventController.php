@@ -11,6 +11,7 @@ use App\Enums\LessonCategory;
 use App\Enums\OrganizationCategory;
 use App\Enums\ReminderStatus;
 use App\Enums\RequestStatus;
+use App\Enums\ReviewRecommendation;
 use App\Enums\Role;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
@@ -119,8 +120,14 @@ class EventController extends Controller
                 ->limit(150)
                 ->get(),
             'committeeMembers' => $event->committeeMembers()->with('user:id,name')->get(),
-            'abstractCall' => $event->abstractCall()->with('tracks')->first(),
+            'abstractCall' => $event->abstractCall()
+                ->with([
+                    'tracks',
+                    'submissions' => fn ($q) => $q->with(['track:id,name', 'reviews.reviewer:id,name'])->orderByDesc('submitted_at'),
+                ])
+                ->first(),
             'committeeRoles' => array_column(CommitteeRole::cases(), 'value'),
+            'reviewRecommendations' => array_column(ReviewRecommendation::cases(), 'value'),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'availableContacts' => Contact::query()->orderBy('full_name')->get(['id', 'full_name', 'organization_id']),

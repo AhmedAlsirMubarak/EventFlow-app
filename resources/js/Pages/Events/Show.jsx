@@ -61,6 +61,7 @@ export default function Show({
     committeeMembers,
     abstractCall,
     committeeRoles,
+    reviewRecommendations,
     availableUsers,
     availableOrganizations,
     availableContacts,
@@ -218,6 +219,7 @@ export default function Show({
                     committeeMembers={committeeMembers}
                     availableUsers={availableUsers}
                     committeeRoles={committeeRoles}
+                    reviewRecommendations={reviewRecommendations}
                 />
             )}
 
