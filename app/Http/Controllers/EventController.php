@@ -20,6 +20,7 @@ use App\Http\Requests\Admin\StoreEventRequest;
 use App\Http\Requests\Admin\UpdateEventRequest;
 use App\Models\ActivityLog;
 use App\Models\Contact;
+use App\Models\DocumentActivity;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
@@ -102,6 +103,17 @@ class EventController extends Controller
             'lessonsLearned' => $event->lessonsLearned()
                 ->with('creator:id,name')
                 ->latest()
+                ->get(),
+            'activityLogs' => $event->activityLogs()
+                ->with('causer:id,name')
+                ->latest()
+                ->limit(150)
+                ->get(),
+            'documentActivities' => DocumentActivity::query()
+                ->whereHas('document', fn ($q) => $q->where('event_id', $event->id))
+                ->with(['document:id,title', 'user:id,name', 'contact:id,full_name'])
+                ->latest()
+                ->limit(150)
                 ->get(),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),

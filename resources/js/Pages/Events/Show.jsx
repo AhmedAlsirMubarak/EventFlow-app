@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, usePoll } from '@inertiajs/react';
 import { useState } from 'react';
+import ActivityTab from './Partials/ActivityTab';
 import ClosureTab from './Partials/ClosureTab';
 import DeadlinesTab from './Partials/DeadlinesTab';
 import DecisionsTab from './Partials/DecisionsTab';
@@ -27,6 +28,7 @@ const tabs = [
     { key: 'requests', label: 'Requests' },
     { key: 'reminders', label: 'Reminders' },
     { key: 'documents', label: 'Documents' },
+    { key: 'activity', label: 'Activity' },
     { key: 'closure', label: 'Closure' },
 ];
 
@@ -52,6 +54,8 @@ export default function Show({
     stakeholderRequests,
     reminders,
     lessonsLearned,
+    activityLogs,
+    documentActivities,
     availableUsers,
     availableOrganizations,
     availableContacts,
@@ -200,6 +204,10 @@ export default function Show({
                     documentCategories={documentCategories}
                     documentVisibilities={documentVisibilities}
                 />
+            )}
+
+            {activeTab === 'activity' && (
+                <ActivityTab activityLogs={activityLogs} documentActivities={documentActivities} />
             )}
 
             {activeTab === 'closure' && (

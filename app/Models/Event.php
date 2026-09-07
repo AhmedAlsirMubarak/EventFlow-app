@@ -112,6 +112,14 @@ class Event extends Model
     }
 
     /**
+     * @return HasMany<ActivityLog, $this>
+     */
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function closedBy(): BelongsTo
