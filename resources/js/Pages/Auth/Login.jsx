@@ -95,6 +95,16 @@ export default function Login({ status, canResetPassword }) {
                     </PrimaryButton>
                 </div>
             </form>
+
+            <div className="mt-6 border-t border-gray-200 pt-4 text-center text-sm text-gray-600">
+                Stakeholder?{' '}
+                <Link
+                    href={route('login.code')}
+                    className="rounded-md text-indigo-600 underline hover:text-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                    Sign in with an emailed code instead
+                </Link>
+            </div>
         </GuestLayout>
     );
 }
