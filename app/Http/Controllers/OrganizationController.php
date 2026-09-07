@@ -58,6 +58,7 @@ class OrganizationController extends Controller
             'preferredChannels' => array_column(PreferredChannel::cases(), 'value'),
             'status' => session('status'),
             'resetLink' => session('resetLink'),
+            'importErrors' => session('importErrors', []),
         ]);
     }
 

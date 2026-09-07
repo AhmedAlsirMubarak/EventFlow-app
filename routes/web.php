@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommunicationReportController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContactImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DecisionController;
 use App\Http\Controllers\DocumentApprovalController;
@@ -62,6 +63,7 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
 
     Route::resource('organizations', OrganizationController::class);
     Route::post('organizations/{organization}/contacts', [ContactController::class, 'store'])->name('organizations.contacts.store');
+    Route::post('organizations/{organization}/contacts/import', [ContactImportController::class, 'store'])->name('organizations.contacts.import');
     Route::put('contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
     Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
     Route::post('contacts/{contact}/portal-access', [ContactController::class, 'grantPortalAccess'])->name('contacts.portal-access');

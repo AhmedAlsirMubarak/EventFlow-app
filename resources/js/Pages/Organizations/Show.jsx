@@ -28,11 +28,14 @@ export default function Show({
     preferredChannels,
     status,
     resetLink,
+    importErrors,
 }) {
     usePoll(POLL_INTERVAL, { preserveScroll: true });
 
     const [modalOpen, setModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState(null);
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const importForm = useForm({ file: null });
 
     // Latched into local state so the one-time flash isn't lost to a
     // background poll refresh before the user has copied it.
@@ -90,6 +93,19 @@ export default function Show({
         if (confirm(`Remove ${contact.full_name} from this organization?`)) {
             router.delete(route('contacts.destroy', contact.id));
         }
+    }
+
+    function openImportModal() {
+        importForm.reset();
+        importForm.clearErrors();
+        setImportModalOpen(true);
+    }
+
+    function submitImport(e) {
+        e.preventDefault();
+        importForm.post(route('organizations.contacts.import', organization.id), {
+            onSuccess: () => setImportModalOpen(false),
+        });
     }
 
     function grantPortalAccess(contact) {
@@ -258,16 +274,35 @@ export default function Show({
                 <Card
                     title="Contacts"
                     actions={
-                        <button
-                            type="button"
-                            onClick={openCreateModal}
-                            className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
-                        >
-                            Add Contact
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <SecondaryButton
+                                type="button"
+                                onClick={openImportModal}
+                                className="!text-sm !normal-case !tracking-normal"
+                            >
+                                Import CSV
+                            </SecondaryButton>
+                            <button
+                                type="button"
+                                onClick={openCreateModal}
+                                className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                            >
+                                Add Contact
+                            </button>
+                        </div>
                     }
                     className="p-0"
                 >
+                    {importErrors?.length > 0 && (
+                        <div className="border-b border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            <p className="font-medium">Some rows were skipped:</p>
+                            <ul className="mt-1 list-inside list-disc">
+                                {importErrors.map((error, index) => (
+                                    <li key={index}>{error}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                     <DataTable
                         columns={columns}
                         rows={contacts}
@@ -390,6 +425,49 @@ export default function Show({
                         <SecondaryButton
                             type="button"
                             onClick={closeModal}
+                            className="!text-sm !normal-case !tracking-normal"
+                        >
+                            Cancel
+                        </SecondaryButton>
+                    </div>
+                </form>
+            </Modal>
+
+            <Modal show={importModalOpen} onClose={() => setImportModalOpen(false)} maxWidth="md">
+                <form onSubmit={submitImport} className="space-y-4 p-6">
+                    <h3 className="text-lg font-semibold text-slate-900">Import Contacts from CSV</h3>
+                    <p className="text-sm text-slate-600">
+                        The first row must be a header including at least{' '}
+                        <code className="rounded bg-slate-100 px-1">full_name</code>. Optional columns:{' '}
+                        <code className="rounded bg-slate-100 px-1">job_title</code>,{' '}
+                        <code className="rounded bg-slate-100 px-1">department</code>,{' '}
+                        <code className="rounded bg-slate-100 px-1">email</code>,{' '}
+                        <code className="rounded bg-slate-100 px-1">mobile</code>,{' '}
+                        <code className="rounded bg-slate-100 px-1">preferred_channel</code>.
+                    </p>
+
+                    <div>
+                        <InputLabel htmlFor="file" value="CSV File" />
+                        <input
+                            id="file"
+                            type="file"
+                            accept=".csv,text/csv"
+                            className="mt-1 block w-full text-sm text-slate-600"
+                            onChange={(e) => importForm.setData('file', e.target.files[0])}
+                        />
+                        <InputError className="mt-2" message={importForm.errors.file} />
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                        <PrimaryButton
+                            disabled={importForm.processing || !importForm.data.file}
+                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
+                        >
+                            Import
+                        </PrimaryButton>
+                        <SecondaryButton
+                            type="button"
+                            onClick={() => setImportModalOpen(false)}
                             className="!text-sm !normal-case !tracking-normal"
                         >
                             Cancel
