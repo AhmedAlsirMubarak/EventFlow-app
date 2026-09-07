@@ -3,6 +3,7 @@ import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, usePoll } from '@inertiajs/react';
 import { useState } from 'react';
 import ClosureTab from './Partials/ClosureTab';
+import DeadlinesTab from './Partials/DeadlinesTab';
 import DecisionsTab from './Partials/DecisionsTab';
 import DocumentsTab from './Partials/DocumentsTab';
 import IdeasTab from './Partials/IdeasTab';
@@ -16,6 +17,7 @@ import TeamTab from './Partials/TeamTab';
 
 const tabs = [
     { key: 'overview', label: 'Overview' },
+    { key: 'deadlines', label: 'Deadlines' },
     { key: 'team', label: 'Team' },
     { key: 'organizations', label: 'Organizations' },
     { key: 'ideas', label: 'Ideas' },
@@ -97,6 +99,17 @@ export default function Show({
 
             {activeTab === 'overview' && (
                 <OverviewTab event={event} availableOrganizations={availableOrganizations} />
+            )}
+
+            {activeTab === 'deadlines' && (
+                <DeadlinesTab
+                    event={event}
+                    meetings={meetings}
+                    tasks={tasks}
+                    reminders={reminders}
+                    requests={stakeholderRequests}
+                    onNavigateTab={setActiveTab}
+                />
             )}
 
             {activeTab === 'team' && (
