@@ -5,12 +5,15 @@ namespace App\Models;
 use App\Enums\ApprovalStatus;
 use App\Enums\DocumentCategory;
 use App\Enums\DocumentVisibility;
+use App\Enums\Role;
+use App\Notifications\DocumentPendingApprovalNotification;
 use Database\Factories\DocumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Notification;
 
 #[Fillable(['event_id', 'organization_id', 'title', 'description', 'category', 'visibility', 'acknowledgment_required', 'approval_required', 'created_by', 'current_version_id'])]
 class Document extends Model
@@ -112,11 +115,16 @@ class Document extends Model
      */
     public function requestApproval(DocumentVersion $version, ?int $requestedBy): DocumentApproval
     {
-        return $this->approvals()->create([
+        $approval = $this->approvals()->create([
             'document_version_id' => $version->id,
             'requested_by' => $requestedBy,
             'status' => ApprovalStatus::Pending,
         ]);
+
+        $reviewers = User::role([Role::SuperAdministrator->value, Role::Management->value])->get();
+        Notification::send($reviewers, new DocumentPendingApprovalNotification($this));
+
+        return $approval;
     }
 
     /**

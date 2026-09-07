@@ -17,7 +17,21 @@ class ReminderDueNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
+    }
+
+    /**
+     * Get the array representation of the notification for the database channel.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'title' => 'Reminder due: '.$this->reminder->title,
+            'body' => $this->reminder->event->name,
+            'url' => route('events.show', ['event' => $this->reminder->event_id, 'tab' => 'reminders']),
+        ];
     }
 
     /**

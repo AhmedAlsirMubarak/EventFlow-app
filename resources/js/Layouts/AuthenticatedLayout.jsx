@@ -4,7 +4,7 @@ import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
-    const { auth } = usePage().props;
+    const { auth, unreadNotificationsCount } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
@@ -20,6 +20,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     user={auth.user}
                     title={header}
                     onToggleSidebar={() => setSidebarOpen((open) => !open)}
+                    unreadNotificationsCount={unreadNotificationsCount}
                 />
 
                 <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">

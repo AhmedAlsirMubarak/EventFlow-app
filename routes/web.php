@@ -16,6 +16,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\IdeaController;
 use App\Http\Controllers\LessonLearnedController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\Portal\StakeholderRequestController as PortalStakeholderRequestController;
@@ -41,6 +42,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 });
 
 Route::middleware(['auth', 'verified', 'internal'])->group(function () {

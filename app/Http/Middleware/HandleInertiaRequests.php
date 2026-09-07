@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
                 'roles' => $user?->getRoleNames() ?? [],
                 'contactId' => $user?->contact?->id,
             ],
+            'unreadNotificationsCount' => $user?->unreadNotifications()->count() ?? 0,
         ];
     }
 }
