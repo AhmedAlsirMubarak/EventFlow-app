@@ -24,6 +24,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\Portal\StakeholderRequestController as PortalStakeholderRequestController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\CallForAbstractsController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StakeholderRequestController;
@@ -42,6 +43,13 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+// Public call-for-abstracts routes: unauthenticated, token-bound, no session required.
+Route::get('call/{abstractCall:public_token}', [CallForAbstractsController::class, 'show'])->name('public.abstracts.show');
+Route::post('call/{abstractCall:public_token}', [CallForAbstractsController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('public.abstracts.store');
+Route::get('submission/{abstractSubmission:public_token}', [CallForAbstractsController::class, 'status'])->name('public.abstracts.status');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

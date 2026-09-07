@@ -32,6 +32,14 @@ class AbstractCall extends Model
     }
 
     /**
+     * @return HasMany<AbstractSubmission, $this>
+     */
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(AbstractSubmission::class);
+    }
+
+    /**
      * Whether the call is currently accepting submissions: the manual toggle is on,
      * and (when set) the current time falls within the open/close window.
      */
