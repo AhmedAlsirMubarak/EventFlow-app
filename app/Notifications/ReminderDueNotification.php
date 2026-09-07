@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\Reminder;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+
+class ReminderDueNotification extends Notification
+{
+    public function __construct(private readonly Reminder $reminder) {}
+
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @return array<int, string>
+     */
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $message = (new MailMessage)
+            ->subject('Reminder: '.$this->reminder->title)
+            ->greeting('Follow-up due')
+            ->line('This reminder for **'.$this->reminder->event->name.'** is now due:')
+            ->line($this->reminder->title);
+
+        if ($this->reminder->notes) {
+            $message->line($this->reminder->notes);
+        }
+
+        return $message->action('View Event', route('events.show', ['event' => $this->reminder->event_id, 'tab' => 'reminders']));
+    }
+}

@@ -94,6 +94,14 @@ class Event extends Model
     }
 
     /**
+     * @return HasMany<Reminder, $this>
+     */
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(Reminder::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

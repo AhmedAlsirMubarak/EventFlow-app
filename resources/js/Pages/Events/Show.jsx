@@ -8,6 +8,7 @@ import IdeasTab from './Partials/IdeasTab';
 import MeetingsTab from './Partials/MeetingsTab';
 import OrganizationsTab from './Partials/OrganizationsTab';
 import OverviewTab from './Partials/OverviewTab';
+import RemindersTab from './Partials/RemindersTab';
 import RequestsTab from './Partials/RequestsTab';
 import TasksTab from './Partials/TasksTab';
 import TeamTab from './Partials/TeamTab';
@@ -21,6 +22,7 @@ const tabs = [
     { key: 'meetings', label: 'Meetings' },
     { key: 'decisions', label: 'Decisions' },
     { key: 'requests', label: 'Requests' },
+    { key: 'reminders', label: 'Reminders' },
     { key: 'documents', label: 'Documents' },
 ];
 
@@ -44,6 +46,7 @@ export default function Show({
     meetings,
     decisions,
     stakeholderRequests,
+    reminders,
     availableUsers,
     availableOrganizations,
     availableContacts,
@@ -55,6 +58,7 @@ export default function Show({
     documentCategories,
     documentVisibilities,
     requestStatuses,
+    reminderStatuses,
     status,
 }) {
     const [activeTab, setActiveTab] = useState(initialTab);
@@ -154,6 +158,17 @@ export default function Show({
                     availableContacts={availableContacts}
                     requestStatuses={requestStatuses}
                     taskPriorities={taskPriorities}
+                />
+            )}
+
+            {activeTab === 'reminders' && (
+                <RemindersTab
+                    event={event}
+                    reminders={reminders}
+                    availableUsers={availableUsers}
+                    availableOrganizations={availableOrganizations}
+                    availableContacts={availableContacts}
+                    reminderStatuses={reminderStatuses}
                 />
             )}
 

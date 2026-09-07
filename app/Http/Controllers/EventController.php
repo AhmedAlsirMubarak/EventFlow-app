@@ -7,6 +7,7 @@ use App\Enums\DocumentVisibility;
 use App\Enums\EventStatus;
 use App\Enums\IdeaStatus;
 use App\Enums\OrganizationCategory;
+use App\Enums\ReminderStatus;
 use App\Enums\RequestStatus;
 use App\Enums\Role;
 use App\Enums\TaskPriority;
@@ -97,6 +98,10 @@ class EventController extends Controller
                 ])
                 ->latest()
                 ->get(),
+            'reminders' => $event->reminders()
+                ->with(['organization:id,name', 'contact:id,full_name', 'assignee:id,name', 'creator:id,name'])
+                ->orderBy('remind_at')
+                ->get(),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'availableContacts' => Contact::query()->orderBy('full_name')->get(['id', 'full_name', 'organization_id']),
@@ -108,6 +113,7 @@ class EventController extends Controller
             'documentCategories' => array_column(DocumentCategory::cases(), 'value'),
             'documentVisibilities' => array_column(DocumentVisibility::cases(), 'value'),
             'requestStatuses' => array_column(RequestStatus::cases(), 'value'),
+            'reminderStatuses' => array_column(ReminderStatus::cases(), 'value'),
             'status' => session('status'),
         ]);
     }

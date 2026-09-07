@@ -17,6 +17,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\Portal\StakeholderRequestController as PortalStakeholderRequestController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\StakeholderRequestController;
 use App\Http\Controllers\TaskChecklistItemController;
 use App\Http\Controllers\TaskController;
@@ -103,6 +104,10 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::put('requests/{stakeholderRequest}', [StakeholderRequestController::class, 'update'])->name('requests.update');
     Route::delete('requests/{stakeholderRequest}', [StakeholderRequestController::class, 'destroy'])->name('requests.destroy');
     Route::post('requests/{stakeholderRequest}/comments', [CommentController::class, 'storeForRequest'])->name('requests.comments.store');
+
+    Route::post('events/{event}/reminders', [ReminderController::class, 'store'])->name('reminders.store');
+    Route::put('reminders/{reminder}', [ReminderController::class, 'update'])->name('reminders.update');
+    Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
 });
 
 Route::middleware(['auth', 'verified', 'external'])
