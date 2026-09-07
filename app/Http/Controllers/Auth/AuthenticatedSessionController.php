@@ -31,9 +31,19 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        $user = $request->user();
+
+        if ($user->isInternal() && $user->hasTwoFactorEnabled()) {
+            Auth::guard('web')->logout();
+            $request->session()->put('2fa.user_id', $user->id);
+            $request->session()->regenerate();
+
+            return redirect()->route('two-factor.login');
+        }
+
         $request->session()->regenerate();
 
-        $home = $request->user()->isExternal() ? 'portal.dashboard' : 'dashboard';
+        $home = $user->isExternal() ? 'portal.dashboard' : 'dashboard';
 
         return redirect()->intended(route($home, absolute: false));
     }

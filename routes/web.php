@@ -27,6 +27,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StakeholderRequestController;
 use App\Http\Controllers\TaskChecklistItemController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TwoFactorAuthenticationController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -53,6 +54,11 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+
+    Route::get('/settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])->name('two-factor.show');
+    Route::post('/settings/two-factor', [TwoFactorAuthenticationController::class, 'enable'])->name('two-factor.enable');
+    Route::post('/settings/two-factor/confirm', [TwoFactorAuthenticationController::class, 'confirm'])->name('two-factor.confirm');
+    Route::delete('/settings/two-factor', [TwoFactorAuthenticationController::class, 'destroy'])->name('two-factor.destroy');
 
     Route::middleware('role:'.Role::SuperAdministrator->value.'|'.Role::Management->value)
         ->prefix('admin')
