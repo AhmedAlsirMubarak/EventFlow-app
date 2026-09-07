@@ -91,7 +91,9 @@ export default function Show({
                 ))}
             </div>
 
-            {activeTab === 'overview' && <OverviewTab event={event} />}
+            {activeTab === 'overview' && (
+                <OverviewTab event={event} availableOrganizations={availableOrganizations} />
+            )}
 
             {activeTab === 'team' && (
                 <TeamTab

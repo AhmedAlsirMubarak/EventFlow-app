@@ -3,6 +3,7 @@
 use App\Enums\Role;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\CommunicationReportController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DecisionController;
@@ -58,6 +59,7 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::post('contacts/{contact}/portal-access/resend', [ContactController::class, 'resendPortalAccess'])->name('contacts.portal-access.resend');
 
     Route::resource('events', EventController::class);
+    Route::get('events/{event}/communication-report', [CommunicationReportController::class, 'show'])->name('events.communication-report');
     Route::post('events/{event}/team', [EventController::class, 'attachUser'])->name('events.team.store');
     Route::delete('events/{event}/team/{user}', [EventController::class, 'detachUser'])->name('events.team.destroy');
     Route::post('events/{event}/organizations', [EventController::class, 'attachOrganization'])->name('events.organizations.store');

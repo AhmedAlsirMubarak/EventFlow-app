@@ -57,6 +57,14 @@ class DocumentShare extends Model
     }
 
     /**
+     * @return HasMany<DocumentAcknowledgment, $this>
+     */
+    public function acknowledgments(): HasMany
+    {
+        return $this->hasMany(DocumentAcknowledgment::class);
+    }
+
+    /**
      * Contacts who can access this share: the specific contact, or every
      * contact belonging to the shared organization.
      *
