@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DecisionController;
+use App\Http\Controllers\DocumentApprovalController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentShareController;
 use App\Http\Controllers\DocumentVersionController;
@@ -85,6 +86,7 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
 
     Route::post('documents/{document}/shares', [DocumentShareController::class, 'store'])->name('documents.shares.store');
     Route::delete('document-shares/{documentShare}', [DocumentShareController::class, 'destroy'])->name('document-shares.destroy');
+    Route::put('documents/{document}/approval', [DocumentApprovalController::class, 'update'])->name('documents.approval.update');
 
     Route::post('events/{event}/meetings', [MeetingController::class, 'store'])->name('meetings.store');
     Route::put('meetings/{meeting}', [MeetingController::class, 'update'])->name('meetings.update');

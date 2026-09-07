@@ -33,6 +33,10 @@ class DocumentVersionController extends Controller
 
             $document->update(['current_version_id' => $version->id]);
 
+            if ($document->approval_required) {
+                $document->requestApproval($version, $request->user()->id);
+            }
+
             return $version;
         });
 

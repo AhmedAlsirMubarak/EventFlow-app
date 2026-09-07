@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ApprovalStatus;
 use App\Enums\DocumentCategory;
 use App\Enums\DocumentVisibility;
 use Database\Factories\DocumentFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['event_id', 'organization_id', 'title', 'description', 'category', 'visibility', 'acknowledgment_required', 'created_by', 'current_version_id'])]
+#[Fillable(['event_id', 'organization_id', 'title', 'description', 'category', 'visibility', 'acknowledgment_required', 'approval_required', 'created_by', 'current_version_id'])]
 class Document extends Model
 {
     /** @use HasFactory<DocumentFactory> */
@@ -74,6 +75,51 @@ class Document extends Model
     }
 
     /**
+     * @return HasMany<DocumentApproval, $this>
+     */
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(DocumentApproval::class)->latest();
+    }
+
+    /**
+     * The approval record for the current version, if one has been requested.
+     */
+    public function currentApproval(): ?DocumentApproval
+    {
+        if (! $this->current_version_id) {
+            return null;
+        }
+
+        return $this->approvals()->where('document_version_id', $this->current_version_id)->first();
+    }
+
+    /**
+     * Whether this document may be shared externally: either approval isn't required,
+     * or the current version has been approved.
+     */
+    public function isApprovedForSharing(): bool
+    {
+        if (! $this->approval_required) {
+            return true;
+        }
+
+        return $this->currentApproval()?->status === ApprovalStatus::Approved;
+    }
+
+    /**
+     * Open a pending approval request for the given version.
+     */
+    public function requestApproval(DocumentVersion $version, ?int $requestedBy): DocumentApproval
+    {
+        return $this->approvals()->create([
+            'document_version_id' => $version->id,
+            'requested_by' => $requestedBy,
+            'status' => ApprovalStatus::Pending,
+        ]);
+    }
+
+    /**
      * The share record granting the given contact access to this document, if any
      * (either shared directly with them or with their organization).
      */
@@ -107,6 +153,7 @@ class Document extends Model
             'category' => DocumentCategory::class,
             'visibility' => DocumentVisibility::class,
             'acknowledgment_required' => 'boolean',
+            'approval_required' => 'boolean',
         ];
     }
 }

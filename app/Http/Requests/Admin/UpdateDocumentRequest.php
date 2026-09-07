@@ -31,6 +31,7 @@ class UpdateDocumentRequest extends FormRequest
             'category' => ['required', Rule::in(array_column(DocumentCategory::cases(), 'value'))],
             'visibility' => ['required', Rule::in(array_column(DocumentVisibility::cases(), 'value'))],
             'acknowledgment_required' => ['boolean'],
+            'approval_required' => ['boolean'],
             'organization_id' => ['nullable', 'exists:organizations,id'],
         ];
     }

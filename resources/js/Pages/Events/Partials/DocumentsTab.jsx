@@ -10,8 +10,14 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
-import { router, useForm } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+
+const approvalColors = { Pending: 'amber', Approved: 'emerald', Rejected: 'rose' };
+
+function currentApprovalFor(document) {
+    return document.approvals?.find((a) => a.document_version_id === document.current_version_id) ?? null;
+}
 
 function formatBytes(bytes) {
     if (!bytes) {
@@ -30,6 +36,7 @@ const emptyDocument = {
     category: '',
     visibility: 'Internal',
     acknowledgment_required: false,
+    approval_required: false,
     organization_id: '',
     file: null,
 };
@@ -42,18 +49,46 @@ export default function DocumentsTab({
     documentCategories,
     documentVisibilities,
 }) {
+    const { auth } = usePage().props;
+    const canReview = auth.roles.includes('Super Administrator') || auth.roles.includes('Management');
+
     const [modalOpen, setModalOpen] = useState(false);
     const [editingDocument, setEditingDocument] = useState(null);
     const [historyDocumentId, setHistoryDocumentId] = useState(null);
     const [shareDocumentId, setShareDocumentId] = useState(null);
     const [shareType, setShareType] = useState('organization');
+    const [approvalDocumentId, setApprovalDocumentId] = useState(null);
 
     const form = useForm(emptyDocument);
     const versionForm = useForm({ file: null });
     const shareForm = useForm({ organization_id: '', contact_id: '' });
+    const [approvalComments, setApprovalComments] = useState('');
+    const [approvalProcessing, setApprovalProcessing] = useState(false);
 
     const historyDocument = documents.find((d) => d.id === historyDocumentId) ?? null;
     const shareDocument = documents.find((d) => d.id === shareDocumentId) ?? null;
+    const approvalDocument = documents.find((d) => d.id === approvalDocumentId) ?? null;
+    const shareBlocked = shareDocument
+        ? shareDocument.approval_required && currentApprovalFor(shareDocument)?.status !== 'Approved'
+        : false;
+
+    function openApprovalModal(document) {
+        setApprovalDocumentId(document.id);
+        setApprovalComments('');
+    }
+
+    function decideApproval(status) {
+        setApprovalProcessing(true);
+        router.put(
+            route('documents.approval.update', approvalDocumentId),
+            { status, comments: approvalComments },
+            {
+                preserveScroll: true,
+                onSuccess: () => setApprovalDocumentId(null),
+                onFinish: () => setApprovalProcessing(false),
+            },
+        );
+    }
 
     function openShareModal(document) {
         setShareDocumentId(document.id);
@@ -97,6 +132,7 @@ export default function DocumentsTab({
             category: document.category,
             visibility: document.visibility,
             acknowledgment_required: document.acknowledgment_required,
+            approval_required: document.approval_required,
             organization_id: document.organization_id ?? '',
             file: null,
         });
@@ -159,6 +195,29 @@ export default function DocumentsTab({
                     {document.visibility}
                 </Badge>
             ),
+        },
+        {
+            key: 'approval',
+            header: 'Approval',
+            render: (document) => {
+                if (!document.approval_required) {
+                    return '—';
+                }
+
+                const approval = currentApprovalFor(document);
+
+                return (
+                    <button
+                        type="button"
+                        onClick={() => openApprovalModal(document)}
+                        className="inline-flex"
+                    >
+                        <Badge color={approvalColors[approval?.status] ?? 'slate'}>
+                            {approval?.status ?? 'Pending'}
+                        </Badge>
+                    </button>
+                );
+            },
         },
         {
             key: 'versions_count',
@@ -324,6 +383,16 @@ export default function DocumentsTab({
                         Require external acknowledgment when shared
                     </label>
 
+                    <label className="flex items-center gap-2 text-sm text-slate-700">
+                        <Checkbox
+                            checked={form.data.approval_required}
+                            onChange={(e) =>
+                                form.setData('approval_required', e.target.checked)
+                            }
+                        />
+                        Require internal approval before it can be shared
+                    </label>
+
                     {!editingDocument && (
                         <div>
                             <InputLabel htmlFor="file" value="File" />
@@ -433,6 +502,12 @@ export default function DocumentsTab({
                             ))}
                         </ul>
 
+                        {shareBlocked && (
+                            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
+                                This document requires internal approval before it can be shared.
+                            </p>
+                        )}
+
                         <form onSubmit={submitShare} className="space-y-3 border-t border-slate-100 pt-4">
                             <p className="text-xs text-slate-500">
                                 Only contacts with portal access will be
@@ -494,7 +569,7 @@ export default function DocumentsTab({
                             />
 
                             <PrimaryButton
-                                disabled={shareForm.processing}
+                                disabled={shareForm.processing || shareBlocked}
                                 className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                             >
                                 Share
@@ -502,6 +577,81 @@ export default function DocumentsTab({
                         </form>
                     </div>
                 )}
+            </Modal>
+
+            <Modal show={approvalDocument !== null} onClose={() => setApprovalDocumentId(null)} maxWidth="md">
+                {approvalDocument && (() => {
+                    const approval = currentApprovalFor(approvalDocument);
+
+                    return (
+                        <div className="space-y-4 p-6">
+                            <h3 className="text-lg font-semibold text-slate-900">
+                                Approval — {approvalDocument.title}
+                            </h3>
+
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="text-slate-500">Status:</span>
+                                <Badge color={approvalColors[approval?.status] ?? 'slate'}>
+                                    {approval?.status ?? 'Pending'}
+                                </Badge>
+                            </div>
+
+                            {approval?.requester && (
+                                <p className="text-xs text-slate-500">
+                                    Requested by {approval.requester.name}
+                                </p>
+                            )}
+
+                            {approval?.reviewer && (
+                                <p className="text-xs text-slate-500">
+                                    Reviewed by {approval.reviewer.name}
+                                </p>
+                            )}
+
+                            {approval?.comments && (
+                                <p className="whitespace-pre-line rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+                                    {approval.comments}
+                                </p>
+                            )}
+
+                            {approval?.status === 'Pending' && canReview && (
+                                <div className="space-y-3 border-t border-slate-100 pt-4">
+                                    <TextareaInput
+                                        rows={2}
+                                        className="block w-full"
+                                        placeholder="Comments (optional)"
+                                        value={approvalComments}
+                                        onChange={(e) => setApprovalComments(e.target.value)}
+                                    />
+                                    <div className="flex items-center gap-3">
+                                        <PrimaryButton
+                                            type="button"
+                                            disabled={approvalProcessing}
+                                            onClick={() => decideApproval('Approved')}
+                                            className="!bg-emerald-600 !text-sm !normal-case !tracking-normal hover:!bg-emerald-500 focus:!bg-emerald-500 active:!bg-emerald-700"
+                                        >
+                                            Approve
+                                        </PrimaryButton>
+                                        <SecondaryButton
+                                            type="button"
+                                            disabled={approvalProcessing}
+                                            onClick={() => decideApproval('Rejected')}
+                                            className="!text-sm !normal-case !tracking-normal !text-rose-600"
+                                        >
+                                            Reject
+                                        </SecondaryButton>
+                                    </div>
+                                </div>
+                            )}
+
+                            {approval?.status === 'Pending' && !canReview && (
+                                <p className="text-xs text-slate-400">
+                                    Waiting for a Management or Super Administrator review.
+                                </p>
+                            )}
+                        </div>
+                    );
+                })()}
             </Modal>
         </>
     );

@@ -36,6 +36,10 @@ class DocumentController extends Controller
     {
         $document->update($request->validated());
 
+        if ($document->approval_required && $document->current_version_id && ! $document->currentApproval()) {
+            $document->requestApproval($document->currentVersion, $request->user()->id);
+        }
+
         return to_route('events.show', ['event' => $document->event_id, 'tab' => 'documents'])->with('status', 'Document updated.');
     }
 
@@ -72,5 +76,9 @@ class DocumentController extends Controller
         ]);
 
         $document->update(['current_version_id' => $version->id]);
+
+        if ($document->approval_required) {
+            $document->requestApproval($version, $request->user()->id);
+        }
     }
 }

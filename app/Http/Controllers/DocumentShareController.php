@@ -15,6 +15,8 @@ class DocumentShareController extends Controller
 {
     public function store(StoreDocumentShareRequest $request, Document $document): RedirectResponse
     {
+        abort_unless($document->isApprovedForSharing(), 403, 'This document must be approved before it can be shared.');
+
         $share = $document->shares()->create([
             ...$request->validated(),
             'shared_by' => $request->user()->id,

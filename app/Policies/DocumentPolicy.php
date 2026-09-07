@@ -61,6 +61,15 @@ class DocumentPolicy
     }
 
     /**
+     * Determine whether the user can approve or reject the document's current version.
+     */
+    public function review(User $user, Document $document): bool
+    {
+        return $this->canAccessEvent($user, $document->event)
+            && $user->hasAnyRole([Role::SuperAdministrator->value, Role::Management->value]);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Document $document): bool

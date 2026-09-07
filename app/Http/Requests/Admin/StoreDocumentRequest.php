@@ -32,6 +32,7 @@ class StoreDocumentRequest extends FormRequest
             'category' => ['required', Rule::in(array_column(DocumentCategory::cases(), 'value'))],
             'visibility' => ['required', Rule::in(array_column(DocumentVisibility::cases(), 'value'))],
             'acknowledgment_required' => ['boolean'],
+            'approval_required' => ['boolean'],
             'organization_id' => ['nullable', 'exists:organizations,id'],
             'file' => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png'],
         ];
