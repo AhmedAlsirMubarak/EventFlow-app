@@ -1,10 +1,21 @@
 import Dropdown from '@/Components/Dropdown';
-import { IconBell, IconChevronDown, IconMenu } from '@/Components/Icons';
-import { Link } from '@inertiajs/react';
+import { IconBell, IconChevronDown, IconMenu, IconSearch } from '@/Components/Icons';
+import { Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function Topbar({ user, title, onToggleSidebar, unreadNotificationsCount = 0 }) {
+    const { props } = usePage();
+    const [searchTerm, setSearchTerm] = useState(props.query ?? '');
+
+    function submitSearch(e) {
+        e.preventDefault();
+        if (searchTerm.trim().length >= 2) {
+            router.get(route('search.index'), { q: searchTerm }, { preserveState: true });
+        }
+    }
+
     return (
-        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6">
+        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 sm:px-6">
             <div className="flex items-center gap-3">
                 <button
                     type="button"
@@ -19,6 +30,19 @@ export default function Topbar({ user, title, onToggleSidebar, unreadNotificatio
                     </h1>
                 )}
             </div>
+
+            <form onSubmit={submitSearch} className="hidden max-w-sm flex-1 sm:block">
+                <div className="relative">
+                    <IconSearch className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                        type="search"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search events, documents, contacts…"
+                        className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-9 pr-3 text-sm text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                </div>
+            </form>
 
             <div className="flex items-center gap-2">
                 <Link

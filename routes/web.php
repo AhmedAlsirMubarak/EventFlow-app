@@ -22,6 +22,7 @@ use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\Portal\StakeholderRequestController as PortalStakeholderRequestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StakeholderRequestController;
 use App\Http\Controllers\TaskChecklistItemController;
 use App\Http\Controllers\TaskController;
@@ -50,6 +51,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 
     Route::middleware('role:'.Role::SuperAdministrator->value.'|'.Role::Management->value)
         ->prefix('admin')

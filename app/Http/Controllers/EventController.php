@@ -35,11 +35,7 @@ class EventController extends Controller
         Gate::authorize('viewAny', Event::class);
 
         $user = request()->user();
-        $query = Event::query()->withCount(['users', 'organizations'])->orderByDesc('start_date');
-
-        if (! $user->hasAnyRole([Role::SuperAdministrator->value, Role::Management->value])) {
-            $query->whereHas('users', fn ($q) => $q->where('users.id', $user->id));
-        }
+        $query = Event::query()->accessibleTo($user)->withCount(['users', 'organizations'])->orderByDesc('start_date');
 
         return Inertia::render('Events/Index', [
             'events' => $query->get(),

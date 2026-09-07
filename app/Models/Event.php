@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Enums\EventStatus;
+use App\Enums\Role;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -120,6 +122,22 @@ class Event extends Model
     public function isClosed(): bool
     {
         return $this->closed_at !== null;
+    }
+
+    /**
+     * Scope to events the given user can access: elevated roles see every event,
+     * everyone else only the events they're an assigned team member of.
+     *
+     * @param  Builder<Event>  $query
+     * @return Builder<Event>
+     */
+    public function scopeAccessibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->hasAnyRole([Role::SuperAdministrator->value, Role::Management->value])) {
+            return $query;
+        }
+
+        return $query->whereHas('users', fn ($q) => $q->where('users.id', $user->id));
     }
 
     /**
