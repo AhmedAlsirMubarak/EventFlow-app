@@ -116,6 +116,7 @@ export default function AbstractsTab({
         e.preventDefault();
         decisionForm.put(route('abstract-submissions.decide', detailsSubmissionId), {
             preserveScroll: true,
+            onSuccess: () => setDetailsSubmissionId(null),
         });
     }
 
@@ -777,12 +778,21 @@ export default function AbstractsTab({
                                     />
                                     <InputError className="mt-2" message={decisionForm.errors.decision_notes} />
                                 </div>
-                                <PrimaryButton
-                                    disabled={decisionForm.processing}
-                                    className="!bg-emerald-600 !text-sm !normal-case !tracking-normal hover:!bg-emerald-500 focus:!bg-emerald-500 active:!bg-emerald-700"
-                                >
-                                    Record Decision
-                                </PrimaryButton>
+                                <div className="flex items-center gap-3">
+                                    <PrimaryButton
+                                        disabled={decisionForm.processing}
+                                        className="!bg-emerald-600 !text-sm !normal-case !tracking-normal hover:!bg-emerald-500 focus:!bg-emerald-500 active:!bg-emerald-700"
+                                    >
+                                        Record Decision
+                                    </PrimaryButton>
+                                    <SecondaryButton
+                                        type="button"
+                                        onClick={() => setDetailsSubmissionId(null)}
+                                        className="!text-sm !normal-case !tracking-normal"
+                                    >
+                                        Close
+                                    </SecondaryButton>
+                                </div>
                             </form>
                         )}
                     </div>
