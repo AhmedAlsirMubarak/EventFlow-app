@@ -42,7 +42,7 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
             header: 'Name',
             render: (member) => (
                 <div className="flex items-center gap-2">
-                    <UserAvatar user={member} size="xs" />
+                    <UserAvatar user={member} size="sm" />
                     {member.name}
                 </div>
             ),
