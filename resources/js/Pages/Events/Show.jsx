@@ -85,7 +85,7 @@ export default function Show({
         <AuthenticatedLayout
             header={
                 <div className="flex items-center gap-3">
-                    <EventLogo event={event} size="sm" />
+                    <EventLogo event={event} size="lg" />
                     <span>{event.name}</span>
                 </div>
             }
