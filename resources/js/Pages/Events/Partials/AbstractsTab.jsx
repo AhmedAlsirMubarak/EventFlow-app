@@ -395,6 +395,28 @@ export default function AbstractsTab({
                 )}
             </Card>
 
+            <Card
+                title="Review Committee"
+                actions={
+                    addableUsers.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={openCommitteeModal}
+                            className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                        >
+                            Add Committee Member
+                        </button>
+                    )
+                }
+                className="p-0"
+            >
+                <DataTable
+                    columns={committeeColumns}
+                    rows={committeeMembers}
+                    emptyMessage="No committee members assigned yet."
+                />
+            </Card>
+
             {abstractCall && (
                 <Card
                     title="Tracks"
@@ -447,28 +469,6 @@ export default function AbstractsTab({
                     />
                 </Card>
             )}
-
-            <Card
-                title="Review Committee"
-                actions={
-                    addableUsers.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={openCommitteeModal}
-                            className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
-                        >
-                            Add Committee Member
-                        </button>
-                    )
-                }
-                className="p-0"
-            >
-                <DataTable
-                    columns={committeeColumns}
-                    rows={committeeMembers}
-                    emptyMessage="No committee members assigned yet."
-                />
-            </Card>
 
             <Modal show={callModalOpen} onClose={() => setCallModalOpen(false)} maxWidth="lg">
                 <form onSubmit={submitCall} className="space-y-4 p-6">
