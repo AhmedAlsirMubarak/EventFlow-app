@@ -14,6 +14,24 @@ import { useState } from 'react';
 
 const statusColors = { Pending: 'amber', Completed: 'emerald', Dismissed: 'slate' };
 
+// datetime-local inputs show/accept naive local wall-clock time with no timezone
+// info, but the backend stores/returns UTC — convert explicitly at both edges so a
+// value round-trips to the same wall-clock time the user actually picked.
+function toDatetimeLocal(isoString) {
+    if (!isoString) {
+        return '';
+    }
+
+    const date = new Date(isoString);
+    const localTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+
+    return localTime.toISOString().slice(0, 16);
+}
+
+function fromDatetimeLocal(localString) {
+    return localString ? new Date(localString).toISOString() : null;
+}
+
 const emptyReminder = {
     title: '',
     notes: '',
@@ -52,7 +70,7 @@ export default function RemindersTab({
         form.setData({
             title: reminder.title,
             notes: reminder.notes ?? '',
-            remind_at: reminder.remind_at.slice(0, 16),
+            remind_at: toDatetimeLocal(reminder.remind_at),
             organization_id: reminder.organization_id ?? '',
             contact_id: reminder.contact_id ?? '',
             assigned_to: reminder.assigned_to ?? '',
@@ -65,6 +83,8 @@ export default function RemindersTab({
     function submit(e) {
         e.preventDefault();
         const options = { onSuccess: () => setModalOpen(false) };
+
+        form.transform((data) => ({ ...data, remind_at: fromDatetimeLocal(data.remind_at) }));
 
         if (editingReminder) {
             form.put(route('reminders.update', editingReminder.id), options);

@@ -23,8 +23,22 @@ const statusColors = {
     Withdrawn: 'slate',
 };
 
-function toDatetimeLocal(value) {
-    return value ? value.slice(0, 16) : '';
+// datetime-local inputs show/accept naive local wall-clock time with no timezone
+// info, but the backend stores/returns UTC — convert explicitly at both edges so a
+// value round-trips to the same wall-clock time the user actually picked.
+function toDatetimeLocal(isoString) {
+    if (!isoString) {
+        return '';
+    }
+
+    const date = new Date(isoString);
+    const localTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+
+    return localTime.toISOString().slice(0, 16);
+}
+
+function fromDatetimeLocal(localString) {
+    return localString ? new Date(localString).toISOString() : null;
 }
 
 function averageScore(reviews) {
@@ -119,6 +133,12 @@ export default function AbstractsTab({
     function submitCall(e) {
         e.preventDefault();
         const options = { onSuccess: () => setCallModalOpen(false) };
+
+        callForm.transform((data) => ({
+            ...data,
+            opens_at: fromDatetimeLocal(data.opens_at),
+            closes_at: fromDatetimeLocal(data.closes_at),
+        }));
 
         if (abstractCall) {
             callForm.put(route('abstract-calls.update', abstractCall.id), options);

@@ -30,6 +30,24 @@ function toggleId(list, id) {
     return list.includes(id) ? list.filter((v) => v !== id) : [...list, id];
 }
 
+// datetime-local inputs show/accept naive local wall-clock time with no timezone
+// info, but the backend stores/returns UTC — convert explicitly at both edges so a
+// value round-trips to the same wall-clock time the user actually picked.
+function toDatetimeLocal(isoString) {
+    if (!isoString) {
+        return '';
+    }
+
+    const date = new Date(isoString);
+    const localTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+
+    return localTime.toISOString().slice(0, 16);
+}
+
+function fromDatetimeLocal(localString) {
+    return localString ? new Date(localString).toISOString() : null;
+}
+
 export default function MeetingsTab({
     event,
     meetings,
@@ -63,7 +81,7 @@ export default function MeetingsTab({
         setEditingMeeting(meeting);
         form.setData({
             title: meeting.title,
-            held_at: meeting.held_at.slice(0, 16),
+            held_at: toDatetimeLocal(meeting.held_at),
             location: meeting.location ?? '',
             organization_id: meeting.organization_id ?? '',
             agenda: meeting.agenda ?? '',
@@ -78,6 +96,8 @@ export default function MeetingsTab({
     function submit(e) {
         e.preventDefault();
         const options = { onSuccess: () => setModalOpen(false) };
+
+        form.transform((data) => ({ ...data, held_at: fromDatetimeLocal(data.held_at) }));
 
         if (editingMeeting) {
             form.put(route('meetings.update', editingMeeting.id), options);
