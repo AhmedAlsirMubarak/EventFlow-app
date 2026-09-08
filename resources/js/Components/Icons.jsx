@@ -87,6 +87,14 @@ export function IconBell(props) {
     );
 }
 
+export function IconActivity(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h4.5l2.25-7.5 4.5 15L16.5 12H21" />
+        </svg>
+    );
+}
+
 export function IconBuildingOffice(props) {
     return (
         <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>

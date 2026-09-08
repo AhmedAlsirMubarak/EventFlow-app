@@ -1,4 +1,5 @@
 import {
+    IconActivity,
     IconBuildingOffice,
     IconCalendar,
     IconDashboard,
@@ -26,6 +27,11 @@ export const navigation = [
         name: 'Organizations',
         routeName: 'organizations.index',
         icon: IconBuildingOffice,
+    },
+    {
+        name: 'Activity',
+        routeName: 'activity.index',
+        icon: IconActivity,
     },
     {
         name: 'Users',

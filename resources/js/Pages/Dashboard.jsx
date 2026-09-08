@@ -13,14 +13,7 @@ import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, router, usePage, usePoll } from '@inertiajs/react';
 import { useState } from 'react';
 
-function formatDateTime(value) {
-    return new Date(value).toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
-}
-
-export default function Dashboard({ stats, recentActivity, filters, filterOptions }) {
+export default function Dashboard({ stats, filters, filterOptions }) {
     usePoll(POLL_INTERVAL, { preserveScroll: true });
 
     const { auth } = usePage().props;
@@ -228,34 +221,6 @@ export default function Dashboard({ stats, recentActivity, filters, filterOption
                     icon={<IconUsers className="h-6 w-6" />}
                 />
             </div>
-
-            <Card title="Recent Activity">
-                {recentActivity.length === 0 ? (
-                    <p className="text-sm text-slate-400">
-                        No activity recorded yet.
-                    </p>
-                ) : (
-                    <ul className="divide-y divide-slate-100">
-                        {recentActivity.map((item, index) => (
-                            <li key={index} className="flex items-center justify-between py-3">
-                                <div>
-                                    <p className="text-sm text-slate-900">
-                                        {item.description}
-                                    </p>
-                                    {item.actor && (
-                                        <p className="text-xs text-slate-500">
-                                            by {item.actor}
-                                        </p>
-                                    )}
-                                </div>
-                                <span className="text-xs text-slate-400">
-                                    {formatDateTime(item.created_at)}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </Card>
         </AuthenticatedLayout>
     );
 }

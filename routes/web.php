@@ -6,6 +6,7 @@ use App\Http\Controllers\AbstractReviewController;
 use App\Http\Controllers\AbstractSubmissionController;
 use App\Http\Controllers\AbstractTrackController;
 use App\Http\Controllers\AcceptedSpeakersExportController;
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommunicationReportController;
@@ -68,6 +69,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+    Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
 
     Route::get('/settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])->name('two-factor.show');
     Route::post('/settings/two-factor', [TwoFactorAuthenticationController::class, 'enable'])->name('two-factor.enable');

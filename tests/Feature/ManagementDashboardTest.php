@@ -97,21 +97,3 @@ test('the event filter scopes indicators to a single event', function () {
         ->has('stats', fn (Assert $page) => $page->where('overdue_tasks', 1)->etc())
     );
 });
-
-test('the recent activity feed includes logged events', function () {
-    $this->actingAs($this->admin)->post(route('events.store'), [
-        'name' => 'Dashboard Test Event',
-        'code' => 'dashboard-test-event',
-        'status' => 'Planning',
-    ]);
-
-    $response = $this->actingAs($this->admin)->get(route('dashboard'));
-
-    $response->assertInertia(fn (Assert $page) => $page
-        ->has(
-            'recentActivity',
-            1,
-            fn (Assert $page) => $page->where('description', 'Event created')->etc()
-        )
-    );
-});
