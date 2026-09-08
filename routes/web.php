@@ -83,6 +83,7 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
 
     Route::resource('organizations', OrganizationController::class);
     Route::post('organizations/{organization}/contacts', [ContactController::class, 'store'])->name('organizations.contacts.store');
+    Route::get('contacts/import-template', [ContactImportController::class, 'template'])->name('contacts.import-template');
     Route::post('organizations/{organization}/contacts/import', [ContactImportController::class, 'store'])->name('organizations.contacts.import');
     Route::get('organizations/{organization}/contacts/export', [ContactExportController::class, 'index'])->name('organizations.contacts.export');
     Route::put('contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');

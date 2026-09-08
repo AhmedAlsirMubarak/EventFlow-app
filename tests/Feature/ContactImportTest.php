@@ -10,6 +10,21 @@ beforeEach(function () {
     $this->organization = Organization::factory()->create();
 });
 
+test('an internal user can download the csv template with the correct headers', function () {
+    $response = $this->actingAs($this->member)->get(route('contacts.import-template'));
+
+    $response->assertOk();
+    $content = $response->streamedContent();
+    expect($content)->toContain('full_name,job_title,department,email,mobile,preferred_channel');
+});
+
+test('a non-internal user cannot download the csv template', function () {
+    $external = User::factory()->external()->create();
+
+    $this->actingAs($external)->get(route('contacts.import-template'))
+        ->assertRedirect(route('portal.dashboard'));
+});
+
 test('a non-internal user cannot import contacts', function () {
     $external = User::factory()->external()->create();
     $csv = UploadedFile::fake()->createWithContent('contacts.csv', "full_name,email\nJane Doe,jane@example.com\n");

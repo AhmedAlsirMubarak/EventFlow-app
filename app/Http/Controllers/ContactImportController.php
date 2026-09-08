@@ -4,13 +4,37 @@ namespace App\Http\Controllers;
 
 use App\Enums\PreferredChannel;
 use App\Http\Requests\Admin\StoreContactImportRequest;
+use App\Models\Contact;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ContactImportController extends Controller
 {
+    public function template(): StreamedResponse
+    {
+        Gate::authorize('create', Contact::class);
+
+        return response()->streamDownload(function () {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['full_name', 'job_title', 'department', 'email', 'mobile', 'preferred_channel']);
+            fputcsv($handle, [
+                'Jane Doe',
+                'Director of Operations',
+                'Operations',
+                'jane.doe@example.com',
+                '+968 9000 0000',
+                PreferredChannel::Email->value,
+            ]);
+
+            fclose($handle);
+        }, 'contacts-import-template.csv');
+    }
+
     public function store(StoreContactImportRequest $request, Organization $organization): RedirectResponse
     {
         $handle = fopen($request->file('file')->getRealPath(), 'r');

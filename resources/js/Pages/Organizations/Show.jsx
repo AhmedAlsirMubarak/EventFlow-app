@@ -495,6 +495,13 @@ export default function Show({
                         <code className="rounded bg-slate-100 px-1">preferred_channel</code>.
                     </p>
 
+                    <a
+                        href={route('contacts.import-template')}
+                        className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                    >
+                        Download CSV Template
+                    </a>
+
                     <div>
                         <InputLabel htmlFor="file" value="CSV File" />
                         <div className="mt-1">
