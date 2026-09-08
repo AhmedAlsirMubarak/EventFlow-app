@@ -2,6 +2,7 @@ import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextareaInput from '@/Components/TextareaInput';
+import UserAvatar from '@/Components/UserAvatar';
 import PortalLayout from '@/Layouts/PortalLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, useForm, usePoll } from '@inertiajs/react';
@@ -76,9 +77,12 @@ export default function Show({ request }) {
                         )}
                         {request.comments.map((comment) => (
                             <li key={comment.id} className="rounded-lg bg-slate-50 p-3 text-sm">
-                                <span className="font-medium text-slate-900">
-                                    {comment.user?.name ?? comment.contact?.full_name ?? 'Unknown'}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    {comment.user && <UserAvatar user={comment.user} size="xs" />}
+                                    <span className="font-medium text-slate-900">
+                                        {comment.user?.name ?? comment.contact?.full_name ?? 'Unknown'}
+                                    </span>
+                                </div>
                                 <p className="mt-1 whitespace-pre-line text-slate-700">{comment.body}</p>
                             </li>
                         ))}

@@ -1,5 +1,6 @@
 import Dropdown from '@/Components/Dropdown';
 import { IconBell, IconChevronDown, IconMenu, IconSearch } from '@/Components/Icons';
+import UserAvatar from '@/Components/UserAvatar';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -63,9 +64,7 @@ export default function Topbar({ user, title, onToggleSidebar, unreadNotificatio
                             type="button"
                             className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
                         >
-                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700">
-                                {user.name.charAt(0).toUpperCase()}
-                            </span>
+                            <UserAvatar user={user} size="sm" />
                             <span className="hidden sm:block">{user.name}</span>
                             <IconChevronDown className="h-4 w-4 text-slate-400" />
                         </button>

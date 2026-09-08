@@ -52,7 +52,7 @@ class StakeholderRequestController extends Controller
                 'event:id,name',
                 'comments' => fn ($query) => $query
                     ->where('visibility', CommentVisibility::External)
-                    ->with(['user:id,name', 'contact:id,full_name'])
+                    ->with(['user:id,name,avatar_path', 'contact:id,full_name'])
                     ->oldest(),
             ]),
         ]);

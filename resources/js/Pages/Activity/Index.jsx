@@ -1,5 +1,6 @@
 import Card from '@/Components/UI/Card';
 import SelectInput from '@/Components/SelectInput';
+import UserAvatar from '@/Components/UserAvatar';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 
@@ -42,11 +43,19 @@ export default function Index({ activity, filters, filterOptions }) {
                     <ul className="divide-y divide-slate-100">
                         {activity.map((item, index) => (
                             <li key={index} className="flex items-center justify-between py-3">
-                                <div>
-                                    <p className="text-sm text-slate-900">{item.description}</p>
+                                <div className="flex items-center gap-3">
                                     {item.actor && (
-                                        <p className="text-xs text-slate-500">by {item.actor}</p>
+                                        <UserAvatar
+                                            user={{ name: item.actor, avatar_url: item.actor_avatar_url }}
+                                            size="xs"
+                                        />
                                     )}
+                                    <div>
+                                        <p className="text-sm text-slate-900">{item.description}</p>
+                                        {item.actor && (
+                                            <p className="text-xs text-slate-500">by {item.actor}</p>
+                                        )}
+                                    </div>
                                 </div>
                                 <span className="text-xs text-slate-400">
                                     {formatDateTime(item.created_at)}

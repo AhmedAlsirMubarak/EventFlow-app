@@ -4,6 +4,7 @@ use App\Enums\Role as RoleEnum;
 use App\Models\Event;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
@@ -28,6 +29,27 @@ test('the activity feed includes logged events', function () {
             'activity',
             1,
             fn (Assert $page) => $page->where('description', 'Event created')->etc()
+        )
+    );
+});
+
+test('the activity feed exposes the causer avatar url', function () {
+    Storage::fake('public');
+    $this->admin->update(['avatar_path' => 'avatars/admin.png']);
+    Storage::disk('public')->put('avatars/admin.png', 'fake-content');
+
+    $event = Event::factory()->create();
+    $event->activityLogs()->create(['description' => 'Something happened', 'causer_id' => $this->admin->id]);
+
+    $response = $this->actingAs($this->admin)->get(route('activity.index'));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->has(
+            'activity',
+            1,
+            fn (Assert $page) => $page
+                ->where('actor_avatar_url', $this->admin->fresh()->avatar_url)
+                ->etc()
         )
     );
 });

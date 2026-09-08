@@ -1,6 +1,7 @@
 import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
 import TextInput from '@/Components/TextInput';
+import UserAvatar from '@/Components/UserAvatar';
 import { useMemo, useState } from 'react';
 
 function buildItems({ activityLogs, documentActivities }) {
@@ -11,6 +12,7 @@ function buildItems({ activityLogs, documentActivities }) {
             key: `log-${log.id}`,
             description: log.description,
             actor: log.causer?.name ?? 'System',
+            actorAvatarUrl: log.causer?.avatar_url,
             at: log.created_at,
         });
     });
@@ -20,6 +22,7 @@ function buildItems({ activityLogs, documentActivities }) {
             key: `doc-${activity.id}`,
             description: `${activity.type} — ${activity.document.title}`,
             actor: activity.user?.name ?? activity.contact?.full_name ?? 'External stakeholder',
+            actorAvatarUrl: activity.user?.avatar_url,
             at: activity.created_at,
         });
     });
@@ -61,7 +64,16 @@ export default function ActivityTab({ activityLogs, documentActivities }) {
                     timeStyle: 'short',
                 }),
         },
-        { key: 'actor', header: 'By' },
+        {
+            key: 'actor',
+            header: 'By',
+            render: (item) => (
+                <div className="flex items-center gap-2">
+                    <UserAvatar user={{ name: item.actor, avatar_url: item.actorAvatarUrl }} size="xs" />
+                    {item.actor}
+                </div>
+            ),
+        },
         { key: 'description', header: 'Activity' },
     ];
 

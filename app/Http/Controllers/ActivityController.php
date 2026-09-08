@@ -33,7 +33,7 @@ class ActivityController extends Controller
     private function recentActivity(?int $eventId): Collection
     {
         $activityLogs = ActivityLog::query()
-            ->with('causer:id,name')
+            ->with('causer:id,name,avatar_path')
             ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
             ->latest()
             ->limit(50)
@@ -41,11 +41,12 @@ class ActivityController extends Controller
             ->map(fn (ActivityLog $log) => [
                 'description' => $log->description,
                 'actor' => $log->causer?->name,
+                'actor_avatar_url' => $log->causer?->avatar_url,
                 'created_at' => $log->created_at,
             ]);
 
         $documentActivities = DocumentActivity::query()
-            ->with(['document:id,title,event_id', 'user:id,name', 'contact:id,full_name'])
+            ->with(['document:id,title,event_id', 'user:id,name,avatar_path', 'contact:id,full_name'])
             ->when($eventId, fn ($q) => $q->whereHas('document', fn ($q) => $q->where('event_id', $eventId)))
             ->latest()
             ->limit(50)
@@ -53,6 +54,7 @@ class ActivityController extends Controller
             ->map(fn (DocumentActivity $activity) => [
                 'description' => "Document {$activity->type->value}: {$activity->document->title}",
                 'actor' => $activity->user?->name ?? $activity->contact?->full_name,
+                'actor_avatar_url' => $activity->user?->avatar_url,
                 'created_at' => $activity->created_at,
             ]);
 

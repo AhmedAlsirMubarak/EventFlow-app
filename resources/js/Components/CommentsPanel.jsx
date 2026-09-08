@@ -3,6 +3,7 @@ import Checkbox from '@/Components/Checkbox';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextareaInput from '@/Components/TextareaInput';
+import UserAvatar from '@/Components/UserAvatar';
 import { router, useForm, usePage } from '@inertiajs/react';
 
 export default function CommentsPanel({ show, onClose, title, comments, storeUrl, allowVisibilityToggle = false }) {
@@ -53,6 +54,7 @@ export default function CommentsPanel({ show, onClose, title, comments, storeUrl
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
+                                    {comment.user && <UserAvatar user={comment.user} size="xs" />}
                                     <span className="font-medium text-slate-900">
                                         {comment.user?.name ?? comment.contact?.full_name ?? 'Unknown'}
                                     </span>

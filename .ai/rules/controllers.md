@@ -2,6 +2,7 @@
 paths:
   - 'app/Http/Controllers/Document*Controller.php'
   - app/Http/Controllers/EventController.php
+  - 'app/Http/Controllers/**'
 ---
 
 # Controllers
@@ -14,3 +15,6 @@ Documents can be flagged `approval_required`. When set, `Document::requestApprov
 
 ## Eager-loaded relation names that snake_case to a FK column overwrite it in JSON
 Eloquent's array/JSON serialization snake_cases relation keys (`$snakeAttributes`), so a relation like `decidedBy()` or `closedBy()` serializes under the key `decided_by`/`closed_by` — the SAME key as the raw foreign-key column — and overwrites it. When that relation is eager-loaded, the frontend prop is the related object (`{id, name}` or null), not the scalar id; when it isn't loaded, it's the scalar. `DecisionsTab.jsx`'s edit-prefill (`decided_by: decision.decided_by ?? ''`) has this latent bug — it assigns the loaded object into a `<select>` value instead of the id, so editing a decision doesn't pre-select "Decided By". Not fixed here (out of scope); the existing convention that avoids it is picking a relation name whose snake_case form differs from the FK (`assignee` not `assignedTo` for `assigned_to`, `creator` not `createdBy` for `created_by`, `requester`/`reviewer` for `requested_by`/`reviewed_by`) — follow that pattern for new relations unless, like `closedBy`, only the display object is ever needed and the raw id is never read back into a form.
+
+## Restricted User selects need avatar_path to show avatars
+User::avatar_url is an appended accessor computed from avatar_path (Storage::disk('public')->url()). Any eager-load that restricts columns on a User relation — the app's common `causer:id,name`, `user:id,name`, `assignee:id,name`, `creator:id,name`, `reviewer:id,name` pattern — must add `,avatar_path` to that column list or the accessor silently resolves to null (no error, avatar just never renders) since avatar_path isn't loaded. Applied so far to: comments.user (EventController::show, Portal\StakeholderRequestController::show), causer (ActivityLog selects in EventController/ActivityController), documentActivities.user. Other `:id,name` User selects across the app (assignee, creator, reviewer, uploader, requester, committee members, etc.) were NOT updated and will not show avatars until their selects are extended the same way.

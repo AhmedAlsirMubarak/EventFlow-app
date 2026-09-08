@@ -83,8 +83,8 @@ class EventController extends Controller
             'event' => $event->load('closedBy:id,name'),
             'team' => $event->users()->orderBy('name')->get(),
             'organizations' => $event->organizations()->orderBy('name')->get(),
-            'ideas' => $event->ideas()->with(['creator:id,name', 'comments.user:id,name'])->latest()->get(),
-            'tasks' => $event->tasks()->with(['assignee:id,name', 'organization:id,name', 'checklistItems', 'comments.user:id,name'])->latest()->get(),
+            'ideas' => $event->ideas()->with(['creator:id,name', 'comments.user:id,name,avatar_path'])->latest()->get(),
+            'tasks' => $event->tasks()->with(['assignee:id,name', 'organization:id,name', 'checklistItems', 'comments.user:id,name,avatar_path'])->latest()->get(),
             'documents' => $event->documents()->with(['currentVersion', 'versions.uploader:id,name', 'creator:id,name', 'organization:id,name', 'shares.organization:id,name', 'shares.contact:id,full_name,organization_id', 'approvals.requester:id,name', 'approvals.reviewer:id,name'])->withCount('versions')->latest()->get(),
             'meetings' => $event->meetings()
                 ->with(['organization:id,name', 'participants:id,name', 'externalParticipants:id,full_name', 'documents:id,title', 'actionItems.assignee:id,name'])
@@ -100,7 +100,7 @@ class EventController extends Controller
                     'contact:id,full_name,organization_id',
                     'assignee:id,name',
                     'creator:id,name',
-                    'comments.user:id,name',
+                    'comments.user:id,name,avatar_path',
                     'comments.contact:id,full_name',
                 ])
                 ->latest()
@@ -114,13 +114,13 @@ class EventController extends Controller
                 ->latest()
                 ->get(),
             'activityLogs' => $event->activityLogs()
-                ->with('causer:id,name')
+                ->with('causer:id,name,avatar_path')
                 ->latest()
                 ->limit(150)
                 ->get(),
             'documentActivities' => DocumentActivity::query()
                 ->whereHas('document', fn ($q) => $q->where('event_id', $event->id))
-                ->with(['document:id,title', 'user:id,name', 'contact:id,full_name'])
+                ->with(['document:id,title', 'user:id,name,avatar_path', 'contact:id,full_name'])
                 ->latest()
                 ->limit(150)
                 ->get(),

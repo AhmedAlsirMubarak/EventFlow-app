@@ -5,7 +5,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | Applies to | Rule file |
 | --- | --- |
 | app/Http/Controllers/Auth/*.php | .ai/rules/auth.md |
-| app/Http/Controllers/Document*Controller.php, app/Http/Controllers/EventController.php | .ai/rules/controllers.md |
+| app/Http/Controllers/Document*Controller.php, app/Http/Controllers/EventController.php, app/Http/Controllers/** | .ai/rules/controllers.md |
 | app/Enums/** | .ai/rules/enums.md |
 | .env* | .ai/rules/general.md |
 | resources/js/** | .ai/rules/js.md |
