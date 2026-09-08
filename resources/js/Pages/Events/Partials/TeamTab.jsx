@@ -6,6 +6,7 @@ import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
+import UserAvatar from '@/Components/UserAvatar';
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -36,7 +37,16 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
     }
 
     const columns = [
-        { key: 'name', header: 'Name' },
+        {
+            key: 'name',
+            header: 'Name',
+            render: (member) => (
+                <div className="flex items-center gap-2">
+                    <UserAvatar user={member} size="xs" />
+                    {member.name}
+                </div>
+            ),
+        },
         { key: 'email', header: 'Email' },
         {
             key: 'role_in_event',
