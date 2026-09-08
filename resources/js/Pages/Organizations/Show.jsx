@@ -40,7 +40,20 @@ export default function Show({
     const [modalOpen, setModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState(null);
     const [importModalOpen, setImportModalOpen] = useState(false);
+    const [contactSearch, setContactSearch] = useState('');
     const importForm = useForm({ file: null });
+
+    const filteredContacts = contacts.filter((contact) => {
+        if (!contactSearch.trim()) {
+            return true;
+        }
+
+        const term = contactSearch.trim().toLowerCase();
+
+        return [contact.full_name, contact.email, contact.job_title, contact.department, contact.mobile]
+            .filter(Boolean)
+            .some((field) => field.toLowerCase().includes(term));
+    });
 
     // Latched into local state so the one-time flash isn't lost to a
     // background poll refresh before the user has copied it.
@@ -292,6 +305,12 @@ export default function Show({
                     title="Contacts"
                     actions={
                         <div className="flex items-center gap-2">
+                            <a
+                                href={route('organizations.contacts.export', organization.id)}
+                                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 shadow-sm transition duration-150 ease-in-out hover:bg-gray-50"
+                            >
+                                Export CSV
+                            </a>
                             <SecondaryButton
                                 type="button"
                                 onClick={openImportModal}
@@ -320,10 +339,23 @@ export default function Show({
                             </ul>
                         </div>
                     )}
+                    <div className="border-b border-slate-100 p-4">
+                        <TextInput
+                            type="search"
+                            placeholder="Search contacts by name, email, title, department, or mobile…"
+                            className="block w-full max-w-sm"
+                            value={contactSearch}
+                            onChange={(e) => setContactSearch(e.target.value)}
+                        />
+                    </div>
                     <DataTable
                         columns={columns}
-                        rows={contacts}
-                        emptyMessage="No contacts recorded for this organization yet."
+                        rows={filteredContacts}
+                        emptyMessage={
+                            contactSearch.trim()
+                                ? 'No contacts match your search.'
+                                : 'No contacts recorded for this organization yet.'
+                        }
                     />
                 </Card>
             </div>
