@@ -88,15 +88,13 @@ export default function OrganizationsTab({
             <Card
                 title="Participating Organizations"
                 actions={
-                    addableOrganizations.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={openModal}
-                            className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
-                        >
-                            Add Organization
-                        </button>
-                    )
+                    <button
+                        type="button"
+                        onClick={openModal}
+                        className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                    >
+                        Add Organization
+                    </button>
                 }
                 className="p-0"
             >
@@ -108,76 +106,95 @@ export default function OrganizationsTab({
             </Card>
 
             <Modal show={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm">
-                <form onSubmit={submit} className="space-y-4 p-6">
-                    <h3 className="text-lg font-semibold text-slate-900">
-                        Add Organization
-                    </h3>
-
-                    <div>
-                        <InputLabel
-                            htmlFor="organization_id"
-                            value="Organization"
-                        />
-                        <SelectInput
-                            id="organization_id"
-                            className="mt-1 block w-full"
-                            value={form.data.organization_id}
-                            onChange={(e) =>
-                                form.setData(
-                                    'organization_id',
-                                    e.target.value,
-                                )
-                            }
-                        >
-                            {addableOrganizations.map((org) => (
-                                <option key={org.id} value={org.id}>
-                                    {org.name}
-                                </option>
-                            ))}
-                        </SelectInput>
-                    </div>
-
-                    <div>
-                        <InputLabel
-                            htmlFor="relationship_type"
-                            value="Relationship"
-                        />
-                        <SelectInput
-                            id="relationship_type"
-                            className="mt-1 block w-full"
-                            value={form.data.relationship_type}
-                            onChange={(e) =>
-                                form.setData(
-                                    'relationship_type',
-                                    e.target.value,
-                                )
-                            }
-                        >
-                            <option value="">Not specified</option>
-                            {relationshipTypes.map((type) => (
-                                <option key={type} value={type}>
-                                    {type}
-                                </option>
-                            ))}
-                        </SelectInput>
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={form.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
-                            Add
-                        </PrimaryButton>
+                {addableOrganizations.length === 0 ? (
+                    <div className="space-y-4 p-6">
+                        <h3 className="text-lg font-semibold text-slate-900">
+                            Add Organization
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                            Every organization is already linked to this event. Add more from
+                            the Organizations page, then they&apos;ll show up here.
+                        </p>
                         <SecondaryButton
                             type="button"
                             onClick={() => setModalOpen(false)}
                             className="!text-sm !normal-case !tracking-normal"
                         >
-                            Cancel
+                            Close
                         </SecondaryButton>
                     </div>
-                </form>
+                ) : (
+                    <form onSubmit={submit} className="space-y-4 p-6">
+                        <h3 className="text-lg font-semibold text-slate-900">
+                            Add Organization
+                        </h3>
+
+                        <div>
+                            <InputLabel
+                                htmlFor="organization_id"
+                                value="Organization"
+                            />
+                            <SelectInput
+                                id="organization_id"
+                                className="mt-1 block w-full"
+                                value={form.data.organization_id}
+                                onChange={(e) =>
+                                    form.setData(
+                                        'organization_id',
+                                        e.target.value,
+                                    )
+                                }
+                            >
+                                {addableOrganizations.map((org) => (
+                                    <option key={org.id} value={org.id}>
+                                        {org.name}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </div>
+
+                        <div>
+                            <InputLabel
+                                htmlFor="relationship_type"
+                                value="Relationship"
+                            />
+                            <SelectInput
+                                id="relationship_type"
+                                className="mt-1 block w-full"
+                                value={form.data.relationship_type}
+                                onChange={(e) =>
+                                    form.setData(
+                                        'relationship_type',
+                                        e.target.value,
+                                    )
+                                }
+                            >
+                                <option value="">Not specified</option>
+                                {relationshipTypes.map((type) => (
+                                    <option key={type} value={type}>
+                                        {type}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </div>
+
+                        <div className="flex items-center gap-3 pt-2">
+                            <PrimaryButton
+                                disabled={form.processing}
+                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
+                            >
+                                Add
+                            </PrimaryButton>
+                            <SecondaryButton
+                                type="button"
+                                onClick={() => setModalOpen(false)}
+                                className="!text-sm !normal-case !tracking-normal"
+                            >
+                                Cancel
+                            </SecondaryButton>
+                        </div>
+                    </form>
+                )}
             </Modal>
         </>
     );

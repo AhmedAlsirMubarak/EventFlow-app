@@ -464,7 +464,7 @@ export default function MeetingsTab({
                                 ))}
                             </ul>
 
-                            {attachableDocuments.length > 0 && (
+                            {attachableDocuments.length > 0 ? (
                                 <form onSubmit={submitAttachDocument} className="mt-3 flex gap-2 border-t border-slate-100 pt-3">
                                     <SelectInput
                                         className="block w-full"
@@ -485,6 +485,12 @@ export default function MeetingsTab({
                                         Attach
                                     </PrimaryButton>
                                 </form>
+                            ) : (
+                                <p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-400">
+                                    {documents.length === 0
+                                        ? 'Upload a document in the Documents tab, then attach it here.'
+                                        : 'Every document in this event is already attached.'}
+                                </p>
                             )}
                         </div>
                     </div>
