@@ -1,4 +1,5 @@
 import Card from '@/Components/UI/Card';
+import FileDropzone from '@/Components/FileDropzone';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -7,7 +8,11 @@ import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { validateFile } from '@/utils/validateFile';
 import { Head, Link, useForm } from '@inertiajs/react';
+
+const LOGO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
+const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
 function slugify(value) {
     return value
@@ -18,14 +23,27 @@ function slugify(value) {
 }
 
 export default function Create({ statuses }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         name: '',
         code: '',
         description: '',
         start_date: '',
         end_date: '',
         status: statuses[0] ?? '',
+        logo: null,
     });
+
+    function handleLogoChange(file) {
+        const error = validateFile(file, { extensions: LOGO_EXTENSIONS, maxSizeBytes: LOGO_MAX_BYTES });
+
+        if (error) {
+            setError('logo', error);
+            return;
+        }
+
+        clearErrors('logo');
+        setData('logo', file);
+    }
 
     function submit(e) {
         e.preventDefault();
@@ -126,6 +144,20 @@ export default function Create({ statuses }) {
                             ))}
                         </SelectInput>
                         <InputError className="mt-2" message={errors.status} />
+                    </div>
+
+                    <div>
+                        <InputLabel htmlFor="logo" value="Event Logo" />
+                        <div className="mt-1">
+                            <FileDropzone
+                                id="logo"
+                                accept="image/*"
+                                value={data.logo}
+                                onChange={handleLogoChange}
+                                hint="JPG, PNG, WEBP, or SVG, up to 2 MB"
+                            />
+                        </div>
+                        <InputError className="mt-2" message={errors.logo} />
                     </div>
 
                     <div>

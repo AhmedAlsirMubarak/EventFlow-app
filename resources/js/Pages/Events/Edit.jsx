@@ -1,4 +1,5 @@
 import Card from '@/Components/UI/Card';
+import FileDropzone from '@/Components/FileDropzone';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -7,17 +8,43 @@ import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { validateFile } from '@/utils/validateFile';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
+
+const LOGO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
+const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
 export default function Edit({ event, statuses }) {
-    const { data, setData, put, processing, errors } = useForm({
+    const [removeLogo, setRemoveLogo] = useState(false);
+    const { data, setData, put, processing, errors, setError, clearErrors } = useForm({
         name: event.name,
         code: event.code,
         description: event.description ?? '',
         start_date: event.start_date ?? '',
         end_date: event.end_date ?? '',
         status: event.status,
+        logo: null,
+        remove_logo: false,
     });
+
+    function handleLogoChange(file) {
+        const error = validateFile(file, { extensions: LOGO_EXTENSIONS, maxSizeBytes: LOGO_MAX_BYTES });
+
+        if (error) {
+            setError('logo', error);
+            return;
+        }
+
+        clearErrors('logo');
+        setRemoveLogo(false);
+        setData((prev) => ({ ...prev, logo: file, remove_logo: false }));
+    }
+
+    function handleRemoveLogo() {
+        setRemoveLogo(true);
+        setData((prev) => ({ ...prev, logo: null, remove_logo: true }));
+    }
 
     function submit(e) {
         e.preventDefault();
@@ -110,6 +137,41 @@ export default function Edit({ event, statuses }) {
                             ))}
                         </SelectInput>
                         <InputError className="mt-2" message={errors.status} />
+                    </div>
+
+                    <div>
+                        <InputLabel htmlFor="logo" value="Event Logo" />
+
+                        {event.logo_url && !removeLogo && !data.logo && (
+                            <div className="mt-1 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                                <img
+                                    src={event.logo_url}
+                                    alt=""
+                                    className="h-12 w-12 rounded-md object-cover"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveLogo}
+                                    className="text-sm font-medium text-rose-600 hover:text-rose-500"
+                                >
+                                    Remove Logo
+                                </button>
+                            </div>
+                        )}
+
+                        {(!event.logo_url || removeLogo || data.logo) && (
+                            <div className="mt-1">
+                                <FileDropzone
+                                    id="logo"
+                                    accept="image/*"
+                                    value={data.logo}
+                                    onChange={handleLogoChange}
+                                    hint="JPG, PNG, WEBP, or SVG, up to 2 MB"
+                                />
+                            </div>
+                        )}
+
+                        <InputError className="mt-2" message={errors.logo} />
                     </div>
 
                     <div>

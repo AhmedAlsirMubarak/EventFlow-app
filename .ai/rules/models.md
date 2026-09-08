@@ -1,6 +1,7 @@
 ---
 paths:
   - 'app/Models/*.php'
+  - app/Models/Event.php
 ---
 
 # Models
@@ -10,3 +11,6 @@ This has caused two silent bugs so far: `Document::current_version_id` and `Remi
 
 ## Set $table explicitly for compound-word model names
 Eloquent's naive pluralization on a compound class name doesn't always match the natural English plural used in the migration — `LessonLearned` guesses table `lesson_learneds`, not `lessons_learned` (hit this once: `SQLSTATE... no such table: lesson_learneds`). Whenever a model's class name is a multi-word compound, set `protected $table = '...'` explicitly to match the migration's `Schema::create()` name rather than trusting the guess, and verify with a real query (a feature test that persists and re-reads a row) — a passing `php artisan migrate` alone doesn't catch this.
+
+## Event logos use the public disk, unlike every other upload
+Every other file upload in this app (documents, abstract submissions, CSV imports) goes on the private `local` disk behind an authenticated controller route — deliberately, since they're confidential business content. Event logos are the one exception: they're non-sensitive branding shown repeatedly in `<img>` tags (events index thumbnail, create/edit forms), so they're stored on the `public` disk (`Storage::disk('public')`) and served as static files via the `storage:link` symlink (`public/storage` -> `storage/app/public`), exposed through `Event::logoUrl()` (an `Attribute` accessor, auto-included via `protected $appends = ['logo_url']`). If a fresh environment is missing `public/storage`, run `php artisan storage:link` — it won't exist after a plain `git clone` since symlinks aren't part of version control. Follow this same public-disk pattern for any future non-sensitive branding/avatar image, not the private-disk-plus-route pattern used everywhere else.

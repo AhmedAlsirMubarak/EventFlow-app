@@ -9,6 +9,6 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Enums/** | .ai/rules/enums.md |
 | .env* | .ai/rules/general.md |
 | resources/js/** | .ai/rules/js.md |
-| app/Models/*.php | .ai/rules/models.md |
+| app/Models/*.php, app/Models/Event.php | .ai/rules/models.md |
 | app/Policies/CommentPolicy.php | .ai/rules/policies.md |
 | resources/views/** | .ai/rules/views.md |

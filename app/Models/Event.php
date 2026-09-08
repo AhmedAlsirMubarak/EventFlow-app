@@ -7,18 +7,25 @@ use App\Enums\Role;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'code', 'description', 'start_date', 'end_date', 'status', 'created_by', 'closure_summary', 'closed_at', 'closed_by'])]
+#[Fillable(['name', 'code', 'description', 'logo_path', 'start_date', 'end_date', 'status', 'created_by', 'closure_summary', 'closed_at', 'closed_by'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
     use HasFactory;
+
+    /**
+     * @var array<int, string>
+     */
+    protected $appends = ['logo_url'];
 
     /**
      * @return BelongsTo<User, $this>
@@ -147,6 +154,16 @@ class Event extends Model
     public function isClosed(): bool
     {
         return $this->closed_at !== null;
+    }
+
+    /**
+     * Public URL for the event's logo, if one has been uploaded.
+     */
+    protected function logoUrl(): Attribute
+    {
+        return Attribute::get(
+            fn () => $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null,
+        );
     }
 
     /**

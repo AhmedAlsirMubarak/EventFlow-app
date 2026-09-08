@@ -17,6 +17,22 @@ export default function Index({ events }) {
 
     const columns = [
         {
+            key: 'logo',
+            header: '',
+            render: (event) =>
+                event.logo_url ? (
+                    <img
+                        src={event.logo_url}
+                        alt=""
+                        className="h-8 w-8 rounded-md object-cover"
+                    />
+                ) : (
+                    <span className="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-100 text-xs font-semibold text-indigo-700">
+                        {event.name.charAt(0).toUpperCase()}
+                    </span>
+                ),
+        },
+        {
             key: 'name',
             header: 'Event',
             render: (event) => (

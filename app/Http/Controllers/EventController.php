@@ -30,6 +30,7 @@ use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,9 +60,13 @@ class EventController extends Controller
     public function store(StoreEventRequest $request): RedirectResponse
     {
         $event = Event::create([
-            ...$request->validated(),
+            ...$request->safe()->except('logo'),
             'created_by' => $request->user()->id,
         ]);
+
+        if ($request->hasFile('logo')) {
+            $event->update(['logo_path' => $request->file('logo')->store('event-logos', 'public')]);
+        }
 
         $event->users()->attach($request->user()->id, ['role_in_event' => null]);
 
@@ -157,7 +162,20 @@ class EventController extends Controller
 
     public function update(UpdateEventRequest $request, Event $event): RedirectResponse
     {
-        $event->update($request->validated());
+        $data = $request->safe()->except(['logo', 'remove_logo']);
+
+        if ($request->hasFile('logo')) {
+            if ($event->logo_path) {
+                Storage::disk('public')->delete($event->logo_path);
+            }
+
+            $data['logo_path'] = $request->file('logo')->store('event-logos', 'public');
+        } elseif ($request->boolean('remove_logo') && $event->logo_path) {
+            Storage::disk('public')->delete($event->logo_path);
+            $data['logo_path'] = null;
+        }
+
+        $event->update($data);
 
         return to_route('events.show', $event)->with('status', 'Event updated.');
     }
@@ -165,6 +183,10 @@ class EventController extends Controller
     public function destroy(Event $event): RedirectResponse
     {
         Gate::authorize('delete', $event);
+
+        if ($event->logo_path) {
+            Storage::disk('public')->delete($event->logo_path);
+        }
 
         $event->delete();
 
