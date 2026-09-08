@@ -1,6 +1,7 @@
 import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
+import EventLogo from '@/Components/EventLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, Link, usePoll } from '@inertiajs/react';
@@ -19,18 +20,7 @@ export default function Index({ events }) {
         {
             key: 'logo',
             header: '',
-            render: (event) =>
-                event.logo_url ? (
-                    <img
-                        src={event.logo_url}
-                        alt=""
-                        className="h-8 w-8 rounded-md object-cover"
-                    />
-                ) : (
-                    <span className="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-100 text-xs font-semibold text-indigo-700">
-                        {event.name.charAt(0).toUpperCase()}
-                    </span>
-                ),
+            render: (event) => <EventLogo event={event} size="sm" />,
         },
         {
             key: 'name',

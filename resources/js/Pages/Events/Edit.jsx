@@ -1,4 +1,5 @@
 import Card from '@/Components/UI/Card';
+import EventLogo from '@/Components/EventLogo';
 import FileDropzone from '@/Components/FileDropzone';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -144,11 +145,7 @@ export default function Edit({ event, statuses }) {
 
                         {event.logo_url && !removeLogo && !data.logo && (
                             <div className="mt-1 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                                <img
-                                    src={event.logo_url}
-                                    alt=""
-                                    className="h-12 w-12 rounded-md object-cover"
-                                />
+                                <EventLogo event={event} size="lg" />
                                 <button
                                     type="button"
                                     onClick={handleRemoveLogo}

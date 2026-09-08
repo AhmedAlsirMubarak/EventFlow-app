@@ -1,3 +1,4 @@
+import EventLogo from '@/Components/EventLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, usePoll } from '@inertiajs/react';
@@ -81,7 +82,14 @@ export default function Show({
     usePoll(POLL_INTERVAL, { preserveScroll: true });
 
     return (
-        <AuthenticatedLayout header={event.name}>
+        <AuthenticatedLayout
+            header={
+                <div className="flex items-center gap-3">
+                    <EventLogo event={event} size="sm" />
+                    <span>{event.name}</span>
+                </div>
+            }
+        >
             <Head title={event.name} />
 
             {status && (
