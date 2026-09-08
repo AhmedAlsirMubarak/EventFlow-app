@@ -1,4 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import FileDropzone from '@/Components/FileDropzone';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -7,8 +8,10 @@ import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
 
+const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+
 export default function Show({ call, isOpen }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         title: '',
         abstract_track_id: '',
         abstract_body: '',
@@ -20,6 +23,27 @@ export default function Show({ call, isOpen }) {
         speaker_organization: '',
         file: null,
     });
+
+    function handleFileChange(file) {
+        if (!file) {
+            clearErrors('file');
+            setData('file', null);
+            return;
+        }
+
+        if (file.type !== 'application/pdf') {
+            setError('file', 'The attachment must be a PDF file.');
+            return;
+        }
+
+        if (file.size > MAX_ATTACHMENT_BYTES) {
+            setError('file', 'The attachment must not be larger than 5 MB.');
+            return;
+        }
+
+        clearErrors('file');
+        setData('file', file);
+    }
 
     function submit(e) {
         e.preventDefault();
@@ -181,12 +205,15 @@ export default function Show({ call, isOpen }) {
 
                         <div>
                             <InputLabel htmlFor="file" value="Attachment (optional — CV, slides, etc.)" />
-                            <input
-                                id="file"
-                                type="file"
-                                className="mt-1 block w-full text-sm text-slate-600"
-                                onChange={(e) => setData('file', e.target.files[0])}
-                            />
+                            <div className="mt-1">
+                                <FileDropzone
+                                    id="file"
+                                    accept="application/pdf,.pdf"
+                                    value={data.file}
+                                    onChange={handleFileChange}
+                                    hint="PDF only, up to 5 MB"
+                                />
+                            </div>
                             <InputError className="mt-2" message={errors.file} />
                         </div>
 

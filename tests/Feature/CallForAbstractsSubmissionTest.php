@@ -98,6 +98,34 @@ test('a submission with an attachment stores the file privately', function () {
     Storage::disk('local')->assertExists($submission->disk_path);
 });
 
+test('a non-pdf attachment is rejected', function () {
+    $file = UploadedFile::fake()->create('slides.docx', 200, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+
+    $this->post(route('public.abstracts.store', $this->call->public_token), [
+        'title' => 'Wrong File Type',
+        'abstract_body' => 'Body',
+        'speaker_name' => 'Someone',
+        'speaker_email' => 'someone@example.com',
+        'file' => $file,
+    ])->assertSessionHasErrors('file');
+
+    expect(AbstractSubmission::where('title', 'Wrong File Type')->exists())->toBeFalse();
+});
+
+test('an attachment larger than 5mb is rejected', function () {
+    $file = UploadedFile::fake()->create('slides.pdf', 5121, 'application/pdf');
+
+    $this->post(route('public.abstracts.store', $this->call->public_token), [
+        'title' => 'Too Big',
+        'abstract_body' => 'Body',
+        'speaker_name' => 'Someone',
+        'speaker_email' => 'someone@example.com',
+        'file' => $file,
+    ])->assertSessionHasErrors('file');
+
+    expect(AbstractSubmission::where('title', 'Too Big')->exists())->toBeFalse();
+});
+
 test('the status page is publicly reachable by token and reports current status', function () {
     $submission = AbstractSubmission::factory()->create([
         'abstract_call_id' => $this->call->id,

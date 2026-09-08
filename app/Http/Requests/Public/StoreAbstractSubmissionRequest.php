@@ -39,7 +39,7 @@ class StoreAbstractSubmissionRequest extends FormRequest
             'speaker_phone' => ['nullable', 'string', 'max:50'],
             'speaker_bio' => ['nullable', 'string', 'max:5000'],
             'speaker_organization' => ['nullable', 'string', 'max:255'],
-            'file' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,ppt,pptx'],
+            'file' => ['nullable', 'file', 'max:5120', 'mimes:pdf'],
         ];
     }
 }

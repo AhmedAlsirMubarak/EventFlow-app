@@ -62,6 +62,23 @@ export function IconSearch(props) {
     );
 }
 
+export function IconUpload(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 7.5L12 3m0 0L7.5 7.5M12 3v13.5" />
+        </svg>
+    );
+}
+
+export function IconDocumentText(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-1.519-3.769a3 3 0 10-4.462 4.462M9 15h.008v.008H9V15z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 2.25H8.25A2.25 2.25 0 006 4.5v15a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 19.5V6.75L13.5 2.25z" />
+        </svg>
+    );
+}
+
 export function IconBell(props) {
     return (
         <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
