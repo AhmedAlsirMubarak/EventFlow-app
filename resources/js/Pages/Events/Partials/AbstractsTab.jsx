@@ -398,15 +398,13 @@ export default function AbstractsTab({
             <Card
                 title="Review Committee"
                 actions={
-                    addableUsers.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={openCommitteeModal}
-                            className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
-                        >
-                            Add Committee Member
-                        </button>
-                    )
+                    <button
+                        type="button"
+                        onClick={openCommitteeModal}
+                        className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                    >
+                        Add Committee Member
+                    </button>
                 }
                 className="p-0"
             >
@@ -589,57 +587,74 @@ export default function AbstractsTab({
             </Modal>
 
             <Modal show={committeeModalOpen} onClose={() => setCommitteeModalOpen(false)} maxWidth="sm">
-                <form onSubmit={submitCommittee} className="space-y-4 p-6">
-                    <h3 className="text-lg font-semibold text-slate-900">Add Committee Member</h3>
-
-                    <div>
-                        <InputLabel htmlFor="committee_user_id" value="User" />
-                        <SelectInput
-                            id="committee_user_id"
-                            className="mt-1 block w-full"
-                            value={committeeForm.data.user_id}
-                            onChange={(e) => committeeForm.setData('user_id', e.target.value)}
-                        >
-                            {addableUsers.map((user) => (
-                                <option key={user.id} value={user.id}>
-                                    {user.name}
-                                </option>
-                            ))}
-                        </SelectInput>
-                    </div>
-
-                    <div>
-                        <InputLabel htmlFor="committee_role" value="Committee Role" />
-                        <SelectInput
-                            id="committee_role"
-                            className="mt-1 block w-full"
-                            value={committeeForm.data.committee_role}
-                            onChange={(e) => committeeForm.setData('committee_role', e.target.value)}
-                        >
-                            {committeeRoles.map((role) => (
-                                <option key={role} value={role}>
-                                    {role}
-                                </option>
-                            ))}
-                        </SelectInput>
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={committeeForm.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
-                            Add
-                        </PrimaryButton>
+                {addableUsers.length === 0 ? (
+                    <div className="space-y-4 p-6">
+                        <h3 className="text-lg font-semibold text-slate-900">Add Committee Member</h3>
+                        <p className="text-sm text-slate-500">
+                            Every internal user is already on this event&apos;s committee. Add more
+                            internal users from Admin &gt; Users, then they&apos;ll show up here.
+                        </p>
                         <SecondaryButton
                             type="button"
                             onClick={() => setCommitteeModalOpen(false)}
                             className="!text-sm !normal-case !tracking-normal"
                         >
-                            Cancel
+                            Close
                         </SecondaryButton>
                     </div>
-                </form>
+                ) : (
+                    <form onSubmit={submitCommittee} className="space-y-4 p-6">
+                        <h3 className="text-lg font-semibold text-slate-900">Add Committee Member</h3>
+
+                        <div>
+                            <InputLabel htmlFor="committee_user_id" value="User" />
+                            <SelectInput
+                                id="committee_user_id"
+                                className="mt-1 block w-full"
+                                value={committeeForm.data.user_id}
+                                onChange={(e) => committeeForm.setData('user_id', e.target.value)}
+                            >
+                                {addableUsers.map((user) => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.name}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </div>
+
+                        <div>
+                            <InputLabel htmlFor="committee_role" value="Committee Role" />
+                            <SelectInput
+                                id="committee_role"
+                                className="mt-1 block w-full"
+                                value={committeeForm.data.committee_role}
+                                onChange={(e) => committeeForm.setData('committee_role', e.target.value)}
+                            >
+                                {committeeRoles.map((role) => (
+                                    <option key={role} value={role}>
+                                        {role}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </div>
+
+                        <div className="flex items-center gap-3 pt-2">
+                            <PrimaryButton
+                                disabled={committeeForm.processing}
+                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
+                            >
+                                Add
+                            </PrimaryButton>
+                            <SecondaryButton
+                                type="button"
+                                onClick={() => setCommitteeModalOpen(false)}
+                                className="!text-sm !normal-case !tracking-normal"
+                            >
+                                Cancel
+                            </SecondaryButton>
+                        </div>
+                    </form>
+                )}
             </Modal>
 
             <Modal show={detailsSubmission !== null} onClose={() => setDetailsSubmissionId(null)} maxWidth="lg">
