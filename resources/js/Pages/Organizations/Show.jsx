@@ -1,6 +1,7 @@
 import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
+import FileDropzone from '@/Components/FileDropzone';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
@@ -10,8 +11,12 @@ import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
+import { validateFile } from '@/utils/validateFile';
 import { Head, Link, router, useForm, usePoll } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+
+const CSV_EXTENSIONS = ['.csv', '.txt'];
+const CSV_MAX_BYTES = 2 * 1024 * 1024;
 
 const emptyContact = {
     full_name: '',
@@ -106,6 +111,18 @@ export default function Show({
         importForm.post(route('organizations.contacts.import', organization.id), {
             onSuccess: () => setImportModalOpen(false),
         });
+    }
+
+    function handleImportFileChange(file) {
+        const error = validateFile(file, { extensions: CSV_EXTENSIONS, maxSizeBytes: CSV_MAX_BYTES });
+
+        if (error) {
+            importForm.setError('file', error);
+            return;
+        }
+
+        importForm.clearErrors('file');
+        importForm.setData('file', file);
     }
 
     function grantPortalAccess(contact) {
@@ -448,13 +465,15 @@ export default function Show({
 
                     <div>
                         <InputLabel htmlFor="file" value="CSV File" />
-                        <input
-                            id="file"
-                            type="file"
-                            accept=".csv,text/csv"
-                            className="mt-1 block w-full text-sm text-slate-600"
-                            onChange={(e) => importForm.setData('file', e.target.files[0])}
-                        />
+                        <div className="mt-1">
+                            <FileDropzone
+                                id="file"
+                                accept=".csv,text/csv"
+                                value={importForm.data.file}
+                                onChange={handleImportFileChange}
+                                hint="CSV file, up to 2 MB"
+                            />
+                        </div>
                         <InputError className="mt-2" message={importForm.errors.file} />
                     </div>
 

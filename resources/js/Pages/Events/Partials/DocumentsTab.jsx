@@ -2,6 +2,7 @@ import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import Checkbox from '@/Components/Checkbox';
 import DataTable from '@/Components/UI/DataTable';
+import FileDropzone from '@/Components/FileDropzone';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
@@ -10,10 +11,15 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import { validateFile } from '@/utils/validateFile';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 const approvalColors = { Pending: 'amber', Approved: 'emerald', Rejected: 'rose' };
+const DOCUMENT_FILE_EXTENSIONS = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png'];
+const DOCUMENT_FILE_MAX_BYTES = 20 * 1024 * 1024;
+const DOCUMENT_FILE_ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png';
+const DOCUMENT_FILE_HINT = 'PDF, Word, PowerPoint, Excel, or image — up to 20 MB';
 
 function currentApprovalFor(document) {
     return document.approvals?.find((a) => a.document_version_id === document.current_version_id) ?? null;
@@ -163,6 +169,30 @@ export default function DocumentsTab({
             preserveScroll: true,
             onSuccess: () => versionForm.reset(),
         });
+    }
+
+    function handleDocumentFileChange(file) {
+        const error = validateFile(file, { extensions: DOCUMENT_FILE_EXTENSIONS, maxSizeBytes: DOCUMENT_FILE_MAX_BYTES });
+
+        if (error) {
+            form.setError('file', error);
+            return;
+        }
+
+        form.clearErrors('file');
+        form.setData('file', file);
+    }
+
+    function handleVersionFileChange(file) {
+        const error = validateFile(file, { extensions: DOCUMENT_FILE_EXTENSIONS, maxSizeBytes: DOCUMENT_FILE_MAX_BYTES });
+
+        if (error) {
+            versionForm.setError('file', error);
+            return;
+        }
+
+        versionForm.clearErrors('file');
+        versionForm.setData('file', file);
     }
 
     const columns = [
@@ -396,12 +426,15 @@ export default function DocumentsTab({
                     {!editingDocument && (
                         <div>
                             <InputLabel htmlFor="file" value="File" />
-                            <input
-                                id="file"
-                                type="file"
-                                className="mt-1 block w-full text-sm text-slate-600"
-                                onChange={(e) => form.setData('file', e.target.files[0])}
-                            />
+                            <div className="mt-1">
+                                <FileDropzone
+                                    id="file"
+                                    accept={DOCUMENT_FILE_ACCEPT}
+                                    value={form.data.file}
+                                    onChange={handleDocumentFileChange}
+                                    hint={DOCUMENT_FILE_HINT}
+                                />
+                            </div>
                             <InputError className="mt-2" message={form.errors.file} />
                         </div>
                     )}
@@ -453,12 +486,14 @@ export default function DocumentsTab({
                             ))}
                         </ul>
 
-                        <form onSubmit={submitNewVersion} className="flex items-center gap-2 border-t border-slate-100 pt-4">
-                            <input
-                                type="file"
-                                className="block w-full text-sm text-slate-600"
-                                onChange={(e) => versionForm.setData('file', e.target.files[0])}
+                        <form onSubmit={submitNewVersion} className="space-y-3 border-t border-slate-100 pt-4">
+                            <FileDropzone
+                                accept={DOCUMENT_FILE_ACCEPT}
+                                value={versionForm.data.file}
+                                onChange={handleVersionFileChange}
+                                hint={DOCUMENT_FILE_HINT}
                             />
+                            <InputError message={versionForm.errors.file} />
                             <PrimaryButton
                                 disabled={versionForm.processing || !versionForm.data.file}
                                 className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
@@ -466,7 +501,6 @@ export default function DocumentsTab({
                                 Upload New Version
                             </PrimaryButton>
                         </form>
-                        <InputError message={versionForm.errors.file} />
                     </div>
                 )}
             </Modal>

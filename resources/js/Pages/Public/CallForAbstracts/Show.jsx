@@ -6,9 +6,11 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import { validateFile } from '@/utils/validateFile';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+const ATTACHMENT_EXTENSIONS = ['.pdf'];
+const ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
 
 export default function Show({ call, isOpen }) {
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
@@ -25,19 +27,10 @@ export default function Show({ call, isOpen }) {
     });
 
     function handleFileChange(file) {
-        if (!file) {
-            clearErrors('file');
-            setData('file', null);
-            return;
-        }
+        const error = validateFile(file, { extensions: ATTACHMENT_EXTENSIONS, maxSizeBytes: ATTACHMENT_MAX_BYTES });
 
-        if (file.type !== 'application/pdf') {
-            setError('file', 'The attachment must be a PDF file.');
-            return;
-        }
-
-        if (file.size > MAX_ATTACHMENT_BYTES) {
-            setError('file', 'The attachment must not be larger than 5 MB.');
+        if (error) {
+            setError('file', error);
             return;
         }
 
