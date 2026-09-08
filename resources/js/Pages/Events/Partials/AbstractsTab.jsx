@@ -49,6 +49,31 @@ function averageScore(reviews) {
     return (reviews.reduce((sum, review) => sum + review.score, 0) / reviews.length).toFixed(1);
 }
 
+const recommendationColors = { Accept: 'emerald', Reject: 'rose', Maybe: 'amber' };
+
+function ReviewerList({ reviews }) {
+    if (reviews.length === 0) {
+        return <span className="text-slate-400">—</span>;
+    }
+
+    return (
+        <div className="flex flex-wrap gap-1">
+            {reviews.map((review) => (
+                <span
+                    key={review.id}
+                    title={review.comments ?? ''}
+                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+                >
+                    {review.reviewer.name}
+                    <Badge color={recommendationColors[review.recommendation] ?? 'slate'}>
+                        {review.score}/5
+                    </Badge>
+                </span>
+            ))}
+        </div>
+    );
+}
+
 export default function AbstractsTab({
     event,
     abstractCall,
@@ -284,11 +309,27 @@ export default function AbstractsTab({
             render: (submission) => submission.reviews.length,
         },
         {
+            key: 'reviewed_by',
+            header: 'Reviewed By',
+            render: (submission) => <ReviewerList reviews={submission.reviews} />,
+        },
+        {
             key: 'status',
             header: 'Status',
             render: (submission) => (
                 <Badge color={statusColors[submission.status] ?? 'slate'}>{submission.status}</Badge>
             ),
+        },
+    ];
+
+    const acceptedSpeakerColumns = [
+        { key: 'title', header: 'Title' },
+        { key: 'speaker_name', header: 'Speaker' },
+        { key: 'track', header: 'Track', render: (submission) => submission.track?.name ?? '—' },
+        {
+            key: 'reviewed_by',
+            header: 'Reviewed By',
+            render: (submission) => <ReviewerList reviews={submission.reviews} />,
         },
     ];
 
@@ -400,11 +441,7 @@ export default function AbstractsTab({
                     className="p-0"
                 >
                     <DataTable
-                        columns={[
-                            { key: 'title', header: 'Title' },
-                            { key: 'speaker_name', header: 'Speaker' },
-                            { key: 'track', header: 'Track', render: (s) => s.track?.name ?? '—' },
-                        ]}
+                        columns={acceptedSpeakerColumns}
                         rows={acceptedSubmissions}
                         emptyMessage="No accepted speakers yet."
                     />
