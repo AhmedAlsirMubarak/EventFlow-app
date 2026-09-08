@@ -10,7 +10,7 @@ export default function EventLogo({ event, size = 'md', className = '' }) {
     if (event.logo_url) {
         return (
             <div
-                className={`flex ${dimension} shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-white p-1 ${className}`}
+                className={`flex ${dimension} shrink-0 items-center justify-center overflow-hidden rounded-md bg-white p-1 ${className}`}
             >
                 <img
                     src={event.logo_url}
