@@ -1,6 +1,6 @@
 import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
-import Checkbox from '@/Components/Checkbox';
+import CheckboxSearchList from '@/Components/UI/CheckboxSearchList';
 import DataTable from '@/Components/UI/DataTable';
 import { IconCalendar, IconVideoCamera } from '@/Components/Icons';
 import InputError from '@/Components/InputError';
@@ -334,44 +334,33 @@ export default function MeetingsTab({
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel value="Internal Participants" />
-                            <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded-md border border-slate-200 p-2">
-                                {availableUsers.map((user) => (
-                                    <label key={user.id} className="flex items-center gap-2 text-sm text-slate-700">
-                                        <Checkbox
-                                            checked={form.data.participant_ids.includes(user.id)}
-                                            onChange={() =>
-                                                form.setData(
-                                                    'participant_ids',
-                                                    toggleId(form.data.participant_ids, user.id),
-                                                )
-                                            }
-                                        />
-                                        {user.name}
-                                    </label>
-                                ))}
-                            </div>
+                            <CheckboxSearchList
+                                items={availableUsers.map((user) => ({ id: user.id, label: user.name }))}
+                                selectedIds={form.data.participant_ids}
+                                onToggle={(id) =>
+                                    form.setData('participant_ids', toggleId(form.data.participant_ids, id))
+                                }
+                                emptyMessage="No internal users yet."
+                                searchPlaceholder="Search people…"
+                            />
                         </div>
                         <div>
                             <InputLabel value="External Participants" />
-                            <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded-md border border-slate-200 p-2">
-                                {availableContacts.length === 0 && (
-                                    <p className="text-sm text-slate-400">No contacts yet.</p>
-                                )}
-                                {availableContacts.map((contact) => (
-                                    <label key={contact.id} className="flex items-center gap-2 text-sm text-slate-700">
-                                        <Checkbox
-                                            checked={form.data.external_participant_ids.includes(contact.id)}
-                                            onChange={() =>
-                                                form.setData(
-                                                    'external_participant_ids',
-                                                    toggleId(form.data.external_participant_ids, contact.id),
-                                                )
-                                            }
-                                        />
-                                        {contact.full_name}
-                                    </label>
-                                ))}
-                            </div>
+                            <CheckboxSearchList
+                                items={availableContacts.map((contact) => ({
+                                    id: contact.id,
+                                    label: contact.full_name,
+                                }))}
+                                selectedIds={form.data.external_participant_ids}
+                                onToggle={(id) =>
+                                    form.setData(
+                                        'external_participant_ids',
+                                        toggleId(form.data.external_participant_ids, id),
+                                    )
+                                }
+                                emptyMessage="No contacts yet."
+                                searchPlaceholder="Search contacts…"
+                            />
                         </div>
                     </div>
 
