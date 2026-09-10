@@ -192,19 +192,9 @@ export default function Edit({ event, statuses }) {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <PrimaryButton
-                            disabled={processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
-                            Save Changes
-                        </PrimaryButton>
+                        <PrimaryButton disabled={processing}>Save Changes</PrimaryButton>
                         <Link href={route('events.show', event.id)}>
-                            <SecondaryButton
-                                type="button"
-                                className="!text-sm !normal-case !tracking-normal"
-                            >
-                                Cancel
-                            </SecondaryButton>
+                            <SecondaryButton type="button">Cancel</SecondaryButton>
                         </Link>
                     </div>
                 </form>

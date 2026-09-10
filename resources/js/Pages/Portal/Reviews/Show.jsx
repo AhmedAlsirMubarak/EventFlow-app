@@ -54,7 +54,7 @@ export default function Show({ submission }) {
                         </p>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-3 text-sm">
+                    <div className="mt-4 grid grid-cols-1 gap-4 rounded-lg bg-slate-50 p-3 text-sm sm:grid-cols-2">
                         <div>
                             <span className="text-slate-500">Speaker: </span>
                             {submission.speaker_name}
@@ -89,7 +89,7 @@ export default function Show({ submission }) {
 
                 <Card title={myReview ? 'Update Your Review' : 'Add Your Review'}>
                     <form onSubmit={submit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel htmlFor="score" value="Score (1-5)" />
                                 <SelectInput
@@ -133,10 +133,7 @@ export default function Show({ submission }) {
                             <InputError className="mt-2" message={form.errors.comments} />
                         </div>
                         <div className="flex items-center gap-3">
-                            <PrimaryButton
-                                disabled={form.processing}
-                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                            >
+                            <PrimaryButton disabled={form.processing}>
                                 {myReview ? 'Update Review' : 'Save Review'}
                             </PrimaryButton>
                             <Link

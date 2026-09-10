@@ -55,11 +55,7 @@ export default function TwoFactorAuthentication({ enabled, pending, qrCodeSvg })
                                     onChange={(e) => disableForm.setData('password', e.target.value)}
                                 />
                                 <InputError message={disableForm.errors.password} />
-                                <SecondaryButton
-                                    type="submit"
-                                    disabled={disableForm.processing}
-                                    className="!text-sm !normal-case !tracking-normal !text-rose-600"
-                                >
+                                <SecondaryButton type="submit" variant="danger" disabled={disableForm.processing}>
                                     Disable Two-Factor Authentication
                                 </SecondaryButton>
                             </form>
@@ -74,10 +70,7 @@ export default function TwoFactorAuthentication({ enabled, pending, qrCodeSvg })
                                 time you sign in.
                             </p>
                             <form onSubmit={enable}>
-                                <PrimaryButton
-                                    disabled={enableForm.processing}
-                                    className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                                >
+                                <PrimaryButton disabled={enableForm.processing}>
                                     Enable Two-Factor Authentication
                                 </PrimaryButton>
                             </form>
@@ -110,10 +103,7 @@ export default function TwoFactorAuthentication({ enabled, pending, qrCodeSvg })
                                     autoFocus
                                 />
                                 <InputError message={confirmForm.errors.code} />
-                                <PrimaryButton
-                                    disabled={confirmForm.processing}
-                                    className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                                >
+                                <PrimaryButton disabled={confirmForm.processing}>
                                     Confirm & Enable
                                 </PrimaryButton>
                             </form>

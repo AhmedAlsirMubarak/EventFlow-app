@@ -10,6 +10,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { validateFile } from '@/utils/validateFile';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -65,6 +67,7 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
         notes: '',
         ...DEFAULT_BOOTH,
     });
+    const { confirm, dialogProps } = useConfirm();
 
     function openCreateModal() {
         createForm.reset();
@@ -134,9 +137,16 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
     }
 
     function destroyFloorPlan() {
-        if (confirm(`Delete the floor plan "${activeFloorPlan.name}"? This also removes its booths.`)) {
-            router.delete(route('floor-plans.destroy', activeFloorPlan.id));
-        }
+        confirm({
+            title: 'Delete floor plan',
+            message: `Delete the floor plan "${activeFloorPlan.name}"? This also removes its booths.`,
+            confirmLabel: 'Delete',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('floor-plans.destroy', activeFloorPlan.id));
+            }
+        });
     }
 
     function openAddBooth() {
@@ -173,12 +183,15 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
     }
 
     function destroyBooth() {
-        if (confirm('Remove this booth?')) {
-            router.delete(route('booths.destroy', editingBoothId), {
-                preserveScroll: true,
-                onSuccess: () => setBoothModalOpen(false),
+        confirm({ title: 'Remove booth', message: 'Remove this booth?', confirmLabel: 'Remove', danger: true })
+            .then((confirmed) => {
+                if (confirmed) {
+                    router.delete(route('booths.destroy', editingBoothId), {
+                        preserveScroll: true,
+                        onSuccess: () => setBoothModalOpen(false),
+                    });
+                }
             });
-        }
     }
 
     function saveBoothLayout(booth, patch) {
@@ -353,17 +366,8 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
-                    <PrimaryButton
-                        disabled={createForm.processing}
-                        className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                    >
-                        Create
-                    </PrimaryButton>
-                    <SecondaryButton
-                        type="button"
-                        onClick={() => setCreateModalOpen(false)}
-                        className="!text-sm !normal-case !tracking-normal"
-                    >
+                    <PrimaryButton disabled={createForm.processing}>Create</PrimaryButton>
+                    <SecondaryButton type="button" onClick={() => setCreateModalOpen(false)}>
                         Cancel
                     </SecondaryButton>
                 </div>
@@ -393,6 +397,7 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
                 </Card>
 
                 {createModal}
+                <ConfirmDialog {...dialogProps} />
             </>
         );
     }
@@ -599,17 +604,8 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
                         </div>
 
                         <div className="flex items-center gap-3 pt-2">
-                            <PrimaryButton
-                                disabled={editForm.processing}
-                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                            >
-                                Save Changes
-                            </PrimaryButton>
-                            <SecondaryButton
-                                type="button"
-                                onClick={() => setEditModalOpen(false)}
-                                className="!text-sm !normal-case !tracking-normal"
-                            >
+                            <PrimaryButton disabled={editForm.processing}>Save Changes</PrimaryButton>
+                            <SecondaryButton type="button" onClick={() => setEditModalOpen(false)}>
                                 Cancel
                             </SecondaryButton>
                         </div>
@@ -681,17 +677,10 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
                     </p>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={boothForm.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={boothForm.processing}>
                             {editingBoothId ? 'Save Changes' : 'Add Booth'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setBoothModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setBoothModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                         {editingBoothId && (
@@ -706,6 +695,8 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </div>
     );
 }

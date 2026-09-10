@@ -151,7 +151,7 @@ export default function Index({ requests, events }) {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="priority" value="Priority" />
                             <SelectInput
@@ -180,17 +180,8 @@ export default function Index({ requests, events }) {
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={form.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
-                            Submit Request
-                        </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <PrimaryButton disabled={form.processing}>Submit Request</PrimaryButton>
+                        <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>

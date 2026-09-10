@@ -1,6 +1,7 @@
 import {
     Dialog,
     DialogPanel,
+    DialogTitle,
     Transition,
     TransitionChild,
 } from '@headlessui/react';
@@ -11,6 +12,7 @@ export default function Modal({
     maxWidth = '2xl',
     closeable = true,
     onClose = () => {},
+    title,
 }) {
     const close = () => {
         if (closeable) {
@@ -42,7 +44,7 @@ export default function Modal({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="absolute inset-0 bg-gray-500/75" />
+                    <div className="absolute inset-0 bg-slate-500/75" />
                 </TransitionChild>
 
                 <TransitionChild
@@ -56,6 +58,13 @@ export default function Modal({
                     <DialogPanel
                         className={`relative mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full ${maxWidthClass}`}
                     >
+                        {/* Visually hidden: gives the dialog an accessible name without duplicating
+                            the heading most callers already render inside `children`. */}
+                        {title && (
+                            <DialogTitle as="h2" className="sr-only">
+                                {title}
+                            </DialogTitle>
+                        )}
                         {children}
                     </DialogPanel>
                 </TransitionChild>

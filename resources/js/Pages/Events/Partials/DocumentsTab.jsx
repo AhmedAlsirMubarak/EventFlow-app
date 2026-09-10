@@ -11,6 +11,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { validateFile } from '@/utils/validateFile';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
@@ -70,6 +72,7 @@ export default function DocumentsTab({
     const shareForm = useForm({ organization_id: '', contact_id: '' });
     const [approvalComments, setApprovalComments] = useState('');
     const [approvalProcessing, setApprovalProcessing] = useState(false);
+    const { confirm, dialogProps } = useConfirm();
 
     const historyDocument = documents.find((d) => d.id === historyDocumentId) ?? null;
     const shareDocument = documents.find((d) => d.id === shareDocumentId) ?? null;
@@ -118,9 +121,16 @@ export default function DocumentsTab({
     }
 
     function revokeShare(share) {
-        if (confirm('Revoke this share? The stakeholder will lose access immediately.')) {
-            router.delete(route('document-shares.destroy', share.id), { preserveScroll: true });
-        }
+        confirm({
+            title: 'Revoke share',
+            message: 'Revoke this share? The stakeholder will lose access immediately.',
+            confirmLabel: 'Revoke',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('document-shares.destroy', share.id), { preserveScroll: true });
+            }
+        });
     }
 
     function openCreateModal() {
@@ -158,9 +168,16 @@ export default function DocumentsTab({
     }
 
     function destroyDocument(document) {
-        if (confirm(`Remove the document "${document.title}"? This deletes every version.`)) {
-            router.delete(route('documents.destroy', document.id));
-        }
+        confirm({
+            title: 'Remove document',
+            message: `Remove the document "${document.title}"? This deletes every version.`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('documents.destroy', document.id));
+            }
+        });
     }
 
     function submitNewVersion(e) {
@@ -351,7 +368,7 @@ export default function DocumentsTab({
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="category" value="Category" />
                             <SelectInput
@@ -440,17 +457,10 @@ export default function DocumentsTab({
                     )}
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={form.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={form.processing}>
                             {editingDocument ? 'Save Changes' : 'Upload'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
@@ -494,10 +504,7 @@ export default function DocumentsTab({
                                 hint={DOCUMENT_FILE_HINT}
                             />
                             <InputError message={versionForm.errors.file} />
-                            <PrimaryButton
-                                disabled={versionForm.processing || !versionForm.data.file}
-                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                            >
+                            <PrimaryButton disabled={versionForm.processing || !versionForm.data.file}>
                                 Upload New Version
                             </PrimaryButton>
                         </form>
@@ -602,10 +609,7 @@ export default function DocumentsTab({
                                 message={shareForm.errors.organization_id || shareForm.errors.contact_id}
                             />
 
-                            <PrimaryButton
-                                disabled={shareForm.processing || shareBlocked}
-                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                            >
+                            <PrimaryButton disabled={shareForm.processing || shareBlocked}>
                                 Share
                             </PrimaryButton>
                         </form>
@@ -660,17 +664,17 @@ export default function DocumentsTab({
                                     <div className="flex items-center gap-3">
                                         <PrimaryButton
                                             type="button"
+                                            variant="success"
                                             disabled={approvalProcessing}
                                             onClick={() => decideApproval('Approved')}
-                                            className="!bg-emerald-600 !text-sm !normal-case !tracking-normal hover:!bg-emerald-500 focus:!bg-emerald-500 active:!bg-emerald-700"
                                         >
                                             Approve
                                         </PrimaryButton>
                                         <SecondaryButton
                                             type="button"
+                                            variant="danger"
                                             disabled={approvalProcessing}
                                             onClick={() => decideApproval('Rejected')}
-                                            className="!text-sm !normal-case !tracking-normal !text-rose-600"
                                         >
                                             Reject
                                         </SecondaryButton>
@@ -687,6 +691,8 @@ export default function DocumentsTab({
                     );
                 })()}
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </>
     );
 }

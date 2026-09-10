@@ -10,6 +10,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -29,6 +31,7 @@ export default function IdeasTab({ event, ideas, statuses }) {
     const [editingIdea, setEditingIdea] = useState(null);
     const [commentsIdeaId, setCommentsIdeaId] = useState(null);
     const form = useForm(emptyIdea);
+    const { confirm, dialogProps } = useConfirm();
 
     const commentsIdea = ideas.find((i) => i.id === commentsIdeaId) ?? null;
 
@@ -63,9 +66,16 @@ export default function IdeasTab({ event, ideas, statuses }) {
     }
 
     function destroyIdea(idea) {
-        if (confirm(`Remove the idea "${idea.title}"?`)) {
-            router.delete(route('ideas.destroy', idea.id));
-        }
+        confirm({
+            title: 'Remove idea',
+            message: `Remove the idea "${idea.title}"?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('ideas.destroy', idea.id));
+            }
+        });
     }
 
     const columns = [
@@ -209,17 +219,10 @@ export default function IdeasTab({ event, ideas, statuses }) {
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={form.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={form.processing}>
                             {editingIdea ? 'Save Changes' : 'Add Idea'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
@@ -235,6 +238,8 @@ export default function IdeasTab({ event, ideas, statuses }) {
                     storeUrl={route('ideas.comments.store', commentsIdea.id)}
                 />
             )}
+
+            <ConfirmDialog {...dialogProps} />
         </>
     );
 }

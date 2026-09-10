@@ -1,19 +1,27 @@
 import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
 import DataTable from '@/Components/UI/DataTable';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
+import { useConfirm } from '@/utils/useConfirm';
 import { Head, Link, router, usePoll } from '@inertiajs/react';
 
 export default function Index({ users }) {
     usePoll(POLL_INTERVAL);
+    const { confirm, dialogProps } = useConfirm();
 
     function destroy(user) {
-        if (
-            confirm(`Remove ${user.name}? They will lose access immediately.`)
-        ) {
-            router.delete(route('admin.users.destroy', user.id));
-        }
+        confirm({
+            title: 'Remove user',
+            message: `Remove ${user.name}? They will lose access immediately.`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('admin.users.destroy', user.id));
+            }
+        });
     }
 
     const columns = [
@@ -80,6 +88,8 @@ export default function Index({ users }) {
                     emptyMessage="No internal users yet."
                 />
             </Card>
+
+            <ConfirmDialog {...dialogProps} />
         </AuthenticatedLayout>
     );
 }

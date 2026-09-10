@@ -99,10 +99,7 @@ export default function Show({ document, acknowledgment, canDownload }) {
                                         message={errors.name}
                                     />
                                 </div>
-                                <PrimaryButton
-                                    disabled={processing}
-                                    className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                                >
+                                <PrimaryButton disabled={processing}>
                                     Acknowledge Document
                                 </PrimaryButton>
                             </form>

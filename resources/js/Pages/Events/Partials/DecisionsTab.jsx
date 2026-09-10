@@ -9,6 +9,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -36,6 +38,7 @@ export default function DecisionsTab({
     const [editingDecision, setEditingDecision] = useState(null);
     const [expandedId, setExpandedId] = useState(null);
     const form = useForm(emptyDecision);
+    const { confirm, dialogProps } = useConfirm();
 
     function openCreateModal() {
         setEditingDecision(null);
@@ -73,9 +76,16 @@ export default function DecisionsTab({
     }
 
     function destroyDecision(decision) {
-        if (confirm(`Remove the decision "${decision.title}"?`)) {
-            router.delete(route('decisions.destroy', decision.id));
-        }
+        confirm({
+            title: 'Remove decision',
+            message: `Remove the decision "${decision.title}"?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('decisions.destroy', decision.id));
+            }
+        });
     }
 
     function toggleSupportingDocument(id) {
@@ -228,7 +238,7 @@ export default function DecisionsTab({
                         <InputError className="mt-2" message={form.errors.title} />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="decision_date" value="Decision Date" />
                             <TextInput
@@ -259,7 +269,7 @@ export default function DecisionsTab({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="organization_id" value="Related Organization" />
                             <SelectInput
@@ -335,7 +345,7 @@ export default function DecisionsTab({
 
                     <div>
                         <InputLabel value="Supporting Attachments" />
-                        <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded-md border border-gray-200 p-2">
+                        <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded-md border border-slate-200 p-2">
                             {documents.length === 0 && (
                                 <p className="text-sm text-slate-400">No documents available yet.</p>
                             )}
@@ -352,22 +362,17 @@ export default function DecisionsTab({
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={form.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={form.processing}>
                             {editingDecision ? 'Save Changes' : 'Record Decision'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </>
     );
 }

@@ -21,6 +21,7 @@ export default function Topbar({ user, title, onToggleSidebar, unreadNotificatio
                 <button
                     type="button"
                     onClick={onToggleSidebar}
+                    aria-label="Toggle sidebar"
                     className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
                 >
                     <IconMenu className="h-5 w-5" />
@@ -40,6 +41,7 @@ export default function Topbar({ user, title, onToggleSidebar, unreadNotificatio
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Search events, documents, contacts…"
+                        aria-label="Search"
                         className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-9 pr-3 text-sm text-slate-700 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
                 </div>
@@ -48,6 +50,11 @@ export default function Topbar({ user, title, onToggleSidebar, unreadNotificatio
             <div className="flex items-center gap-2">
                 <Link
                     href={route('notifications.index')}
+                    aria-label={
+                        unreadNotificationsCount > 0
+                            ? `Notifications (${unreadNotificationsCount} unread)`
+                            : 'Notifications'
+                    }
                     className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100"
                 >
                     <IconBell className="h-5 w-5" />

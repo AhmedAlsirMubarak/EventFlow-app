@@ -9,6 +9,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -57,6 +59,7 @@ export default function RemindersTab({
     const [modalOpen, setModalOpen] = useState(false);
     const [editingReminder, setEditingReminder] = useState(null);
     const form = useForm(emptyReminder);
+    const { confirm, dialogProps } = useConfirm();
 
     function openCreateModal() {
         setEditingReminder(null);
@@ -94,9 +97,16 @@ export default function RemindersTab({
     }
 
     function destroyReminder(reminder) {
-        if (confirm(`Remove the reminder "${reminder.title}"?`)) {
-            router.delete(route('reminders.destroy', reminder.id));
-        }
+        confirm({
+            title: 'Remove reminder',
+            message: `Remove the reminder "${reminder.title}"?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('reminders.destroy', reminder.id));
+            }
+        });
     }
 
     function setStatus(reminder, status) {
@@ -263,7 +273,7 @@ export default function RemindersTab({
                         <InputError className="mt-2" message={form.errors.remind_at} />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="organization_id" value="Organization" />
                             <SelectInput
@@ -334,22 +344,17 @@ export default function RemindersTab({
                     )}
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={form.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={form.processing}>
                             {editingReminder ? 'Save Changes' : 'Create Reminder'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </>
     );
 }

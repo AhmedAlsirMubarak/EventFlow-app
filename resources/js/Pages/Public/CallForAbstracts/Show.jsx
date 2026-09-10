@@ -137,7 +137,7 @@ export default function Show({ call, isOpen }) {
                         <div className="border-t border-slate-100 pt-4">
                             <h2 className="mb-3 text-sm font-semibold text-slate-900">Speaker Details</h2>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                     <InputLabel htmlFor="speaker_name" value="Full Name" />
                                     <TextInput
@@ -163,7 +163,7 @@ export default function Show({ call, isOpen }) {
                                 </div>
                             </div>
 
-                            <div className="mt-4 grid grid-cols-2 gap-4">
+                            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                     <InputLabel htmlFor="speaker_phone" value="Phone" />
                                     <TextInput

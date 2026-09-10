@@ -7,6 +7,8 @@ import OrganizationLogo from '@/Components/OrganizationLogo';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -18,6 +20,7 @@ export default function OrganizationsTab({
 }) {
     const [modalOpen, setModalOpen] = useState(false);
     const form = useForm({ organization_id: '', relationship_type: '' });
+    const { confirm, dialogProps } = useConfirm();
 
     const eventOrgIds = organizations.map((org) => org.id);
     const addableOrganizations = availableOrganizations.filter(
@@ -38,11 +41,18 @@ export default function OrganizationsTab({
     }
 
     function removeOrg(org) {
-        if (confirm(`Remove ${org.name} from this event?`)) {
-            router.delete(
-                route('events.organizations.destroy', [event.id, org.id]),
-            );
-        }
+        confirm({
+            title: 'Remove organization',
+            message: `Remove ${org.name} from this event?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(
+                    route('events.organizations.destroy', [event.id, org.id]),
+                );
+            }
+        });
     }
 
     const columns = [
@@ -165,22 +175,15 @@ export default function OrganizationsTab({
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={form.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
-                            Add
-                        </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <PrimaryButton disabled={form.processing}>Add</PrimaryButton>
+                        <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </>
     );
 }

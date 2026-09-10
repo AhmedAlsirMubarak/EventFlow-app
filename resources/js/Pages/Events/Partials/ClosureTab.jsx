@@ -9,6 +9,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -34,6 +36,7 @@ export default function ClosureTab({ event, lessonsLearned, lessonCategories }) 
     const [closeModalOpen, setCloseModalOpen] = useState(false);
     const lessonForm = useForm(emptyLesson);
     const closeForm = useForm({ closure_summary: '' });
+    const { confirm, dialogProps } = useConfirm();
 
     function openCreateLesson() {
         setEditingLesson(null);
@@ -66,9 +69,16 @@ export default function ClosureTab({ event, lessonsLearned, lessonCategories }) 
     }
 
     function destroyLesson(lesson) {
-        if (confirm(`Remove the lesson "${lesson.title}"?`)) {
-            router.delete(route('lessons.destroy', lesson.id));
-        }
+        confirm({
+            title: 'Remove lesson',
+            message: `Remove the lesson "${lesson.title}"?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('lessons.destroy', lesson.id));
+            }
+        });
     }
 
     function submitClose(e) {
@@ -79,9 +89,15 @@ export default function ClosureTab({ event, lessonsLearned, lessonCategories }) 
     }
 
     function reopenEvent() {
-        if (confirm('Reopen this event? Its status will change back to Active and the closure record will be cleared.')) {
-            router.post(route('events.reopen', event.id));
-        }
+        confirm({
+            title: 'Reopen event',
+            message: 'Reopen this event? Its status will change back to Active and the closure record will be cleared.',
+            confirmLabel: 'Reopen',
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.post(route('events.reopen', event.id));
+            }
+        });
     }
 
     const columns = [
@@ -136,11 +152,7 @@ export default function ClosureTab({ event, lessonsLearned, lessonCategories }) 
                             </p>
                         )}
                         {canClose && (
-                            <SecondaryButton
-                                type="button"
-                                onClick={reopenEvent}
-                                className="!text-sm !normal-case !tracking-normal"
-                            >
+                            <SecondaryButton type="button" onClick={reopenEvent}>
                                 Reopen Event
                             </SecondaryButton>
                         )}
@@ -151,11 +163,7 @@ export default function ClosureTab({ event, lessonsLearned, lessonCategories }) 
                             Closing this event marks it Completed and records a closure summary. It can be reopened later if needed.
                         </p>
                         {canClose ? (
-                            <PrimaryButton
-                                type="button"
-                                onClick={() => setCloseModalOpen(true)}
-                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                            >
+                            <PrimaryButton type="button" onClick={() => setCloseModalOpen(true)}>
                                 Close Event
                             </PrimaryButton>
                         ) : (
@@ -244,17 +252,10 @@ export default function ClosureTab({ event, lessonsLearned, lessonCategories }) 
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={lessonForm.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={lessonForm.processing}>
                             {editingLesson ? 'Save Changes' : 'Add Lesson'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setLessonModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setLessonModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
@@ -277,22 +278,15 @@ export default function ClosureTab({ event, lessonsLearned, lessonCategories }) 
                         <InputError className="mt-2" message={closeForm.errors.closure_summary} />
                     </div>
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={closeForm.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
-                            Confirm Closure
-                        </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setCloseModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <PrimaryButton disabled={closeForm.processing}>Confirm Closure</PrimaryButton>
+                        <SecondaryButton type="button" onClick={() => setCloseModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </div>
     );
 }

@@ -10,6 +10,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -46,6 +48,7 @@ export default function RequestsTab({
     const [editingRequest, setEditingRequest] = useState(null);
     const [commentsRequestId, setCommentsRequestId] = useState(null);
     const form = useForm(emptyRequest);
+    const { confirm, dialogProps } = useConfirm();
 
     const commentsRequest = requests.find((r) => r.id === commentsRequestId) ?? null;
 
@@ -84,9 +87,16 @@ export default function RequestsTab({
     }
 
     function destroyRequest(request) {
-        if (confirm(`Remove the request "${request.title}"?`)) {
-            router.delete(route('requests.destroy', request.id));
-        }
+        confirm({
+            title: 'Remove request',
+            message: `Remove the request "${request.title}"?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('requests.destroy', request.id));
+            }
+        });
     }
 
     const columns = [
@@ -205,7 +215,7 @@ export default function RequestsTab({
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="organization_id" value="Organization" />
                             <SelectInput
@@ -240,7 +250,7 @@ export default function RequestsTab({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div>
                             <InputLabel htmlFor="assigned_to" value="Assigned To" />
                             <SelectInput
@@ -303,17 +313,10 @@ export default function RequestsTab({
                     )}
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={form.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={form.processing}>
                             {editingRequest ? 'Save Changes' : 'Log Request'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
@@ -330,6 +333,8 @@ export default function RequestsTab({
                     allowVisibilityToggle
                 />
             )}
+
+            <ConfirmDialog {...dialogProps} />
         </>
     );
 }

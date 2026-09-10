@@ -96,12 +96,7 @@ export default function Show({ request }) {
                             value={form.data.body}
                             onChange={(e) => form.setData('body', e.target.value)}
                         />
-                        <PrimaryButton
-                            disabled={form.processing || !form.data.body}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
-                            Send
-                        </PrimaryButton>
+                        <PrimaryButton disabled={form.processing || !form.data.body}>Send</PrimaryButton>
                     </form>
                 </Card>
             </div>

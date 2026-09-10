@@ -25,11 +25,7 @@ export default function Index({ notifications }) {
                 title="Notifications"
                 actions={
                     hasUnread && (
-                        <SecondaryButton
-                            type="button"
-                            onClick={markAllRead}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={markAllRead}>
                             Mark All Read
                         </SecondaryButton>
                     )

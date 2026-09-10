@@ -2,13 +2,16 @@ import Badge from '@/Components/UI/Badge';
 import Checkbox from '@/Components/Checkbox';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
 import TextareaInput from '@/Components/TextareaInput';
 import UserAvatar from '@/Components/UserAvatar';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm, usePage } from '@inertiajs/react';
 
 export default function CommentsPanel({ show, onClose, title, comments, storeUrl, allowVisibilityToggle = false }) {
     const { auth } = usePage().props;
     const form = useForm({ body: '', visibility: 'Internal' });
+    const { confirm, dialogProps } = useConfirm();
 
     function submit(e) {
         e.preventDefault();
@@ -19,11 +22,14 @@ export default function CommentsPanel({ show, onClose, title, comments, storeUrl
     }
 
     function destroy(comment) {
-        if (confirm('Remove this comment?')) {
-            router.delete(route('comments.destroy', comment.id), {
-                preserveScroll: true,
+        confirm({ title: 'Remove comment', message: 'Remove this comment?', confirmLabel: 'Remove', danger: true })
+            .then((confirmed) => {
+                if (confirmed) {
+                    router.delete(route('comments.destroy', comment.id), {
+                        preserveScroll: true,
+                    });
+                }
             });
-        }
     }
 
     function isOwnComment(comment) {
@@ -98,14 +104,13 @@ export default function CommentsPanel({ show, onClose, title, comments, storeUrl
                             Visible to the stakeholder
                         </label>
                     )}
-                    <PrimaryButton
-                        disabled={form.processing || !form.data.body}
-                        className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                    >
+                    <PrimaryButton disabled={form.processing || !form.data.body}>
                         Add Comment
                     </PrimaryButton>
                 </form>
             </div>
+
+            <ConfirmDialog {...dialogProps} />
         </Modal>
     );
 }

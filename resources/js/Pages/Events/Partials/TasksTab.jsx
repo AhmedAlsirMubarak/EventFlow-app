@@ -11,6 +11,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -49,6 +51,7 @@ export default function TasksTab({
 
     const taskForm = useForm(emptyTask);
     const checklistForm = useForm({ label: '' });
+    const { confirm, dialogProps } = useConfirm();
 
     const checklistTask = tasks.find((t) => t.id === checklistTaskId) ?? null;
     const commentsTask = tasks.find((t) => t.id === commentsTaskId) ?? null;
@@ -88,9 +91,16 @@ export default function TasksTab({
     }
 
     function destroyTask(task) {
-        if (confirm(`Remove the task "${task.title}"?`)) {
-            router.delete(route('tasks.destroy', task.id));
-        }
+        confirm({
+            title: 'Remove task',
+            message: `Remove the task "${task.title}"?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('tasks.destroy', task.id));
+            }
+        });
     }
 
     function openChecklist(task) {
@@ -259,7 +269,7 @@ export default function TasksTab({
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="department" value="Department" />
                             <TextInput
@@ -291,7 +301,7 @@ export default function TasksTab({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="priority" value="Priority" />
                             <SelectInput
@@ -323,7 +333,7 @@ export default function TasksTab({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="status" value="Status" />
                             <SelectInput
@@ -368,17 +378,10 @@ export default function TasksTab({
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={taskForm.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={taskForm.processing}>
                             {editingTask ? 'Save Changes' : 'Add Task'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setTaskModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setTaskModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
@@ -440,12 +443,7 @@ export default function TasksTab({
                                     checklistForm.setData('label', e.target.value)
                                 }
                             />
-                            <PrimaryButton
-                                disabled={checklistForm.processing}
-                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                            >
-                                Add
-                            </PrimaryButton>
+                            <PrimaryButton disabled={checklistForm.processing}>Add</PrimaryButton>
                         </form>
                     </div>
                 )}
@@ -460,6 +458,8 @@ export default function TasksTab({
                     storeUrl={route('tasks.comments.store', commentsTask.id)}
                 />
             )}
+
+            <ConfirmDialog {...dialogProps} />
         </>
     );
 }

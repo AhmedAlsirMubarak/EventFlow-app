@@ -6,7 +6,9 @@ import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
 import UserAvatar from '@/Components/UserAvatar';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -14,6 +16,7 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
     const { auth } = usePage().props;
     const [modalOpen, setModalOpen] = useState(false);
     const form = useForm({ user_id: '', role_in_event: '' });
+    const { confirm, dialogProps } = useConfirm();
 
     const teamUserIds = team.map((member) => member.id);
     const addableUsers = availableUsers.filter((u) => !teamUserIds.includes(u.id));
@@ -40,9 +43,16 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
     }
 
     function removeMember(user) {
-        if (confirm(`Remove ${user.name} from this event's team?`)) {
-            router.delete(route('events.team.destroy', [event.id, user.id]));
-        }
+        confirm({
+            title: 'Remove team member',
+            message: `Remove ${user.name} from this event's team?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('events.team.destroy', [event.id, user.id]));
+            }
+        });
     }
 
     const columns = [
@@ -117,11 +127,7 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
                             Every internal user is already on this event&apos;s team. Add more
                             internal users from Admin &gt; Users, then they&apos;ll show up here.
                         </p>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                             Close
                         </SecondaryButton>
                     </div>
@@ -172,23 +178,16 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
                         </div>
 
                         <div className="flex items-center gap-3 pt-2">
-                            <PrimaryButton
-                                disabled={form.processing}
-                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                            >
-                                Add
-                            </PrimaryButton>
-                            <SecondaryButton
-                                type="button"
-                                onClick={() => setModalOpen(false)}
-                                className="!text-sm !normal-case !tracking-normal"
-                            >
+                            <PrimaryButton disabled={form.processing}>Add</PrimaryButton>
+                            <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                                 Cancel
                             </SecondaryButton>
                         </div>
                     </form>
                 )}
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </>
     );
 }

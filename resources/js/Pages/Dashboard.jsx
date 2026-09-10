@@ -91,10 +91,14 @@ export default function Dashboard({ stats, filters, filterOptions }) {
             <Card className="mb-8">
                 <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-4">
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <label
+                            htmlFor="filter_event_id"
+                            className="block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                        >
                             Event
                         </label>
                         <SelectInput
+                            id="filter_event_id"
                             className="mt-1.5"
                             value={form.event_id}
                             onChange={(e) =>
@@ -110,10 +114,14 @@ export default function Dashboard({ stats, filters, filterOptions }) {
                         </SelectInput>
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <label
+                            htmlFor="filter_organization_id"
+                            className="block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                        >
                             Organization
                         </label>
                         <SelectInput
+                            id="filter_organization_id"
                             className="mt-1.5"
                             value={form.organization_id}
                             onChange={(e) =>
@@ -132,10 +140,14 @@ export default function Dashboard({ stats, filters, filterOptions }) {
                         </SelectInput>
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <label
+                            htmlFor="filter_from"
+                            className="block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                        >
                             From
                         </label>
                         <TextInput
+                            id="filter_from"
                             type="date"
                             className="mt-1.5"
                             value={form.from}
@@ -145,10 +157,14 @@ export default function Dashboard({ stats, filters, filterOptions }) {
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <label
+                            htmlFor="filter_to"
+                            className="block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                        >
                             To
                         </label>
                         <TextInput
+                            id="filter_to"
                             type="date"
                             className="mt-1.5"
                             value={form.to}

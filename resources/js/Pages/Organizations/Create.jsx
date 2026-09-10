@@ -191,19 +191,9 @@ export default function Create({ categories, accountManagers }) {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <PrimaryButton
-                            disabled={processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
-                            Create Organization
-                        </PrimaryButton>
+                        <PrimaryButton disabled={processing}>Create Organization</PrimaryButton>
                         <Link href={route('organizations.index')}>
-                            <SecondaryButton
-                                type="button"
-                                className="!text-sm !normal-case !tracking-normal"
-                            >
-                                Cancel
-                            </SecondaryButton>
+                            <SecondaryButton type="button">Cancel</SecondaryButton>
                         </Link>
                     </div>
                 </form>

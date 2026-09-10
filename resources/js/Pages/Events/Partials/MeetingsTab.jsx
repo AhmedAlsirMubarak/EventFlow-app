@@ -10,6 +10,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -64,6 +66,7 @@ export default function MeetingsTab({
     const form = useForm(emptyMeeting);
     const actionItemForm = useForm({ title: '', assigned_to: '', priority: 'Medium', due_date: '' });
     const documentForm = useForm({ document_id: '' });
+    const { confirm, dialogProps } = useConfirm();
 
     const detailsMeeting = meetings.find((m) => m.id === detailsMeetingId) ?? null;
     const attachableDocuments = detailsMeeting
@@ -107,9 +110,16 @@ export default function MeetingsTab({
     }
 
     function destroyMeeting(meeting) {
-        if (confirm(`Remove the meeting "${meeting.title}"?`)) {
-            router.delete(route('meetings.destroy', meeting.id));
-        }
+        confirm({
+            title: 'Remove meeting',
+            message: `Remove the meeting "${meeting.title}"?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('meetings.destroy', meeting.id));
+            }
+        });
     }
 
     function openDetails(meeting) {
@@ -237,7 +247,7 @@ export default function MeetingsTab({
                         <InputError className="mt-2" message={form.errors.title} />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="held_at" value="Date & Time" />
                             <TextInput
@@ -279,10 +289,10 @@ export default function MeetingsTab({
                         </SelectInput>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel value="Internal Participants" />
-                            <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded-md border border-gray-200 p-2">
+                            <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded-md border border-slate-200 p-2">
                                 {availableUsers.map((user) => (
                                     <label key={user.id} className="flex items-center gap-2 text-sm text-slate-700">
                                         <Checkbox
@@ -301,7 +311,7 @@ export default function MeetingsTab({
                         </div>
                         <div>
                             <InputLabel value="External Participants" />
-                            <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded-md border border-gray-200 p-2">
+                            <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded-md border border-slate-200 p-2">
                                 {availableContacts.length === 0 && (
                                     <p className="text-sm text-slate-400">No contacts yet.</p>
                                 )}
@@ -346,17 +356,10 @@ export default function MeetingsTab({
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={form.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={form.processing}>
                             {editingMeeting ? 'Save Changes' : 'Record Meeting'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
@@ -407,7 +410,7 @@ export default function MeetingsTab({
                                     value={actionItemForm.data.title}
                                     onChange={(e) => actionItemForm.setData('title', e.target.value)}
                                 />
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                                     <SelectInput
                                         value={actionItemForm.data.assigned_to}
                                         onChange={(e) => actionItemForm.setData('assigned_to', e.target.value)}
@@ -437,7 +440,6 @@ export default function MeetingsTab({
                                 </div>
                                 <PrimaryButton
                                     disabled={actionItemForm.processing || !actionItemForm.data.title}
-                                    className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
                                 >
                                     Add Action Item
                                 </PrimaryButton>
@@ -478,10 +480,7 @@ export default function MeetingsTab({
                                             </option>
                                         ))}
                                     </SelectInput>
-                                    <PrimaryButton
-                                        disabled={documentForm.processing}
-                                        className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                                    >
+                                    <PrimaryButton disabled={documentForm.processing}>
                                         Attach
                                     </PrimaryButton>
                                 </form>
@@ -496,6 +495,8 @@ export default function MeetingsTab({
                     </div>
                 )}
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </>
     );
 }

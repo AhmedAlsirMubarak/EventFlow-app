@@ -10,8 +10,10 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
+import { useConfirm } from '@/utils/useConfirm';
 import { validateFile } from '@/utils/validateFile';
 import { Head, Link, router, useForm, usePoll } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -166,10 +168,19 @@ export default function Show({
         }
     }
 
+    const { confirm, dialogProps } = useConfirm();
+
     function destroyContact(contact) {
-        if (confirm(`Remove ${contact.full_name} from this organization?`)) {
-            router.delete(route('contacts.destroy', contact.id));
-        }
+        confirm({
+            title: 'Remove contact',
+            message: `Remove ${contact.full_name} from this organization?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('contacts.destroy', contact.id));
+            }
+        });
     }
 
     function openImportModal() {
@@ -398,15 +409,11 @@ export default function Show({
                         <div className="flex items-center gap-2">
                             <a
                                 href={route('organizations.contacts.export', organization.id)}
-                                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 shadow-sm transition duration-150 ease-in-out hover:bg-gray-50"
+                                className="inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-700 shadow-sm transition duration-150 ease-in-out hover:bg-slate-50"
                             >
                                 Export CSV
                             </a>
-                            <SecondaryButton
-                                type="button"
-                                onClick={openImportModal}
-                                className="!text-sm !normal-case !tracking-normal"
-                            >
+                            <SecondaryButton type="button" onClick={openImportModal}>
                                 Import CSV
                             </SecondaryButton>
                             <button
@@ -475,7 +482,7 @@ export default function Show({
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="job_title" value="Job Title" />
                             <TextInput
@@ -569,17 +576,10 @@ export default function Show({
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={processing}>
                             {editingContact ? 'Save Changes' : 'Add Contact'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={closeModal}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={closeModal}>
                             Cancel
                         </SecondaryButton>
                     </div>
@@ -621,22 +621,17 @@ export default function Show({
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={importForm.processing || !importForm.data.file}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={importForm.processing || !importForm.data.file}>
                             Import
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setImportModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setImportModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </AuthenticatedLayout>
     );
 }

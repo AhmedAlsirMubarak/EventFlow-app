@@ -10,6 +10,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
+import { useConfirm } from '@/utils/useConfirm';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -131,6 +133,7 @@ export default function AbstractsTab({
     const committeeForm = useForm({ user_id: '', committee_role: 'Reviewer' });
     const reviewForm = useForm({ score: 3, recommendation: 'Accept', comments: '' });
     const decisionForm = useForm({ status: 'Accepted', decision_notes: '' });
+    const { confirm, dialogProps } = useConfirm();
 
     const committeeUserIds = committeeMembers.map((member) => member.user.id);
     const addableUsers = availableCommitteeUsers.filter((u) => !committeeUserIds.includes(u.id));
@@ -230,9 +233,16 @@ export default function AbstractsTab({
     }
 
     function destroyTrack(track) {
-        if (confirm(`Remove the track "${track.name}"?`)) {
-            router.delete(route('abstract-tracks.destroy', track.id));
-        }
+        confirm({
+            title: 'Remove track',
+            message: `Remove the track "${track.name}"?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('abstract-tracks.destroy', track.id));
+            }
+        });
     }
 
     function openCommitteeModal() {
@@ -249,9 +259,16 @@ export default function AbstractsTab({
     }
 
     function removeCommitteeMember(member) {
-        if (confirm(`Remove ${member.user.name} from the committee?`)) {
-            router.delete(route('committee.destroy', member.id));
-        }
+        confirm({
+            title: 'Remove committee member',
+            message: `Remove ${member.user.name} from the committee?`,
+            confirmLabel: 'Remove',
+            danger: true,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('committee.destroy', member.id));
+            }
+        });
     }
 
     function copyLink() {
@@ -430,11 +447,7 @@ export default function AbstractsTab({
                                 className="w-full max-w-md text-xs"
                                 value={`${window.location.origin}/call/${abstractCall.public_token}`}
                             />
-                            <SecondaryButton
-                                type="button"
-                                onClick={copyLink}
-                                className="!text-sm !normal-case !tracking-normal"
-                            >
+                            <SecondaryButton type="button" onClick={copyLink}>
                                 {linkCopied ? 'Copied!' : 'Copy Link'}
                             </SecondaryButton>
                         </div>
@@ -575,7 +588,7 @@ export default function AbstractsTab({
                         <InputError className="mt-2" message={callForm.errors.instructions} />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <InputLabel htmlFor="opens_at" value="Opens At" />
                             <TextInput
@@ -610,17 +623,10 @@ export default function AbstractsTab({
                     )}
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={callForm.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={callForm.processing}>
                             {abstractCall ? 'Save Changes' : 'Create Call'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setCallModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setCallModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
@@ -658,17 +664,10 @@ export default function AbstractsTab({
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">
-                        <PrimaryButton
-                            disabled={trackForm.processing}
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
+                        <PrimaryButton disabled={trackForm.processing}>
                             {editingTrack ? 'Save Changes' : 'Add Track'}
                         </PrimaryButton>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setTrackModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setTrackModalOpen(false)}>
                             Cancel
                         </SecondaryButton>
                     </div>
@@ -683,11 +682,7 @@ export default function AbstractsTab({
                             Every user is already on this event&apos;s committee. Add more users
                             from Admin &gt; Users, then they&apos;ll show up here.
                         </p>
-                        <SecondaryButton
-                            type="button"
-                            onClick={() => setCommitteeModalOpen(false)}
-                            className="!text-sm !normal-case !tracking-normal"
-                        >
+                        <SecondaryButton type="button" onClick={() => setCommitteeModalOpen(false)}>
                             Close
                         </SecondaryButton>
                     </div>
@@ -729,17 +724,8 @@ export default function AbstractsTab({
                         </div>
 
                         <div className="flex items-center gap-3 pt-2">
-                            <PrimaryButton
-                                disabled={committeeForm.processing}
-                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                            >
-                                Add
-                            </PrimaryButton>
-                            <SecondaryButton
-                                type="button"
-                                onClick={() => setCommitteeModalOpen(false)}
-                                className="!text-sm !normal-case !tracking-normal"
-                            >
+                            <PrimaryButton disabled={committeeForm.processing}>Add</PrimaryButton>
+                            <SecondaryButton type="button" onClick={() => setCommitteeModalOpen(false)}>
                                 Cancel
                             </SecondaryButton>
                         </div>
@@ -771,7 +757,7 @@ export default function AbstractsTab({
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-3 text-sm">
+                        <div className="grid grid-cols-1 gap-4 rounded-lg bg-slate-50 p-3 text-sm sm:grid-cols-2">
                             <div>
                                 <span className="text-slate-500">Speaker: </span>
                                 {detailsSubmission.speaker_name}
@@ -842,7 +828,7 @@ export default function AbstractsTab({
                             <h4 className="text-sm font-medium text-slate-500">
                                 {myReview ? 'Update Your Review' : 'Add Your Review'}
                             </h4>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                     <InputLabel htmlFor="score" value="Score (1-5)" />
                                     <SelectInput
@@ -885,10 +871,7 @@ export default function AbstractsTab({
                                 />
                                 <InputError className="mt-2" message={reviewForm.errors.comments} />
                             </div>
-                            <PrimaryButton
-                                disabled={reviewForm.processing}
-                                className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                            >
+                            <PrimaryButton disabled={reviewForm.processing}>
                                 {myReview ? 'Update Review' : 'Save Review'}
                             </PrimaryButton>
                         </form>
@@ -921,16 +904,12 @@ export default function AbstractsTab({
                                     <InputError className="mt-2" message={decisionForm.errors.decision_notes} />
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <PrimaryButton
-                                        disabled={decisionForm.processing}
-                                        className="!bg-emerald-600 !text-sm !normal-case !tracking-normal hover:!bg-emerald-500 focus:!bg-emerald-500 active:!bg-emerald-700"
-                                    >
+                                    <PrimaryButton variant="success" disabled={decisionForm.processing}>
                                         Record Decision
                                     </PrimaryButton>
                                     <SecondaryButton
                                         type="button"
                                         onClick={() => setDetailsSubmissionId(null)}
-                                        className="!text-sm !normal-case !tracking-normal"
                                     >
                                         Close
                                     </SecondaryButton>
@@ -940,6 +919,8 @@ export default function AbstractsTab({
                     </div>
                 )}
             </Modal>
+
+            <ConfirmDialog {...dialogProps} />
         </div>
     );
 }

@@ -94,12 +94,7 @@ export default function OverviewTab({ event, availableOrganizations }) {
                         ))}
                     </SelectInput>
                     <a href={reportUrl}>
-                        <PrimaryButton
-                            type="button"
-                            className="!bg-indigo-600 !text-sm !normal-case !tracking-normal hover:!bg-indigo-500 focus:!bg-indigo-500 active:!bg-indigo-700"
-                        >
-                            Download Report
-                        </PrimaryButton>
+                        <PrimaryButton type="button">Download Report</PrimaryButton>
                     </a>
                 </div>
             </Card>
