@@ -27,6 +27,7 @@ class StoreMeetingRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'held_at' => ['required', 'date'],
             'location' => ['nullable', 'string', 'max:255'],
+            'meeting_link' => ['nullable', 'url', 'max:2048'],
             'organization_id' => ['nullable', 'exists:organizations,id'],
             'agenda' => ['nullable', 'string'],
             'discussion_notes' => ['nullable', 'string'],

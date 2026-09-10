@@ -49,6 +49,21 @@ Thank you for considering contributing to the Laravel framework! The contributio
 
 In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
+## Microsoft Teams Integration
+
+Meetings support a manually pasted video-call link today (Teams, Zoom, Google Meet, or anything else — EventFlow detects the provider from the URL and shows the right badge/icon). No setup is required for that.
+
+Automatically generating a real Teams meeting (so organizers never have to create one in Teams and paste the link back) is a follow-up that needs an Azure AD app registration in your Microsoft 365 tenant:
+
+1. In the [Entra admin center](https://entra.microsoft.com), register a new app (App registrations → New registration). No redirect URI is needed — this uses the application-only (client credentials) flow, not a sign-in flow.
+2. Under **API permissions**, add the Microsoft Graph **application** permission `OnlineMeetings.ReadWrite.All`, then have a tenant admin **grant admin consent** for it.
+3. Under **Certificates & secrets**, create a new client secret and copy its value immediately (it's only shown once).
+4. Note the app's **Application (client) ID** and your **Directory (tenant) ID** from the app's Overview page.
+5. Pick an **organizer UPN** — a licensed Microsoft 365 mailbox (e.g. `events@yourcompany.com`) that meetings will be created under, since application permissions require creating the meeting "as" a specific user.
+6. Set `MS_TEAMS_TENANT_ID`, `MS_TEAMS_CLIENT_ID`, `MS_TEAMS_CLIENT_SECRET`, and `MS_TEAMS_ORGANIZER_UPN` in `.env` (already scaffolded in `.env.example` and `config('services.microsoft_teams')`, commented out).
+
+Once those four values exist, the code side is a contained addition: a small Graph API client calling `POST /users/{organizer_upn}/onlineMeetings`, dispatched from a queued job on `meetings.store`, writing the returned `joinWebUrl` into the same `meetings.meeting_link` column the manual-entry field already uses — no schema or frontend changes needed at that point.
+
 ## Production Checklist
 
 Before deploying EventFlow to a real environment:

@@ -152,6 +152,7 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::post('events/{event}/meetings', [MeetingController::class, 'store'])->name('meetings.store');
     Route::put('meetings/{meeting}', [MeetingController::class, 'update'])->name('meetings.update');
     Route::delete('meetings/{meeting}', [MeetingController::class, 'destroy'])->name('meetings.destroy');
+    Route::get('meetings/{meeting}/calendar.ics', [MeetingController::class, 'calendar'])->name('meetings.calendar');
     Route::post('meetings/{meeting}/action-items', [MeetingController::class, 'storeActionItem'])->name('meetings.action-items.store');
     Route::post('meetings/{meeting}/documents', [MeetingController::class, 'attachDocument'])->name('meetings.documents.store');
     Route::delete('meetings/{meeting}/documents/{document}', [MeetingController::class, 'detachDocument'])->name('meetings.documents.destroy');

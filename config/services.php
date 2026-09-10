@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    // Not wired up to any code yet — reserved for the Microsoft Graph "auto-create
+    // a real Teams meeting" follow-up. See the "Microsoft Teams Integration" section
+    // of the README for what these values are and how to obtain them.
+    'microsoft_teams' => [
+        'tenant_id' => env('MS_TEAMS_TENANT_ID'),
+        'client_id' => env('MS_TEAMS_CLIENT_ID'),
+        'client_secret' => env('MS_TEAMS_CLIENT_SECRET'),
+        'organizer_upn' => env('MS_TEAMS_ORGANIZER_UPN'),
+    ],
+
 ];

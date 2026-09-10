@@ -2,6 +2,7 @@ import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import Checkbox from '@/Components/Checkbox';
 import DataTable from '@/Components/UI/DataTable';
+import { IconCalendar, IconVideoCamera } from '@/Components/Icons';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
@@ -16,11 +17,13 @@ import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
 const priorityColors = { Low: 'slate', Medium: 'indigo', High: 'amber', Urgent: 'rose' };
+const providerColors = { 'Microsoft Teams': 'indigo', Zoom: 'indigo', 'Google Meet': 'emerald' };
 
 const emptyMeeting = {
     title: '',
     held_at: '',
     location: '',
+    meeting_link: '',
     organization_id: '',
     agenda: '',
     discussion_notes: '',
@@ -86,6 +89,7 @@ export default function MeetingsTab({
             title: meeting.title,
             held_at: toDatetimeLocal(meeting.held_at),
             location: meeting.location ?? '',
+            meeting_link: meeting.meeting_link ?? '',
             organization_id: meeting.organization_id ?? '',
             agenda: meeting.agenda ?? '',
             discussion_notes: meeting.discussion_notes ?? '',
@@ -154,7 +158,18 @@ export default function MeetingsTab({
     }
 
     const columns = [
-        { key: 'title', header: 'Title' },
+        {
+            key: 'title',
+            header: 'Title',
+            render: (meeting) => (
+                <div className="flex items-center gap-2">
+                    <span>{meeting.title}</span>
+                    {meeting.provider && (
+                        <Badge color={providerColors[meeting.provider] ?? 'slate'}>{meeting.provider}</Badge>
+                    )}
+                </div>
+            ),
+        },
         {
             key: 'held_at',
             header: 'Date & Time',
@@ -187,6 +202,17 @@ export default function MeetingsTab({
             header: '',
             render: (meeting) => (
                 <div className="flex justify-end gap-3 text-sm">
+                    {meeting.meeting_link && (
+                        <a
+                            href={meeting.meeting_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-500"
+                        >
+                            <IconVideoCamera className="h-4 w-4" />
+                            Join
+                        </a>
+                    )}
                     <button
                         type="button"
                         onClick={() => openEditModal(meeting)}
@@ -270,6 +296,22 @@ export default function MeetingsTab({
                                 onChange={(e) => form.setData('location', e.target.value)}
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <InputLabel htmlFor="meeting_link" value="Meeting Link (optional)" />
+                        <TextInput
+                            id="meeting_link"
+                            type="url"
+                            className="mt-1 block w-full"
+                            placeholder="https://teams.microsoft.com/l/meetup-join/..."
+                            value={form.data.meeting_link}
+                            onChange={(e) => form.setData('meeting_link', e.target.value)}
+                        />
+                        <p className="mt-1 text-xs text-slate-400">
+                            Paste your Microsoft Teams, Zoom, or Google Meet link.
+                        </p>
+                        <InputError className="mt-2" message={form.errors.meeting_link} />
                     </div>
 
                     <div>
@@ -369,9 +411,36 @@ export default function MeetingsTab({
             <Modal show={detailsMeeting !== null} onClose={() => setDetailsMeetingId(null)} maxWidth="lg">
                 {detailsMeeting && (
                     <div className="max-h-[80vh] space-y-6 overflow-y-auto p-6">
-                        <h3 className="text-lg font-semibold text-slate-900">
-                            {detailsMeeting.title}
-                        </h3>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <h3 className="text-lg font-semibold text-slate-900">
+                                    {detailsMeeting.title}
+                                </h3>
+                                <p className="mt-1 text-sm text-slate-500">
+                                    {new Date(detailsMeeting.held_at).toLocaleString(undefined, {
+                                        dateStyle: 'medium',
+                                        timeStyle: 'short',
+                                    })}
+                                    {detailsMeeting.location && ` · ${detailsMeeting.location}`}
+                                </p>
+                            </div>
+                            <a
+                                href={route('meetings.calendar', detailsMeeting.id)}
+                                className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
+                            >
+                                <IconCalendar className="h-4 w-4" />
+                                Add to Calendar
+                            </a>
+                        </div>
+
+                        {detailsMeeting.meeting_link && (
+                            <a href={detailsMeeting.meeting_link} target="_blank" rel="noopener noreferrer">
+                                <PrimaryButton type="button" className="w-full justify-center">
+                                    <IconVideoCamera className="h-4 w-4" />
+                                    Join {detailsMeeting.provider} Meeting
+                                </PrimaryButton>
+                            </a>
+                        )}
 
                         {detailsMeeting.discussion_notes && (
                             <div>
