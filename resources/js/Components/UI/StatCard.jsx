@@ -1,5 +1,3 @@
-import Card from '@/Components/UI/Card';
-
 const accents = {
     indigo: 'bg-indigo-50 text-indigo-600',
     emerald: 'bg-emerald-50 text-emerald-600',
@@ -10,20 +8,20 @@ const accents = {
 
 export default function StatCard({ label, value, icon, accent = 'indigo' }) {
     return (
-        <Card className="flex items-center gap-4">
+        <div className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             {icon && (
                 <div
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${accents[accent]}`}
+                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition group-hover:scale-105 ${accents[accent]}`}
                 >
                     {icon}
                 </div>
             )}
-            <div>
-                <p className="text-sm font-medium text-slate-500">{label}</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">
+            <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-slate-500">{label}</p>
+                <p className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
                     {value}
                 </p>
             </div>
-        </Card>
+        </div>
     );
 }

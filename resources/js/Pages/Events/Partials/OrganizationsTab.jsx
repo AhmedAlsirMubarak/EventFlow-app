@@ -3,6 +3,7 @@ import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
+import OrganizationLogo from '@/Components/OrganizationLogo';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
@@ -51,8 +52,9 @@ export default function OrganizationsTab({
             render: (org) => (
                 <Link
                     href={route('organizations.show', org.id)}
-                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                    className="flex items-center gap-2 font-medium text-indigo-600 hover:text-indigo-500"
                 >
+                    <OrganizationLogo organization={org} size="xs" />
                     {org.name}
                 </Link>
             ),

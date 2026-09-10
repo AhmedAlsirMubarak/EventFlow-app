@@ -7,6 +7,7 @@ use App\Models\CommitteeMember;
 use App\Models\Event;
 use App\Models\User;
 use App\Notifications\AbstractAwaitingReviewNotification;
+use App\Notifications\AbstractReviewSubmittedNotification;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
@@ -21,9 +22,13 @@ beforeEach(function () {
     $this->reviewer = User::factory()->create();
     $this->reviewer->assignRole(RoleEnum::GeneralStaff->value);
 
+    $this->chair = User::factory()->create();
+    $this->chair->assignRole(RoleEnum::GeneralStaff->value);
+
     $this->event = Event::factory()->create();
-    $this->event->users()->attach([$this->member->id, $this->reviewer->id]);
+    $this->event->users()->attach([$this->member->id, $this->reviewer->id, $this->chair->id]);
     CommitteeMember::factory()->create(['event_id' => $this->event->id, 'user_id' => $this->reviewer->id, 'committee_role' => 'Reviewer']);
+    CommitteeMember::factory()->create(['event_id' => $this->event->id, 'user_id' => $this->chair->id, 'committee_role' => 'Chair']);
 
     $this->call = AbstractCall::factory()->create(['event_id' => $this->event->id]);
     $this->submission = AbstractSubmission::factory()->create(['abstract_call_id' => $this->call->id]);
@@ -49,6 +54,32 @@ test('a committee member can score a submission and it moves to under review', f
     expect($review->score)->toBe(4);
     expect($review->recommendation->value)->toBe('Accept');
     expect($this->submission->refresh()->status->value)->toBe('Under Review');
+});
+
+test('submitting a review notifies the chair', function () {
+    Notification::fake();
+
+    $this->actingAs($this->reviewer)->post(route('abstract-submissions.reviews.store', $this->submission), [
+        'score' => 4,
+        'recommendation' => 'Accept',
+    ]);
+
+    Notification::assertSentTo(
+        $this->chair,
+        AbstractReviewSubmittedNotification::class,
+        fn ($notification, $channels) => in_array('mail', $channels) && in_array('database', $channels)
+    );
+});
+
+test('the chair reviewing a submission does not notify themselves', function () {
+    Notification::fake();
+
+    $this->actingAs($this->chair)->post(route('abstract-submissions.reviews.store', $this->submission), [
+        'score' => 5,
+        'recommendation' => 'Accept',
+    ]);
+
+    Notification::assertNotSentTo($this->chair, AbstractReviewSubmittedNotification::class);
 });
 
 test('reviewing twice updates the same row instead of duplicating', function () {

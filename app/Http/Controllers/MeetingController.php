@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TaskStatus;
+use App\Http\Controllers\Concerns\NotifiesTaskAssignee;
 use App\Http\Requests\Admin\AttachMeetingDocumentRequest;
 use App\Http\Requests\Admin\StoreActionItemRequest;
 use App\Http\Requests\Admin\StoreMeetingRequest;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Gate;
 
 class MeetingController extends Controller
 {
+    use NotifiesTaskAssignee;
+
     public function store(StoreMeetingRequest $request, Event $event): RedirectResponse
     {
         $meeting = $event->meetings()->create([
@@ -62,6 +65,8 @@ class MeetingController extends Controller
 
         ActivityLog::log($task, 'Action item created from meeting: '.$task->title, $meeting->event_id, $request->user()->id);
 
+        $this->notifyAssignee($task, $request->user()->id);
+
         return back()->with('status', 'Action item added.');
     }
 
@@ -75,6 +80,8 @@ class MeetingController extends Controller
     public function detachDocument(Meeting $meeting, Document $document): RedirectResponse
     {
         Gate::authorize('update', $meeting);
+
+        abort_unless($meeting->documents()->where('documents.id', $document->id)->exists(), 404);
 
         $meeting->documents()->detach($document->id);
 

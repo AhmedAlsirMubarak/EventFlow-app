@@ -140,6 +140,8 @@ test('the status page is publicly reachable by token and reports current status'
         ->component('Public/CallForAbstracts/Status')
         ->where('submission.status', 'Accepted')
         ->where('submission.decision_notes', 'Great talk, welcome aboard.')
+        ->missing('submission.disk_path')
+        ->missing('submission.public_token')
     );
 });
 

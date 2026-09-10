@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TaskStatus;
+use App\Http\Controllers\Concerns\NotifiesTaskAssignee;
 use App\Http\Requests\Admin\StoreTaskRequest;
 use App\Http\Requests\Admin\UpdateTaskRequest;
 use App\Models\ActivityLog;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
 {
+    use NotifiesTaskAssignee;
+
     public function store(StoreTaskRequest $request, Event $event): RedirectResponse
     {
         $task = $event->tasks()->create([
@@ -22,12 +25,15 @@ class TaskController extends Controller
 
         ActivityLog::log($task, 'Task created: '.$task->title, $event->id, $request->user()->id);
 
+        $this->notifyAssignee($task, $request->user()->id);
+
         return to_route('events.show', ['event' => $event, 'tab' => 'tasks'])->with('status', 'Task added.');
     }
 
     public function update(UpdateTaskRequest $request, Task $task): RedirectResponse
     {
         $previousStatus = $task->status;
+        $previousAssignee = $task->assigned_to;
 
         $task->update($request->validated());
 
@@ -37,6 +43,10 @@ class TaskController extends Controller
                 : "Task status changed to {$task->status->value}: {$task->title}";
 
             ActivityLog::log($task, $description, $task->event_id, $request->user()->id);
+        }
+
+        if ($task->assigned_to !== $previousAssignee) {
+            $this->notifyAssignee($task, $request->user()->id);
         }
 
         return to_route('events.show', ['event' => $task->event_id, 'tab' => 'tasks'])->with('status', 'Task updated.');

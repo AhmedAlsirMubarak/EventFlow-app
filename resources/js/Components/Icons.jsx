@@ -95,10 +95,59 @@ export function IconActivity(props) {
     );
 }
 
+export function IconPencil(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+        </svg>
+    );
+}
+
 export function IconBuildingOffice(props) {
     return (
         <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h9a.75.75 0 01.75.75V21H4.5V3.75A.75.75 0 014.5 3zM13.5 21V9.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75V21M7.5 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m4.5 3h1.5m-1.5-3h1.5" />
+        </svg>
+    );
+}
+
+export function IconChatBubble(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm3.75 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm3.75 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+        </svg>
+    );
+}
+
+export function IconClock(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+    );
+}
+
+export function IconCheckCircle(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75l2.25 2.25 4.5-4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+    );
+}
+
+export function IconExclamationTriangle(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        </svg>
+    );
+}
+
+export function IconInbox(props) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c0-.303.076-.601.221-.867l2.36-4.326c.298-.545.87-.883 1.49-.883h8.358c.62 0 1.192.338 1.49.883l2.36 4.326c.145.266.221.564.221.867V15A2.25 2.25 0 0117.999 17.25H6a2.25 2.25 0 01-2.25-2.25V9.776z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.75h4.5l1 2.25h5.5l1-2.25h4.5" />
         </svg>
     );
 }

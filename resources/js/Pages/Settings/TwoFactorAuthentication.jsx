@@ -7,7 +7,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 
-export default function TwoFactorAuthentication({ enabled, pending, qrCodeSvg, status }) {
+export default function TwoFactorAuthentication({ enabled, pending, qrCodeSvg }) {
     const enableForm = useForm({});
     const confirmForm = useForm({ code: '' });
     const disableForm = useForm({ password: '' });
@@ -37,12 +37,6 @@ export default function TwoFactorAuthentication({ enabled, pending, qrCodeSvg, s
 
             <div className="mx-auto max-w-xl">
                 <Card>
-                    {status && (
-                        <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                            {status}
-                        </div>
-                    )}
-
                     {enabled && (
                         <div className="space-y-4">
                             <p className="text-sm text-slate-600">
@@ -62,6 +56,7 @@ export default function TwoFactorAuthentication({ enabled, pending, qrCodeSvg, s
                                 />
                                 <InputError message={disableForm.errors.password} />
                                 <SecondaryButton
+                                    type="submit"
                                     disabled={disableForm.processing}
                                     className="!text-sm !normal-case !tracking-normal !text-rose-600"
                                 >

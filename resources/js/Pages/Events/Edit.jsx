@@ -13,7 +13,7 @@ import { validateFile } from '@/utils/validateFile';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-const LOGO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
+const LOGO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
 export default function Edit({ event, statuses }) {
@@ -163,7 +163,7 @@ export default function Edit({ event, statuses }) {
                                     accept="image/*"
                                     value={data.logo}
                                     onChange={handleLogoChange}
-                                    hint="JPG, PNG, WEBP, or SVG, up to 2 MB"
+                                    hint="JPG, PNG, or WEBP, up to 2 MB"
                                 />
                             </div>
                         )}

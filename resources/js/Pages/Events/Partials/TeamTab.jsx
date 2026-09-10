@@ -7,15 +7,24 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
 import UserAvatar from '@/Components/UserAvatar';
-import { router, useForm } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function TeamTab({ event, team, availableUsers, roles }) {
+    const { auth } = usePage().props;
     const [modalOpen, setModalOpen] = useState(false);
     const form = useForm({ user_id: '', role_in_event: '' });
 
     const teamUserIds = team.map((member) => member.id);
     const addableUsers = availableUsers.filter((u) => !teamUserIds.includes(u.id));
+
+    function canRemove(member) {
+        if (auth.roles.includes('Super Administrator') || auth.roles.includes('Management')) {
+            return true;
+        }
+
+        return member.pivot.added_by === auth.user.id;
+    }
 
     function openModal() {
         form.reset();
@@ -61,15 +70,18 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
         {
             key: 'actions',
             header: '',
-            render: (member) => (
-                <button
-                    type="button"
-                    onClick={() => removeMember(member)}
-                    className="text-sm font-medium text-rose-600 hover:text-rose-500"
-                >
-                    Remove
-                </button>
-            ),
+            render: (member) =>
+                canRemove(member) ? (
+                    <button
+                        type="button"
+                        onClick={() => removeMember(member)}
+                        className="text-sm font-medium text-rose-600 hover:text-rose-500"
+                    >
+                        Remove
+                    </button>
+                ) : (
+                    <span className="text-sm text-slate-300">—</span>
+                ),
         },
     ];
 

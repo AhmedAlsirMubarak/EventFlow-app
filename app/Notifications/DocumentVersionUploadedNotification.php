@@ -4,11 +4,15 @@ namespace App\Notifications;
 
 use App\Models\Document;
 use App\Models\DocumentVersion;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class DocumentVersionUploadedNotification extends Notification
+class DocumentVersionUploadedNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         private readonly Document $document,
         private readonly DocumentVersion $version,

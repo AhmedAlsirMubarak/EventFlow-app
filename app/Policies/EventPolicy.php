@@ -61,6 +61,19 @@ class EventPolicy
     }
 
     /**
+     * Determine whether the user can remove the given team member. Elevated roles can
+     * remove anyone; everyone else can only remove a member they personally added.
+     */
+    public function removeMember(User $user, Event $event, ?int $addedBy): bool
+    {
+        if ($user->hasAnyRole([Role::SuperAdministrator->value, Role::Management->value])) {
+            return true;
+        }
+
+        return $addedBy !== null && $addedBy === $user->id;
+    }
+
+    /**
      * Determine whether the user can close or reopen the event.
      */
     public function close(User $user, Event $event): bool

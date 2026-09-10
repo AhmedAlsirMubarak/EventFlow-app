@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ApprovalStatus;
 use App\Enums\DocumentActivityType;
 use App\Enums\EventStatus;
+use App\Enums\RequestStatus;
 use App\Enums\TaskStatus;
 use App\Enums\UserType;
 use App\Models\Contact;
 use App\Models\Document;
+use App\Models\DocumentApproval;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\StakeholderRequest;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -83,8 +87,17 @@ class DashboardController extends Controller
                 ->whereHas('shares')
                 ->whereDoesntHave('activities', fn ($q) => $q->where('type', DocumentActivityType::Acknowledged))
                 ->count(),
-            'pending_approvals' => 0,
-            'open_stakeholder_requests' => 0,
+            'pending_approvals' => DocumentApproval::query()
+                ->where('status', ApprovalStatus::Pending)
+                ->whereHas('document', fn ($q) => $q
+                    ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
+                    ->when($organizationId, fn ($q) => $q->where('organization_id', $organizationId)))
+                ->count(),
+            'open_stakeholder_requests' => StakeholderRequest::query()
+                ->whereNotIn('status', [RequestStatus::Completed, RequestStatus::Cancelled])
+                ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
+                ->when($organizationId, fn ($q) => $q->where('organization_id', $organizationId))
+                ->count(),
             'overdue_tasks' => (clone $taskQuery)
                 ->where('status', '!=', TaskStatus::Completed)
                 ->whereNotNull('due_date')

@@ -1,5 +1,6 @@
 import Sidebar from '@/Components/Dashboard/Sidebar';
 import Topbar from '@/Components/Dashboard/Topbar';
+import FlashBanner from '@/Components/UI/FlashBanner';
 import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -10,6 +11,7 @@ export default function AuthenticatedLayout({ header, children }) {
     return (
         <div className="flex min-h-screen bg-slate-50">
             <Sidebar
+                user={auth.user}
                 roles={auth.roles}
                 open={sidebarOpen}
                 onClose={() => setSidebarOpen(false)}
@@ -24,6 +26,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 />
 
                 <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">
+                    <FlashBanner />
                     {children}
                 </main>
             </div>

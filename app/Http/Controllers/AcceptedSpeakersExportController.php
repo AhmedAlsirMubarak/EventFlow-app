@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\SubmissionStatus;
+use App\Http\Controllers\Concerns\SanitizesCsvRows;
 use App\Models\AbstractSubmission;
 use App\Models\Event;
 use Illuminate\Support\Facades\Gate;
@@ -10,6 +11,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AcceptedSpeakersExportController extends Controller
 {
+    use SanitizesCsvRows;
+
     public function index(Event $event): StreamedResponse
     {
         Gate::authorize('viewAny', [AbstractSubmission::class, $event]);
@@ -27,7 +30,7 @@ class AcceptedSpeakersExportController extends Controller
             fputcsv($handle, ['Reference', 'Title', 'Track', 'Speaker Name', 'Email', 'Organization', 'Phone']);
 
             foreach ($submissions as $submission) {
-                fputcsv($handle, [
+                fputcsv($handle, $this->sanitizeCsvRow([
                     $submission->reference,
                     $submission->title,
                     $submission->track?->name,
@@ -35,7 +38,7 @@ class AcceptedSpeakersExportController extends Controller
                     $submission->speaker_email,
                     $submission->speaker_organization,
                     $submission->speaker_phone,
-                ]);
+                ]));
             }
 
             fclose($handle);

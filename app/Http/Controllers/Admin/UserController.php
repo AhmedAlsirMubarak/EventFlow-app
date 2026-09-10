@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,16 +26,15 @@ class UserController extends Controller
                 ->with('roles:id,name')
                 ->orderBy('name')
                 ->get(['id', 'name', 'email', 'created_at']),
-            'status' => session('status'),
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
         Gate::authorize('create', User::class);
 
         return Inertia::render('Admin/Users/Create', [
-            'availableRoles' => array_column(Role::cases(), 'value'),
+            'availableRoles' => Role::assignableBy($request->user()),
         ]);
     }
 
@@ -52,14 +52,14 @@ class UserController extends Controller
         return to_route('admin.users.index')->with('status', 'User created.');
     }
 
-    public function edit(User $user): Response
+    public function edit(Request $request, User $user): Response
     {
         Gate::authorize('update', $user);
 
         return Inertia::render('Admin/Users/Edit', [
             'user' => $user->only(['id', 'name', 'email']),
             'assignedRoles' => $user->getRoleNames(),
-            'availableRoles' => array_column(Role::cases(), 'value'),
+            'availableRoles' => Role::assignableBy($request->user()),
         ]);
     }
 

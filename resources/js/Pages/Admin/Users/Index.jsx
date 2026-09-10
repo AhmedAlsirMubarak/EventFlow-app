@@ -5,7 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, Link, router, usePoll } from '@inertiajs/react';
 
-export default function Index({ users, status }) {
+export default function Index({ users }) {
     usePoll(POLL_INTERVAL);
 
     function destroy(user) {
@@ -61,12 +61,6 @@ export default function Index({ users, status }) {
     return (
         <AuthenticatedLayout header="Users">
             <Head title="Users" />
-
-            {status && (
-                <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                    {status}
-                </div>
-            )}
 
             <Card
                 title="Internal team members"

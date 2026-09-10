@@ -7,7 +7,9 @@ use App\Models\Event;
 use App\Models\Meeting;
 use App\Models\Task;
 use App\Models\User;
+use App\Notifications\TaskAssignedNotification;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -95,6 +97,36 @@ test('an action item added to a meeting creates a linked task', function () {
     expect($task->status->value)->toBe('Backlog');
 });
 
+test('assigning a meeting action item notifies the assignee', function () {
+    Notification::fake();
+
+    $meeting = Meeting::factory()->create(['event_id' => $this->event->id, 'created_by' => $this->member->id]);
+    $assignee = User::factory()->create();
+    $this->event->users()->attach($assignee->id);
+
+    $this->actingAs($this->member)->post(route('meetings.action-items.store', $meeting), [
+        'title' => 'Send updated floor plan',
+        'priority' => 'High',
+        'assigned_to' => $assignee->id,
+    ]);
+
+    Notification::assertSentTo($assignee, TaskAssignedNotification::class);
+});
+
+test('assigning a meeting action item to yourself does not notify you', function () {
+    Notification::fake();
+
+    $meeting = Meeting::factory()->create(['event_id' => $this->event->id, 'created_by' => $this->member->id]);
+
+    $this->actingAs($this->member)->post(route('meetings.action-items.store', $meeting), [
+        'title' => 'Send updated floor plan',
+        'priority' => 'High',
+        'assigned_to' => $this->member->id,
+    ]);
+
+    Notification::assertNothingSent();
+});
+
 test('a document can be attached to and detached from a meeting', function () {
     $meeting = Meeting::factory()->create(['event_id' => $this->event->id, 'created_by' => $this->member->id]);
     $document = Document::factory()->create(['event_id' => $this->event->id]);
@@ -109,4 +141,13 @@ test('a document can be attached to and detached from a meeting', function () {
         ->assertRedirect();
 
     expect($meeting->documents()->where('documents.id', $document->id)->exists())->toBeFalse();
+});
+
+test('detaching a document not attached to the meeting 404s', function () {
+    $meeting = Meeting::factory()->create(['event_id' => $this->event->id, 'created_by' => $this->member->id]);
+    $unrelatedDocument = Document::factory()->create(['event_id' => $this->event->id]);
+
+    $this->actingAs($this->member)
+        ->delete(route('meetings.documents.destroy', [$meeting, $unrelatedDocument]))
+        ->assertNotFound();
 });

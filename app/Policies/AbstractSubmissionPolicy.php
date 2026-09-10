@@ -22,12 +22,13 @@ class AbstractSubmissionPolicy
 
     /**
      * Determine whether the user can view the model (including downloading its attachment).
+     *
+     * Committee membership alone is sufficient — a reviewer (internal or external) does not
+     * also need to be a general event team member to view/download what they're reviewing.
      */
     public function view(User $user, AbstractSubmission $submission): bool
     {
-        $event = $submission->call->event;
-
-        return $this->canAccessEvent($user, $event) && $this->isCommitteeMember($user, $event);
+        return $this->isCommitteeMember($user, $submission->call->event);
     }
 
     /**

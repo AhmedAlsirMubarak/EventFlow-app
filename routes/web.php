@@ -8,6 +8,8 @@ use App\Http\Controllers\AbstractTrackController;
 use App\Http\Controllers\AcceptedSpeakersExportController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\BoothController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommunicationReportController;
 use App\Http\Controllers\ContactController;
@@ -21,11 +23,13 @@ use App\Http\Controllers\DocumentShareController;
 use App\Http\Controllers\DocumentVersionController;
 use App\Http\Controllers\EventClosureController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\FloorPlanController;
 use App\Http\Controllers\IdeaController;
 use App\Http\Controllers\LessonLearnedController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\Portal\AbstractReviewController as PortalAbstractReviewController;
 use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\Portal\StakeholderRequestController as PortalStakeholderRequestController;
 use App\Http\Controllers\ProfileController;
@@ -36,18 +40,11 @@ use App\Http\Controllers\StakeholderRequestController;
 use App\Http\Controllers\TaskChecklistItemController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TwoFactorAuthenticationController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+Route::get('/', [AuthenticatedSessionController::class, 'create'])
+    ->middleware('guest')
+    ->name('home');
 
 // Public call-for-abstracts routes: unauthenticated, token-bound, no session required.
 Route::get('call/{abstractCall:public_token}', [CallForAbstractsController::class, 'show'])->name('public.abstracts.show');
@@ -73,10 +70,12 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
 
     Route::get('/settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])->name('two-factor.show');
     Route::post('/settings/two-factor', [TwoFactorAuthenticationController::class, 'enable'])->name('two-factor.enable');
-    Route::post('/settings/two-factor/confirm', [TwoFactorAuthenticationController::class, 'confirm'])->name('two-factor.confirm');
+    Route::post('/settings/two-factor/confirm', [TwoFactorAuthenticationController::class, 'confirm'])
+        ->middleware('throttle:5,1')
+        ->name('two-factor.confirm');
     Route::delete('/settings/two-factor', [TwoFactorAuthenticationController::class, 'destroy'])->name('two-factor.destroy');
 
-    Route::middleware('role:'.Role::SuperAdministrator->value.'|'.Role::Management->value)
+    Route::middleware(['role:'.Role::SuperAdministrator->value.'|'.Role::Management->value, 'password.confirm'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
@@ -116,6 +115,13 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::put('abstract-submissions/{abstractSubmission}/decision', [AbstractSubmissionController::class, 'decide'])->name('abstract-submissions.decide');
 
     Route::get('events/{event}/accepted-speakers.csv', [AcceptedSpeakersExportController::class, 'index'])->name('events.accepted-speakers');
+
+    Route::post('events/{event}/floor-plans', [FloorPlanController::class, 'store'])->name('floor-plans.store');
+    Route::put('floor-plans/{floorPlan}', [FloorPlanController::class, 'update'])->name('floor-plans.update');
+    Route::delete('floor-plans/{floorPlan}', [FloorPlanController::class, 'destroy'])->name('floor-plans.destroy');
+    Route::post('floor-plans/{floorPlan}/booths', [BoothController::class, 'store'])->name('booths.store');
+    Route::put('booths/{booth}', [BoothController::class, 'update'])->name('booths.update');
+    Route::delete('booths/{booth}', [BoothController::class, 'destroy'])->name('booths.destroy');
 
     Route::post('events/{event}/ideas', [IdeaController::class, 'store'])->name('ideas.store');
     Route::put('ideas/{idea}', [IdeaController::class, 'update'])->name('ideas.update');
@@ -181,6 +187,11 @@ Route::middleware(['auth', 'verified', 'external'])
         Route::post('requests', [PortalStakeholderRequestController::class, 'store'])->name('requests.store');
         Route::get('requests/{stakeholderRequest}', [PortalStakeholderRequestController::class, 'show'])->name('requests.show');
         Route::post('requests/{stakeholderRequest}/comments', [CommentController::class, 'storeForRequest'])->name('requests.comments.store');
+
+        Route::get('reviews', [PortalAbstractReviewController::class, 'index'])->name('reviews.index');
+        Route::get('reviews/{abstractSubmission}', [PortalAbstractReviewController::class, 'show'])->name('reviews.show');
+        Route::post('reviews/{abstractSubmission}', [PortalAbstractReviewController::class, 'store'])->name('reviews.store');
+        Route::get('reviews/{abstractSubmission}/download', [AbstractSubmissionController::class, 'download'])->name('reviews.download');
     });
 
 require __DIR__.'/auth.php';

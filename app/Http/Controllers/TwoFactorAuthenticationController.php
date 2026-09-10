@@ -28,7 +28,6 @@ class TwoFactorAuthenticationController extends Controller
             'enabled' => $user->hasTwoFactorEnabled(),
             'pending' => (bool) ($user->two_factor_secret && ! $user->two_factor_confirmed_at),
             'qrCodeSvg' => $qrCodeSvg,
-            'status' => session('status'),
         ]);
     }
 

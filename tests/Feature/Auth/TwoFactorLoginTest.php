@@ -71,6 +71,25 @@ test('an incorrect totp code does not complete login', function () {
     $response->assertSessionHasErrors('code');
 });
 
+test('the login challenge is throttled after five incorrect attempts', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user)->post(route('two-factor.enable'));
+    $user->refresh();
+    $this->actingAs($user)->post(route('two-factor.confirm'), [
+        'code' => (new Google2FA)->getCurrentOtp($user->two_factor_secret),
+    ]);
+    $this->post('/logout');
+    $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+
+    for ($i = 0; $i < 5; $i++) {
+        $this->post(route('two-factor.login.store'), ['code' => '000000']);
+    }
+
+    $response = $this->post(route('two-factor.login.store'), ['code' => '000000']);
+
+    $response->assertStatus(429);
+});
+
 test('external accounts are never asked for a second factor even if a secret exists', function () {
     $external = User::factory()->external()->create();
 

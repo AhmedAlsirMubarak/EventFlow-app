@@ -11,7 +11,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { validateFile } from '@/utils/validateFile';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-const LOGO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
+const LOGO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
 function slugify(value) {
@@ -154,7 +154,7 @@ export default function Create({ statuses }) {
                                 accept="image/*"
                                 value={data.logo}
                                 onChange={handleLogoChange}
-                                hint="JPG, PNG, WEBP, or SVG, up to 2 MB"
+                                hint="JPG, PNG, or WEBP, up to 2 MB"
                             />
                         </div>
                         <InputError className="mt-2" message={errors.logo} />
@@ -178,7 +178,7 @@ export default function Create({ statuses }) {
                             className="mt-2"
                             message={errors.description}
                         />
-                    </div>
+                    </div> 
 
                     <div className="flex items-center gap-3">
                         <PrimaryButton

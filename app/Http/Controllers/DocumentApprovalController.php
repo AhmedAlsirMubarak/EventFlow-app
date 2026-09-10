@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Admin\UpdateDocumentApprovalRequest;
 use App\Models\ActivityLog;
 use App\Models\Document;
+use App\Notifications\DocumentApprovalDecidedNotification;
 use Illuminate\Http\RedirectResponse;
 
 class DocumentApprovalController extends Controller
@@ -23,6 +24,10 @@ class DocumentApprovalController extends Controller
         ]);
 
         ActivityLog::log($document, 'Document '.strtolower($approval->status->value).': '.$document->title, $document->event_id, $request->user()->id);
+
+        if ($approval->requested_by && $approval->requested_by !== $request->user()->id) {
+            $approval->requester->notify(new DocumentApprovalDecidedNotification($approval));
+        }
 
         return to_route('events.show', ['event' => $document->event_id, 'tab' => 'documents'])->with('status', 'Approval decision recorded.');
     }

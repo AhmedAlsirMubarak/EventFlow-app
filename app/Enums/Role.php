@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use App\Models\User;
+
 enum Role: string
 {
     case SuperAdministrator = 'Super Administrator';
@@ -25,5 +27,24 @@ enum Role: string
     public static function administrative(): array
     {
         return [self::SuperAdministrator, self::Management];
+    }
+
+    /**
+     * Role values the given user is allowed to grant to someone else.
+     *
+     * Only a Super Administrator may create another Super Administrator — otherwise
+     * Management could escalate itself or a colleague to full control.
+     *
+     * @return array<int, string>
+     */
+    public static function assignableBy(User $user): array
+    {
+        $roles = self::cases();
+
+        if (! $user->hasRole(self::SuperAdministrator->value)) {
+            $roles = array_filter($roles, fn (self $role) => $role !== self::SuperAdministrator);
+        }
+
+        return array_values(array_column($roles, 'value'));
     }
 }

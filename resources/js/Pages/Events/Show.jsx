@@ -9,6 +9,7 @@ import ClosureTab from './Partials/ClosureTab';
 import DeadlinesTab from './Partials/DeadlinesTab';
 import DecisionsTab from './Partials/DecisionsTab';
 import DocumentsTab from './Partials/DocumentsTab';
+import FloorPlanTab from './Partials/FloorPlanTab';
 import IdeasTab from './Partials/IdeasTab';
 import MeetingsTab from './Partials/MeetingsTab';
 import OrganizationsTab from './Partials/OrganizationsTab';
@@ -30,6 +31,7 @@ const tabs = [
     { key: 'requests', label: 'Requests' },
     { key: 'reminders', label: 'Reminders' },
     { key: 'documents', label: 'Documents' },
+    { key: 'floor-plan', label: 'Floor Plan' },
     { key: 'abstracts', label: 'Abstracts' },
     { key: 'activity', label: 'Activity' },
     { key: 'closure', label: 'Closure' },
@@ -60,10 +62,12 @@ export default function Show({
     activityLogs,
     documentActivities,
     committeeMembers,
+    floorPlans,
     abstractCall,
     committeeRoles,
     reviewRecommendations,
     availableUsers,
+    availableCommitteeUsers,
     availableOrganizations,
     availableContacts,
     roles,
@@ -76,7 +80,6 @@ export default function Show({
     requestStatuses,
     reminderStatuses,
     lessonCategories,
-    status,
 }) {
     const [activeTab, setActiveTab] = useState(initialTab);
     usePoll(POLL_INTERVAL, { preserveScroll: true });
@@ -85,26 +88,21 @@ export default function Show({
         <AuthenticatedLayout
             header={
                 <div className="flex items-center gap-3">
-                    <EventLogo event={event} size="lg" />
+                    <EventLogo event={event} size="md" />
                     <span>{event.name}</span>
                 </div>
             }
         >
             <Head title={event.name} />
 
-            {status && (
-                <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                    {status}
-                </div>
-            )}
 
-            <div className="mb-6 flex items-center gap-2 border-b border-slate-200">
+            <div className="mb-6 flex items-center gap-2 overflow-x-auto border-b border-slate-200">
                 {tabs.map((tab) => (
                     <button
                         key={tab.key}
                         type="button"
                         onClick={() => setActiveTab(tab.key)}
-                        className={`border-b-2 px-3 py-2 text-sm font-medium transition ${
+                        className={`shrink-0 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition ${
                             activeTab === tab.key
                                 ? 'border-indigo-600 text-indigo-600'
                                 : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -220,12 +218,16 @@ export default function Show({
                 />
             )}
 
+            {activeTab === 'floor-plan' && (
+                <FloorPlanTab event={event} floorPlans={floorPlans} organizations={organizations} />
+            )}
+
             {activeTab === 'abstracts' && (
                 <AbstractsTab
                     event={event}
                     abstractCall={abstractCall}
                     committeeMembers={committeeMembers}
-                    availableUsers={availableUsers}
+                    availableCommitteeUsers={availableCommitteeUsers}
                     committeeRoles={committeeRoles}
                     reviewRecommendations={reviewRecommendations}
                 />

@@ -6,8 +6,10 @@ use App\Models\DocumentApproval;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
+use App\Notifications\DocumentApprovalDecidedNotification;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -99,6 +101,59 @@ test('a manager can approve a pending document and it becomes shareable', functi
     expect($document->refresh()->isApprovedForSharing())->toBeTrue();
 });
 
+test('the requester is notified when their document is approved or rejected', function () {
+    Notification::fake();
+
+    $document = Document::factory()->create([
+        'event_id' => $this->event->id,
+        'created_by' => $this->member->id,
+        'approval_required' => true,
+    ]);
+    $version = $document->versions()->create([
+        'version_number' => 1,
+        'disk_path' => 'documents/'.$document->id.'/file.pdf',
+        'original_filename' => 'file.pdf',
+        'mime_type' => 'application/pdf',
+        'size' => 10,
+        'uploaded_by' => $this->member->id,
+    ]);
+    $document->update(['current_version_id' => $version->id]);
+    $document->requestApproval($version, $this->member->id);
+
+    $this->actingAs($this->manager)->put(route('documents.approval.update', $document), [
+        'status' => 'Rejected',
+        'comments' => 'Needs another pass.',
+    ]);
+
+    Notification::assertSentTo($this->member, DocumentApprovalDecidedNotification::class);
+});
+
+test('a manager deciding their own approval request is not notified', function () {
+    Notification::fake();
+
+    $document = Document::factory()->create([
+        'event_id' => $this->event->id,
+        'created_by' => $this->manager->id,
+        'approval_required' => true,
+    ]);
+    $version = $document->versions()->create([
+        'version_number' => 1,
+        'disk_path' => 'documents/'.$document->id.'/file.pdf',
+        'original_filename' => 'file.pdf',
+        'mime_type' => 'application/pdf',
+        'size' => 10,
+        'uploaded_by' => $this->manager->id,
+    ]);
+    $document->update(['current_version_id' => $version->id]);
+    $document->requestApproval($version, $this->manager->id);
+
+    $this->actingAs($this->manager)->put(route('documents.approval.update', $document), [
+        'status' => 'Approved',
+    ]);
+
+    Notification::assertNotSentTo($this->manager, DocumentApprovalDecidedNotification::class);
+});
+
 test('sharing a document is blocked until it is approved', function () {
     $document = Document::factory()->create([
         'event_id' => $this->event->id,
@@ -117,6 +172,7 @@ test('sharing a document is blocked until it is approved', function () {
     $document->requestApproval($version, $this->member->id);
 
     $organization = Organization::factory()->create();
+    $this->event->organizations()->attach($organization->id);
 
     $this->actingAs($this->member)->post(route('documents.shares.store', $document), [
         'organization_id' => $organization->id,
@@ -194,8 +250,9 @@ test('a document that does not require approval can be shared immediately', func
     ]);
 
     $organization = Organization::factory()->create();
+    $this->event->organizations()->attach($organization->id);
 
     $this->actingAs($this->member)->post(route('documents.shares.store', $document), [
         'organization_id' => $organization->id,
-    ])->assertRedirect();
+    ])->assertRedirect(route('events.show', ['event' => $this->event, 'tab' => 'documents']));
 });

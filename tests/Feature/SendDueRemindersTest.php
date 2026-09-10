@@ -39,6 +39,26 @@ test('a reminder without an assignee falls back to the creator', function () {
     Notification::assertSentTo($creator, ReminderDueNotification::class);
 });
 
+test('a reminder with no assignee and no creator is retried instead of silently marked notified', function () {
+    // assigned_to/created_by are both nullOnDelete, so a reminder can genuinely end up
+    // with neither once both users are gone — stamping notified_at here would silence
+    // it forever instead of catching it up once it's reassigned.
+    Notification::fake();
+
+    $event = Event::factory()->create();
+    $reminder = Reminder::factory()->create([
+        'event_id' => $event->id,
+        'assigned_to' => null,
+        'created_by' => null,
+        'remind_at' => now()->subMinute(),
+    ]);
+
+    $this->artisan('app:send-due-reminders');
+
+    Notification::assertNothingSent();
+    expect($reminder->refresh()->notified_at)->toBeNull();
+});
+
 test('a future reminder is not notified yet', function () {
     Notification::fake();
 

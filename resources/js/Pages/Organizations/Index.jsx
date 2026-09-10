@@ -1,14 +1,20 @@
 import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
+import OrganizationLogo from '@/Components/OrganizationLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, Link, usePoll } from '@inertiajs/react';
 
-export default function Index({ organizations, status }) {
+export default function Index({ organizations }) {
     usePoll(POLL_INTERVAL);
 
     const columns = [
+        {
+            key: 'logo',
+            header: '',
+            render: (org) => <OrganizationLogo organization={org} size="md" />,
+        },
         {
             key: 'name',
             header: 'Organization',
@@ -40,12 +46,6 @@ export default function Index({ organizations, status }) {
     return (
         <AuthenticatedLayout header="Organizations">
             <Head title="Organizations" />
-
-            {status && (
-                <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                    {status}
-                </div>
-            )}
 
             <Card
                 title="Organizations & Stakeholders"

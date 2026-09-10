@@ -15,7 +15,7 @@ export default function EventLogo({ event, size = 'md', className = '' }) {
                 <img
                     src={event.logo_url}
                     alt=""
-                    className="max-h-full max-w-full object-contain"
+                    className="h-full w-full object-contain"
                 />
             </div>
         );

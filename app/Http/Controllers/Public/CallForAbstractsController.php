@@ -67,8 +67,20 @@ class CallForAbstractsController extends Controller
 
     public function status(AbstractSubmission $abstractSubmission): Response
     {
+        $abstractSubmission->load(['track:id,name', 'call.event:id,name']);
+
         return Inertia::render('Public/CallForAbstracts/Status', [
-            'submission' => $abstractSubmission->load(['track:id,name', 'call.event:id,name']),
+            // Curated on purpose: the full model carries disk_path and public_token,
+            // neither of which belongs on a page reachable with just the status link.
+            'submission' => [
+                'reference' => $abstractSubmission->reference,
+                'title' => $abstractSubmission->title,
+                'status' => $abstractSubmission->status,
+                'decision_notes' => $abstractSubmission->decision_notes,
+                'submitted_at' => $abstractSubmission->submitted_at,
+                'track' => $abstractSubmission->track ? ['name' => $abstractSubmission->track->name] : null,
+                'call' => ['event' => ['name' => $abstractSubmission->call->event->name]],
+            ],
             'status' => session('status'),
         ]);
     }

@@ -68,7 +68,7 @@ class EventController extends Controller
             $event->update(['logo_path' => $request->file('logo')->store('event-logos', 'public')]);
         }
 
-        $event->users()->attach($request->user()->id, ['role_in_event' => null]);
+        $event->users()->attach($request->user()->id, ['role_in_event' => null, 'added_by' => $request->user()->id]);
 
         ActivityLog::log($event, 'Event created', $event->id, $request->user()->id);
 
@@ -124,16 +124,21 @@ class EventController extends Controller
                 ->latest()
                 ->limit(150)
                 ->get(),
-            'committeeMembers' => $event->committeeMembers()->with('user:id,name')->get(),
+            'committeeMembers' => $event->committeeMembers()->with('user:id,name,user_type')->get(),
             'abstractCall' => $event->abstractCall()
                 ->with([
                     'tracks',
                     'submissions' => fn ($q) => $q->with(['track:id,name', 'reviews.reviewer:id,name'])->orderByDesc('submitted_at'),
                 ])
                 ->first(),
+            'floorPlans' => $event->floorPlans()
+                ->with('booths.organization:id,name,logo_path')
+                ->orderBy('name')
+                ->get(),
             'committeeRoles' => array_column(CommitteeRole::cases(), 'value'),
             'reviewRecommendations' => array_column(ReviewRecommendation::cases(), 'value'),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
+            'availableCommitteeUsers' => User::query()->orderBy('name')->get(['id', 'name', 'user_type']),
             'availableOrganizations' => Organization::query()->orderBy('name')->get(['id', 'name']),
             'availableContacts' => Contact::query()->orderBy('full_name')->get(['id', 'full_name', 'organization_id']),
             'roles' => array_column(Role::cases(), 'value'),
@@ -146,7 +151,6 @@ class EventController extends Controller
             'requestStatuses' => array_column(RequestStatus::cases(), 'value'),
             'reminderStatuses' => array_column(ReminderStatus::cases(), 'value'),
             'lessonCategories' => array_column(LessonCategory::cases(), 'value'),
-            'status' => session('status'),
         ]);
     }
 
@@ -188,6 +192,11 @@ class EventController extends Controller
             Storage::disk('public')->delete($event->logo_path);
         }
 
+        $event->floorPlans()
+            ->whereNotNull('image_path')
+            ->pluck('image_path')
+            ->each(fn (string $path) => Storage::disk('public')->delete($path));
+
         $event->delete();
 
         return to_route('events.index')->with('status', 'Event removed.');
@@ -196,7 +205,10 @@ class EventController extends Controller
     public function attachUser(AttachEventMemberRequest $request, Event $event): RedirectResponse
     {
         $event->users()->syncWithoutDetaching([
-            $request->validated('user_id') => ['role_in_event' => $request->validated('role_in_event')],
+            $request->validated('user_id') => [
+                'role_in_event' => $request->validated('role_in_event'),
+                'added_by' => $request->user()->id,
+            ],
         ]);
 
         return to_route('events.show', $event)->with('status', 'Team member added.');
@@ -204,7 +216,9 @@ class EventController extends Controller
 
     public function detachUser(Event $event, User $user): RedirectResponse
     {
-        Gate::authorize('manageMembers', $event);
+        $addedBy = $event->users()->where('users.id', $user->id)->first()?->pivot->added_by;
+
+        Gate::authorize('removeMember', [$event, $addedBy]);
 
         $event->users()->detach($user->id);
 

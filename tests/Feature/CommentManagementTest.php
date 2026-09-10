@@ -7,7 +7,9 @@ use App\Models\Event;
 use App\Models\Idea;
 use App\Models\Task;
 use App\Models\User;
+use App\Notifications\CommentPostedNotification;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -45,6 +47,52 @@ test('a team member can comment on a task', function () {
 
     $response->assertRedirect();
     expect(Comment::where('commentable_id', $task->id)->where('commentable_type', Task::class)->exists())->toBeTrue();
+});
+
+test('commenting on an idea notifies its creator', function () {
+    Notification::fake();
+
+    $creator = User::factory()->create();
+    $this->event->users()->attach($creator->id);
+    $idea = Idea::factory()->create(['event_id' => $this->event->id, 'created_by' => $creator->id]);
+
+    $this->actingAs($this->member)->post(route('ideas.comments.store', $idea), [
+        'body' => 'Great idea, let\'s discuss in the next meeting.',
+    ]);
+
+    Notification::assertSentTo($creator, CommentPostedNotification::class);
+});
+
+test('commenting on your own idea does not notify you', function () {
+    Notification::fake();
+
+    $idea = Idea::factory()->create(['event_id' => $this->event->id, 'created_by' => $this->member->id]);
+
+    $this->actingAs($this->member)->post(route('ideas.comments.store', $idea), [
+        'body' => 'Following up on my own idea.',
+    ]);
+
+    Notification::assertNothingSent();
+});
+
+test('commenting on a task notifies its creator and assignee', function () {
+    Notification::fake();
+
+    $creator = User::factory()->create();
+    $assignee = User::factory()->create();
+    $this->event->users()->attach([$creator->id, $assignee->id]);
+    $task = Task::factory()->create([
+        'event_id' => $this->event->id,
+        'created_by' => $creator->id,
+        'assigned_to' => $assignee->id,
+    ]);
+
+    $this->actingAs($this->member)->post(route('tasks.comments.store', $task), [
+        'body' => 'Waiting on vendor confirmation.',
+    ]);
+
+    Notification::assertSentTo($creator, CommentPostedNotification::class);
+    Notification::assertSentTo($assignee, CommentPostedNotification::class);
 });
 
 test('a non-member cannot comment on an idea', function () {

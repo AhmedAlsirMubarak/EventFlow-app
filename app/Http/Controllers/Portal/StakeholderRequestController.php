@@ -8,9 +8,11 @@ use App\Http\Requests\Portal\StoreStakeholderRequestRequest;
 use App\Models\ActivityLog;
 use App\Models\Event;
 use App\Models\StakeholderRequest;
+use App\Notifications\NewStakeholderRequestNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -38,6 +40,8 @@ class StakeholderRequestController extends Controller
         ]);
 
         ActivityLog::log($stakeholderRequest, 'Request submitted: '.$stakeholderRequest->title, $event->id, $request->user()->id);
+
+        Notification::send($event->users, new NewStakeholderRequestNotification($stakeholderRequest));
 
         return to_route('portal.requests.index')->with('status', 'Request submitted.');
     }

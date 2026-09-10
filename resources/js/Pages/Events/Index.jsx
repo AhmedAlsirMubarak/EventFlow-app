@@ -20,7 +20,7 @@ export default function Index({ events }) {
         {
             key: 'logo',
             header: '',
-            render: (event) => <EventLogo event={event} size="sm" />,
+            render: (event) => <EventLogo event={event} size="md" />,
         },
         {
             key: 'name',

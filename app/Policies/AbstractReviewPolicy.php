@@ -5,11 +5,10 @@ namespace App\Policies;
 use App\Models\AbstractSubmission;
 use App\Models\User;
 use App\Policies\Concerns\ChecksCommitteeAccess;
-use App\Policies\Concerns\ChecksEventAccess;
 
 class AbstractReviewPolicy
 {
-    use ChecksCommitteeAccess, ChecksEventAccess;
+    use ChecksCommitteeAccess;
 
     /**
      * Determine whether the user can review the given submission. The controller always
@@ -18,8 +17,6 @@ class AbstractReviewPolicy
      */
     public function create(User $user, AbstractSubmission $submission): bool
     {
-        $event = $submission->call->event;
-
-        return $this->canAccessEvent($user, $event) && $this->isCommitteeMember($user, $event);
+        return $this->isCommitteeMember($user, $submission->call->event);
     }
 }

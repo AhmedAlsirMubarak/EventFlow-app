@@ -31,6 +31,20 @@ test('the export only includes contacts from that organization', function () {
     expect($content)->not->toContain('Other Org');
 });
 
+test('a formula-like contact name is neutralized against csv injection', function () {
+    $user = User::factory()->create();
+    $organization = Organization::factory()->create();
+    Contact::factory()->create([
+        'organization_id' => $organization->id,
+        'full_name' => '=cmd|\'/c calc\'!A1',
+    ]);
+
+    $response = $this->actingAs($user)->get(route('organizations.contacts.export', $organization));
+
+    $content = $response->streamedContent();
+    expect($content)->toContain("'=cmd|'/c calc'!A1");
+});
+
 test('an external user cannot export contacts', function () {
     $external = User::factory()->external()->create();
     $organization = Organization::factory()->create();

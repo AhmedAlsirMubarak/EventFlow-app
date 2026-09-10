@@ -26,6 +26,8 @@ class UpdateOrganizationRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'remove_logo' => ['nullable', 'boolean'],
             'category' => ['required', Rule::in(array_column(OrganizationCategory::cases(), 'value'))],
             'website' => ['nullable', 'url', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],

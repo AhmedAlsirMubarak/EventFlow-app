@@ -51,25 +51,55 @@ function averageScore(reviews) {
 
 const recommendationColors = { Accept: 'emerald', Reject: 'rose', Maybe: 'amber' };
 
+const VISIBLE_REVIEWER_COUNT = 2;
+
+function ReviewerBadge({ review }) {
+    return (
+        <span
+            title={review.comments ?? ''}
+            className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+        >
+            {review.reviewer.name}
+            <Badge color={recommendationColors[review.recommendation] ?? 'slate'}>{review.score}/5</Badge>
+        </span>
+    );
+}
+
 function ReviewerList({ reviews }) {
     if (reviews.length === 0) {
         return <span className="text-slate-400">—</span>;
     }
 
+    const visible = reviews.slice(0, VISIBLE_REVIEWER_COUNT);
+    const hiddenCount = reviews.length - visible.length;
+
     return (
-        <div className="flex flex-wrap gap-1">
-            {reviews.map((review) => (
-                <span
-                    key={review.id}
-                    title={review.comments ?? ''}
-                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
-                >
-                    {review.reviewer.name}
-                    <Badge color={recommendationColors[review.recommendation] ?? 'slate'}>
-                        {review.score}/5
-                    </Badge>
-                </span>
+        <div className="group relative inline-flex flex-wrap items-center gap-1">
+            {visible.map((review) => (
+                <ReviewerBadge key={review.id} review={review} />
             ))}
+
+            {hiddenCount > 0 && (
+                <span className="inline-flex cursor-default items-center rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                    +{hiddenCount} more
+                </span>
+            )}
+
+            {hiddenCount > 0 && (
+                <div className="invisible absolute left-0 top-full z-20 mt-1 w-72 max-w-xs space-y-1.5 rounded-lg border border-slate-200 bg-white p-3 opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        All Reviewers ({reviews.length})
+                    </p>
+                    {reviews.map((review) => (
+                        <div key={review.id} className="flex items-center justify-between gap-2 text-xs">
+                            <span className="font-medium text-slate-700">{review.reviewer.name}</span>
+                            <Badge color={recommendationColors[review.recommendation] ?? 'slate'}>
+                                {review.score}/5 {review.recommendation}
+                            </Badge>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -78,7 +108,7 @@ export default function AbstractsTab({
     event,
     abstractCall,
     committeeMembers,
-    availableUsers,
+    availableCommitteeUsers,
     committeeRoles,
     reviewRecommendations,
 }) {
@@ -89,6 +119,7 @@ export default function AbstractsTab({
     const [committeeModalOpen, setCommitteeModalOpen] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
     const [detailsSubmissionId, setDetailsSubmissionId] = useState(null);
+    const [subTab, setSubTab] = useState('submissions');
 
     const callForm = useForm({
         instructions: abstractCall?.instructions ?? '',
@@ -102,7 +133,7 @@ export default function AbstractsTab({
     const decisionForm = useForm({ status: 'Accepted', decision_notes: '' });
 
     const committeeUserIds = committeeMembers.map((member) => member.user.id);
-    const addableUsers = availableUsers.filter((u) => !committeeUserIds.includes(u.id));
+    const addableUsers = availableCommitteeUsers.filter((u) => !committeeUserIds.includes(u.id));
 
     const canDecide =
         auth.roles.includes('Super Administrator') ||
@@ -232,7 +263,16 @@ export default function AbstractsTab({
     }
 
     const committeeColumns = [
-        { key: 'name', header: 'Name', render: (member) => member.user.name },
+        {
+            key: 'name',
+            header: 'Name',
+            render: (member) => (
+                <span className="flex items-center gap-2">
+                    {member.user.name}
+                    {member.user.user_type === 'external' && <Badge color="slate">External</Badge>}
+                </span>
+            ),
+        },
         {
             key: 'committee_role',
             header: 'Role',
@@ -333,6 +373,13 @@ export default function AbstractsTab({
         },
     ];
 
+    const subTabs = [
+        { key: 'submissions', label: `Submissions (${submissions.length})` },
+        { key: 'accepted', label: `Accepted Speakers (${acceptedSubmissions.length})` },
+        { key: 'committee', label: `Committee (${committeeMembers.length})` },
+        { key: 'tracks', label: `Tracks (${abstractCall?.tracks.length ?? 0})` },
+    ];
+
     return (
         <div className="space-y-6">
             <Card
@@ -395,78 +442,120 @@ export default function AbstractsTab({
                 )}
             </Card>
 
-            <Card
-                title="Review Committee"
-                actions={
+            <div className="flex items-center gap-2 overflow-x-auto border-b border-slate-200">
+                {subTabs.map((tab) => (
                     <button
+                        key={tab.key}
                         type="button"
-                        onClick={openCommitteeModal}
-                        className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                        onClick={() => setSubTab(tab.key)}
+                        className={`shrink-0 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition ${
+                            subTab === tab.key
+                                ? 'border-indigo-600 text-indigo-600'
+                                : 'border-transparent text-slate-500 hover:text-slate-700'
+                        }`}
                     >
-                        Add Committee Member
+                        {tab.label}
                     </button>
-                }
-                className="p-0"
-            >
-                <DataTable
-                    columns={committeeColumns}
-                    rows={committeeMembers}
-                    emptyMessage="No committee members assigned yet."
-                />
-            </Card>
+                ))}
+            </div>
 
-            {abstractCall && (
+            {subTab === 'submissions' &&
+                (abstractCall ? (
+                    <Card title="Submissions" className="p-0">
+                        <DataTable
+                            columns={submissionColumns}
+                            rows={submissions}
+                            emptyMessage="No submissions yet."
+                        />
+                    </Card>
+                ) : (
+                    <Card>
+                        <p className="text-sm text-slate-500">
+                            Create a call for abstracts above to start receiving submissions.
+                        </p>
+                    </Card>
+                ))}
+
+            {subTab === 'accepted' &&
+                (abstractCall ? (
+                    <Card
+                        title="Accepted Speakers"
+                        actions={
+                            acceptedSubmissions.length > 0 && (
+                                <a
+                                    href={route('events.accepted-speakers', event.id)}
+                                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                                >
+                                    Export CSV
+                                </a>
+                            )
+                        }
+                        className="p-0"
+                    >
+                        <DataTable
+                            columns={acceptedSpeakerColumns}
+                            rows={acceptedSubmissions}
+                            emptyMessage="No accepted speakers yet."
+                        />
+                    </Card>
+                ) : (
+                    <Card>
+                        <p className="text-sm text-slate-500">
+                            Create a call for abstracts above to start receiving submissions.
+                        </p>
+                    </Card>
+                ))}
+
+            {subTab === 'committee' && (
                 <Card
-                    title="Tracks"
+                    title="Review Committee"
                     actions={
                         <button
                             type="button"
-                            onClick={openCreateTrack}
+                            onClick={openCommitteeModal}
                             className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
                         >
-                            Add Track
+                            Add Committee Member
                         </button>
                     }
                     className="p-0"
                 >
                     <DataTable
-                        columns={trackColumns}
-                        rows={abstractCall.tracks}
-                        emptyMessage="No tracks yet — submitters will see a single general category."
+                        columns={committeeColumns}
+                        rows={committeeMembers}
+                        emptyMessage="No committee members assigned yet."
                     />
                 </Card>
             )}
 
-            {abstractCall && (
-                <Card title="Submissions" className="p-0">
-                    <DataTable
-                        columns={submissionColumns}
-                        rows={submissions}
-                        emptyMessage="No submissions yet."
-                    />
-                </Card>
-            )}
-
-            {abstractCall && acceptedSubmissions.length > 0 && (
-                <Card
-                    title="Accepted Speakers"
-                    actions={
-                        <a
-                            href={route('events.accepted-speakers', event.id)}
-                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                        >
-                            Export CSV
-                        </a>
-                    }
-                    className="p-0"
-                >
-                    <DataTable
-                        columns={acceptedSpeakerColumns}
-                        rows={acceptedSubmissions}
-                        emptyMessage="No accepted speakers yet."
-                    />
-                </Card>
-            )}
+            {subTab === 'tracks' &&
+                (abstractCall ? (
+                    <Card
+                        title="Tracks"
+                        actions={
+                            <button
+                                type="button"
+                                onClick={openCreateTrack}
+                                className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+                            >
+                                Add Track
+                            </button>
+                        }
+                        className="p-0"
+                    >
+                        <DataTable
+                            columns={trackColumns}
+                            rows={abstractCall.tracks}
+                            emptyMessage="No tracks yet — submitters will see a single general category."
+                        />
+                    </Card>
+                ) : (
+                    <Card>
+                        <p className="text-sm text-slate-500">
+                            Create a call for abstracts above before adding tracks.
+                        </p>
+                    </Card>
+                ))}
 
             <Modal show={callModalOpen} onClose={() => setCallModalOpen(false)} maxWidth="lg">
                 <form onSubmit={submitCall} className="space-y-4 p-6">
@@ -591,8 +680,8 @@ export default function AbstractsTab({
                     <div className="space-y-4 p-6">
                         <h3 className="text-lg font-semibold text-slate-900">Add Committee Member</h3>
                         <p className="text-sm text-slate-500">
-                            Every internal user is already on this event&apos;s committee. Add more
-                            internal users from Admin &gt; Users, then they&apos;ll show up here.
+                            Every user is already on this event&apos;s committee. Add more users
+                            from Admin &gt; Users, then they&apos;ll show up here.
                         </p>
                         <SecondaryButton
                             type="button"
@@ -617,6 +706,7 @@ export default function AbstractsTab({
                                 {addableUsers.map((user) => (
                                     <option key={user.id} value={user.id}>
                                         {user.name}
+                                        {user.user_type === 'external' ? ' (External)' : ''}
                                     </option>
                                 ))}
                             </SelectInput>

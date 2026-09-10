@@ -41,7 +41,7 @@ class Event extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
-            ->withPivot('role_in_event')
+            ->withPivot('role_in_event', 'added_by')
             ->withTimestamps();
     }
 
@@ -141,6 +141,14 @@ class Event extends Model
     public function abstractCall(): HasOne
     {
         return $this->hasOne(AbstractCall::class);
+    }
+
+    /**
+     * @return HasMany<FloorPlan, $this>
+     */
+    public function floorPlans(): HasMany
+    {
+        return $this->hasMany(FloorPlan::class);
     }
 
     /**

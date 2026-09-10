@@ -49,6 +49,16 @@ Thank you for considering contributing to the Laravel framework! The contributio
 
 In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
+## Production Checklist
+
+Before deploying EventFlow to a real environment:
+
+- `APP_ENV=production` and `APP_DEBUG=false` — debug mode exposes stack traces and `.env` values.
+- `SESSION_SECURE_COOKIE=true` — only send the session cookie over HTTPS.
+- Set `SEED_ADMIN_PASSWORD` (or skip seeding the demo Super Administrator entirely) — `DatabaseSeeder` only seeds it in `local`.
+- Run `php artisan queue:work` (or a supervised equivalent) — every notification is queued (`ShouldQueue`); without a worker, mail/database notifications never send.
+- Run `php artisan schedule:work` (or a cron entry for `php artisan schedule:run`) — due reminders (`SendDueReminders`) only fire through the scheduler.
+
 ## Security Vulnerabilities
 
 If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.

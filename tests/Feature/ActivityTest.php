@@ -54,6 +54,50 @@ test('the activity feed exposes the causer avatar url', function () {
     );
 });
 
+test('a non-elevated user only sees activity for events they belong to', function () {
+    $staff = User::factory()->create();
+    $staff->assignRole(RoleEnum::GeneralStaff->value);
+
+    $ownEvent = Event::factory()->create();
+    $ownEvent->users()->attach($staff->id);
+    $otherEvent = Event::factory()->create();
+
+    $ownEvent->activityLogs()->create(['description' => 'My event activity']);
+    $otherEvent->activityLogs()->create(['description' => 'Someone else\'s event activity']);
+
+    $response = $this->actingAs($staff)->get(route('activity.index'));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->has(
+            'activity',
+            1,
+            fn (Assert $page) => $page->where('description', 'My event activity')->etc()
+        )
+    );
+});
+
+test('a super administrator sees activity across every event', function () {
+    $eventA = Event::factory()->create();
+    $eventB = Event::factory()->create();
+    $eventA->activityLogs()->create(['description' => 'Event A activity']);
+    $eventB->activityLogs()->create(['description' => 'Event B activity']);
+
+    $response = $this->actingAs($this->admin)->get(route('activity.index'));
+
+    $response->assertInertia(fn (Assert $page) => $page->has('activity', 2));
+});
+
+test('a non-elevated user cannot filter activity by an event they cannot access', function () {
+    $staff = User::factory()->create();
+    $staff->assignRole(RoleEnum::GeneralStaff->value);
+
+    $otherEvent = Event::factory()->create();
+
+    $this->actingAs($staff)
+        ->get(route('activity.index', ['event_id' => $otherEvent->id]))
+        ->assertForbidden();
+});
+
 test('the event filter scopes the activity feed to a single event', function () {
     $eventA = Event::factory()->create();
     $eventB = Event::factory()->create();

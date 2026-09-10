@@ -50,33 +50,29 @@ class EmailLoginCodeController extends Controller
             ]);
         }
 
+        RateLimiter::hit($throttleKey, 300);
+
         $user = User::query()
             ->where('email', $request->input('email'))
             ->where('user_type', UserType::External)
             ->first();
 
-        if (! $user) {
-            RateLimiter::hit($throttleKey);
+        // Send the code only if the account exists, but respond identically either way —
+        // a distinct "no such account" message would let an attacker enumerate stakeholder emails.
+        if ($user) {
+            $code = (string) random_int(100000, 999999);
 
-            throw ValidationException::withMessages([
-                'email' => "We can't find a stakeholder account with that email address.",
+            $user->loginCodes()->whereNull('consumed_at')->delete();
+            $user->loginCodes()->create([
+                'code_hash' => Hash::make($code),
+                'expires_at' => now()->addMinutes(10),
             ]);
+
+            $user->notify(new LoginCodeNotification($code));
         }
 
-        RateLimiter::hit($throttleKey, 300);
-
-        $code = (string) random_int(100000, 999999);
-
-        $user->loginCodes()->whereNull('consumed_at')->delete();
-        $user->loginCodes()->create([
-            'code_hash' => Hash::make($code),
-            'expires_at' => now()->addMinutes(10),
-        ]);
-
-        $user->notify(new LoginCodeNotification($code));
-
-        return to_route('login.code.verify', ['email' => $user->email])
-            ->with('status', 'We emailed you a 6-digit code. It expires in 10 minutes.');
+        return to_route('login.code.verify', ['email' => $request->input('email')])
+            ->with('status', 'If that email matches a stakeholder account, we emailed a 6-digit code. It expires in 10 minutes.');
     }
 
     /**
@@ -120,6 +116,13 @@ class EmailLoginCodeController extends Controller
             ->first();
 
         $loginCode = $user?->loginCodes()->whereNull('consumed_at')->latest()->first();
+
+        // The attempts counter is keyed to the code itself, not the requester's IP, so it still
+        // caps guesses even against an attacker rotating IPs to dodge the RateLimiter above.
+        if ($loginCode && $loginCode->attempts >= 5) {
+            $loginCode->update(['consumed_at' => now()]);
+            $loginCode = null;
+        }
 
         if (! $user || ! $loginCode || $loginCode->isExpired() || ! Hash::check($request->input('code'), $loginCode->code_hash)) {
             RateLimiter::hit($throttleKey);

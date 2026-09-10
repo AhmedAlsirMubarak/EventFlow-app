@@ -1,4 +1,5 @@
 import Card from '@/Components/UI/Card';
+import FileDropzone from '@/Components/FileDropzone';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -7,11 +8,16 @@ import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { validateFile } from '@/utils/validateFile';
 import { Head, Link, useForm } from '@inertiajs/react';
 
+const LOGO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+const LOGO_MAX_BYTES = 2 * 1024 * 1024;
+
 export default function Create({ categories, accountManagers }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         name: '',
+        logo: null,
         category: categories[0] ?? '',
         website: '',
         email: '',
@@ -19,6 +25,18 @@ export default function Create({ categories, accountManagers }) {
         account_manager_id: '',
         notes: '',
     });
+
+    function handleLogoChange(file) {
+        const error = validateFile(file, { extensions: LOGO_EXTENSIONS, maxSizeBytes: LOGO_MAX_BYTES });
+
+        if (error) {
+            setError('logo', error);
+            return;
+        }
+
+        clearErrors('logo');
+        setData('logo', file);
+    }
 
     function submit(e) {
         e.preventDefault();
@@ -42,6 +60,20 @@ export default function Create({ categories, accountManagers }) {
                             autoFocus
                         />
                         <InputError className="mt-2" message={errors.name} />
+                    </div>
+
+                    <div>
+                        <InputLabel htmlFor="logo" value="Logo (optional)" />
+                        <div className="mt-1">
+                            <FileDropzone
+                                id="logo"
+                                accept="image/*"
+                                value={data.logo}
+                                onChange={handleLogoChange}
+                                hint="JPG, PNG, or WEBP, up to 2 MB"
+                            />
+                        </div>
+                        <InputError className="mt-2" message={errors.logo} />
                     </div>
 
                     <div>

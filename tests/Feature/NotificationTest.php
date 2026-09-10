@@ -52,6 +52,7 @@ function contactWithPortalAccess(array $attributes = []): Contact
 
 test('sharing a document with an organization only notifies contacts who already have portal access', function () {
     $organization = Organization::factory()->create();
+    $this->event->organizations()->attach($organization->id);
     $withAccess = contactWithPortalAccess(['organization_id' => $organization->id, 'email' => 'a@example.com']);
     $withoutAccess = Contact::factory()->create(['organization_id' => $organization->id, 'email' => 'b@example.com']);
 
@@ -65,6 +66,7 @@ test('sharing a document with an organization only notifies contacts who already
 
 test('sharing a document with a specific contact only notifies that contact', function () {
     $organization = Organization::factory()->create();
+    $this->event->organizations()->attach($organization->id);
     $targetContact = contactWithPortalAccess(['organization_id' => $organization->id, 'email' => 'target@example.com']);
     $otherContact = contactWithPortalAccess(['organization_id' => $organization->id, 'email' => 'other@example.com']);
 

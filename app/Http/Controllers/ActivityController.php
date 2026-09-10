@@ -14,26 +14,32 @@ class ActivityController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = $request->user();
         $eventId = $request->integer('event_id') ?: null;
+        $accessibleEventIds = Event::query()->accessibleTo($user)->pluck('id');
+
+        abort_if($eventId && ! $accessibleEventIds->contains($eventId), 403);
 
         return Inertia::render('Activity/Index', [
-            'activity' => $this->recentActivity($eventId),
+            'activity' => $this->recentActivity($eventId, $accessibleEventIds),
             'filters' => [
                 'event_id' => $eventId,
             ],
             'filterOptions' => [
-                'events' => Event::query()->orderBy('name')->get(['id', 'name']),
+                'events' => Event::query()->accessibleTo($user)->orderBy('name')->get(['id', 'name']),
             ],
         ]);
     }
 
     /**
+     * @param  Collection<int, int>  $accessibleEventIds
      * @return Collection<int, array<string, mixed>>
      */
-    private function recentActivity(?int $eventId): Collection
+    private function recentActivity(?int $eventId, Collection $accessibleEventIds): Collection
     {
         $activityLogs = ActivityLog::query()
             ->with('causer:id,name,avatar_path')
+            ->whereIn('event_id', $accessibleEventIds)
             ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
             ->latest()
             ->limit(50)
@@ -47,6 +53,7 @@ class ActivityController extends Controller
 
         $documentActivities = DocumentActivity::query()
             ->with(['document:id,title,event_id', 'user:id,name,avatar_path', 'contact:id,full_name'])
+            ->whereHas('document', fn ($q) => $q->whereIn('event_id', $accessibleEventIds))
             ->when($eventId, fn ($q) => $q->whereHas('document', fn ($q) => $q->where('event_id', $eventId)))
             ->latest()
             ->limit(50)

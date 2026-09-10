@@ -12,6 +12,7 @@ use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,7 +28,6 @@ class OrganizationController extends Controller
                 ->with('accountManager:id,name')
                 ->orderBy('name')
                 ->get(),
-            'status' => session('status'),
         ]);
     }
 
@@ -43,7 +43,11 @@ class OrganizationController extends Controller
 
     public function store(StoreOrganizationRequest $request): RedirectResponse
     {
-        $organization = Organization::create($request->validated());
+        $organization = Organization::create($request->safe()->except('logo'));
+
+        if ($request->hasFile('logo')) {
+            $organization->update(['logo_path' => $request->file('logo')->store('organization-logos', 'public')]);
+        }
 
         return to_route('organizations.show', $organization)->with('status', 'Organization created.');
     }
@@ -75,7 +79,20 @@ class OrganizationController extends Controller
 
     public function update(UpdateOrganizationRequest $request, Organization $organization): RedirectResponse
     {
-        $organization->update($request->validated());
+        $data = $request->safe()->except(['logo', 'remove_logo']);
+
+        if ($request->hasFile('logo')) {
+            if ($organization->logo_path) {
+                Storage::disk('public')->delete($organization->logo_path);
+            }
+
+            $data['logo_path'] = $request->file('logo')->store('organization-logos', 'public');
+        } elseif ($request->boolean('remove_logo') && $organization->logo_path) {
+            Storage::disk('public')->delete($organization->logo_path);
+            $data['logo_path'] = null;
+        }
+
+        $organization->update($data);
 
         return to_route('organizations.show', $organization)->with('status', 'Organization updated.');
     }
@@ -83,6 +100,10 @@ class OrganizationController extends Controller
     public function destroy(Organization $organization): RedirectResponse
     {
         Gate::authorize('delete', $organization);
+
+        if ($organization->logo_path) {
+            Storage::disk('public')->delete($organization->logo_path);
+        }
 
         $organization->delete();
 

@@ -84,6 +84,19 @@ test('a team member can add another internal user to the event team', function (
     expect($event->users()->where('users.id', $newMember->id)->exists())->toBeTrue();
 });
 
+test('an external user cannot be added to the event team', function () {
+    $event = Event::factory()->create(['created_by' => $this->staff->id]);
+    $event->users()->attach($this->staff->id);
+    $external = User::factory()->external()->create();
+
+    $response = $this->actingAs($this->staff)->post(route('events.team.store', $event), [
+        'user_id' => $external->id,
+    ]);
+
+    $response->assertSessionHasErrors('user_id');
+    expect($event->users()->where('users.id', $external->id)->exists())->toBeFalse();
+});
+
 test('a non-member cannot add team members', function () {
     $event = Event::factory()->create(['created_by' => $this->admin->id]);
     $newMember = User::factory()->create();
@@ -103,6 +116,43 @@ test('a team member can be removed from the event', function () {
 
     $response->assertRedirect(route('events.show', $event));
     expect($event->users()->where('users.id', $this->staff->id)->exists())->toBeFalse();
+});
+
+test('adding a team member stamps who added them', function () {
+    $event = Event::factory()->create(['created_by' => $this->staff->id]);
+    $event->users()->attach($this->staff->id);
+    $newMember = User::factory()->create();
+
+    $this->actingAs($this->staff)->post(route('events.team.store', $event), [
+        'user_id' => $newMember->id,
+    ]);
+
+    $pivot = $event->users()->where('users.id', $newMember->id)->first()->pivot;
+    expect($pivot->added_by)->toBe($this->staff->id);
+});
+
+test('a non-elevated user can remove a team member they personally added', function () {
+    $event = Event::factory()->create(['created_by' => $this->staff->id]);
+    $event->users()->attach($this->staff->id);
+    $addedMember = User::factory()->create();
+    $event->users()->attach($addedMember->id, ['added_by' => $this->staff->id]);
+
+    $response = $this->actingAs($this->staff)->delete(route('events.team.destroy', [$event, $addedMember]));
+
+    $response->assertRedirect(route('events.show', $event));
+    expect($event->users()->where('users.id', $addedMember->id)->exists())->toBeFalse();
+});
+
+test('a non-elevated user cannot remove a team member added by someone else', function () {
+    $event = Event::factory()->create(['created_by' => $this->admin->id]);
+    $event->users()->attach($this->staff->id);
+    $otherMember = User::factory()->create();
+    $event->users()->attach($otherMember->id, ['added_by' => $this->admin->id]);
+
+    $response = $this->actingAs($this->staff)->delete(route('events.team.destroy', [$event, $otherMember]));
+
+    $response->assertForbidden();
+    expect($event->users()->where('users.id', $otherMember->id)->exists())->toBeTrue();
 });
 
 test('an organization can be linked to and unlinked from an event', function () {

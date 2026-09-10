@@ -2,6 +2,7 @@ import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import DataTable from '@/Components/UI/DataTable';
 import FileDropzone from '@/Components/FileDropzone';
+import { IconChatBubble } from '@/Components/Icons';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
@@ -18,6 +19,46 @@ import { useEffect, useState } from 'react';
 const CSV_EXTENSIONS = ['.csv', '.txt'];
 const CSV_MAX_BYTES = 2 * 1024 * 1024;
 
+const COUNTRY_CODES = [
+    { code: '+968', label: '+968 Oman' },
+    { code: '+971', label: '+971 UAE' },
+    { code: '+966', label: '+966 Saudi Arabia' },
+    { code: '+974', label: '+974 Qatar' },
+    { code: '+973', label: '+973 Bahrain' },
+    { code: '+965', label: '+965 Kuwait' },
+    { code: '+20', label: '+20 Egypt' },
+    { code: '+962', label: '+962 Jordan' },
+    { code: '+961', label: '+961 Lebanon' },
+    { code: '+964', label: '+964 Iraq' },
+    { code: '+967', label: '+967 Yemen' },
+    { code: '+90', label: '+90 Turkey' },
+    { code: '+44', label: '+44 UK' },
+    { code: '+1', label: '+1 USA / Canada' },
+    { code: '+91', label: '+91 India' },
+    { code: '+92', label: '+92 Pakistan' },
+    { code: '+63', label: '+63 Philippines' },
+    { code: '+94', label: '+94 Sri Lanka' },
+    { code: '+880', label: '+880 Bangladesh' },
+];
+const DEFAULT_COUNTRY_CODE = '+968';
+
+function splitMobile(mobile) {
+    if (!mobile) {
+        return { countryCode: DEFAULT_COUNTRY_CODE, localNumber: '' };
+    }
+
+    const compact = mobile.replace(/\s+/g, '');
+    const match = [...COUNTRY_CODES]
+        .sort((a, b) => b.code.length - a.code.length)
+        .find((c) => compact.startsWith(c.code));
+
+    if (match) {
+        return { countryCode: match.code, localNumber: compact.slice(match.code.length) };
+    }
+
+    return { countryCode: DEFAULT_COUNTRY_CODE, localNumber: mobile };
+}
+
 const emptyContact = {
     full_name: '',
     job_title: '',
@@ -31,7 +72,6 @@ export default function Show({
     organization,
     contacts,
     preferredChannels,
-    status,
     resetLink,
     importErrors,
 }) {
@@ -66,11 +106,27 @@ export default function Show({
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } =
         useForm(emptyContact);
+    const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
+    const [localNumber, setLocalNumber] = useState('');
+
+    function handleCountryCodeChange(e) {
+        const code = e.target.value;
+        setCountryCode(code);
+        setData('mobile', localNumber ? `${code} ${localNumber}` : '');
+    }
+
+    function handleLocalNumberChange(e) {
+        const value = e.target.value;
+        setLocalNumber(value);
+        setData('mobile', value ? `${countryCode} ${value}` : '');
+    }
 
     function openCreateModal() {
         setEditingContact(null);
         reset();
         clearErrors();
+        setCountryCode(DEFAULT_COUNTRY_CODE);
+        setLocalNumber('');
         setModalOpen(true);
     }
 
@@ -84,6 +140,9 @@ export default function Show({
             mobile: contact.mobile ?? '',
             preferred_channel: contact.preferred_channel ?? '',
         });
+        const parsed = splitMobile(contact.mobile ?? '');
+        setCountryCode(parsed.countryCode);
+        setLocalNumber(parsed.localNumber);
         clearErrors();
         setModalOpen(true);
     }
@@ -149,8 +208,46 @@ export default function Show({
     const columns = [
         { key: 'full_name', header: 'Name' },
         { key: 'job_title', header: 'Title' },
-        { key: 'email', header: 'Email' },
-        { key: 'mobile', header: 'Mobile' },
+        {
+            key: 'email',
+            header: 'Email',
+            render: (contact) =>
+                contact.email ? (
+                    <a
+                        href={`mailto:${contact.email}`}
+                        className="text-indigo-600 hover:text-indigo-500"
+                    >
+                        {contact.email}
+                    </a>
+                ) : (
+                    '—'
+                ),
+        },
+        {
+            key: 'mobile',
+            header: 'Mobile',
+            render: (contact) =>
+                contact.mobile ? (
+                    <span className="flex items-center gap-2">
+                        <a href={`tel:${contact.mobile}`} className="text-indigo-600 hover:text-indigo-500">
+                            {contact.mobile}
+                        </a>
+                        {contact.preferred_channel === 'WhatsApp' && (
+                            <a
+                                href={`https://wa.me/${contact.mobile.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Message on WhatsApp"
+                                className="text-emerald-600 hover:text-emerald-500"
+                            >
+                                <IconChatBubble className="h-4 w-4" />
+                            </a>
+                        )}
+                    </span>
+                ) : (
+                    '—'
+                ),
+        },
         {
             key: 'preferred_channel',
             header: 'Preferred Channel',
@@ -213,12 +310,6 @@ export default function Show({
     return (
         <AuthenticatedLayout header={organization.name}>
             <Head title={organization.name} />
-
-            {status && (
-                <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                    {status}
-                </div>
-            )}
 
             {displayedResetLink && (
                 <div className="mb-4 rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
@@ -412,34 +503,47 @@ export default function Show({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <InputLabel htmlFor="email" value="Email" />
-                            <TextInput
-                                id="email"
-                                type="email"
-                                className="mt-1 block w-full"
-                                value={data.email}
-                                onChange={(e) =>
-                                    setData('email', e.target.value)
-                                }
-                            />
-                            <InputError
-                                className="mt-2"
-                                message={errors.email}
-                            />
-                        </div>
-                        <div>
-                            <InputLabel htmlFor="mobile" value="Mobile" />
+                    <div>
+                        <InputLabel htmlFor="email" value="Email" />
+                        <TextInput
+                            id="email"
+                            type="email"
+                            className="mt-1 block w-full"
+                            value={data.email}
+                            onChange={(e) =>
+                                setData('email', e.target.value)
+                            }
+                        />
+                        <InputError
+                            className="mt-2"
+                            message={errors.email}
+                        />
+                    </div>
+
+                    <div>
+                        <InputLabel htmlFor="mobile" value="Mobile" />
+                        <div className="mt-1 flex gap-2">
+                            <SelectInput
+                                id="mobile_country_code"
+                                className="w-36 shrink-0"
+                                value={countryCode}
+                                onChange={handleCountryCodeChange}
+                            >
+                                {COUNTRY_CODES.map((c) => (
+                                    <option key={c.code} value={c.code}>
+                                        {c.label}
+                                    </option>
+                                ))}
+                            </SelectInput>
                             <TextInput
                                 id="mobile"
-                                className="mt-1 block w-full"
-                                value={data.mobile}
-                                onChange={(e) =>
-                                    setData('mobile', e.target.value)
-                                }
+                                className="block w-full"
+                                value={localNumber}
+                                onChange={handleLocalNumberChange}
+                                placeholder="99822690"
                             />
                         </div>
+                        <InputError className="mt-2" message={errors.mobile} />
                     </div>
 
                     <div>

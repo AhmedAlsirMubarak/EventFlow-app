@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\SanitizesCsvRows;
 use App\Models\Contact;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Gate;
@@ -10,6 +11,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ContactExportController extends Controller
 {
+    use SanitizesCsvRows;
+
     public function index(Organization $organization): StreamedResponse
     {
         Gate::authorize('viewAny', Contact::class);
@@ -22,7 +25,7 @@ class ContactExportController extends Controller
             fputcsv($handle, ['full_name', 'job_title', 'department', 'email', 'mobile', 'preferred_channel', 'portal_access']);
 
             foreach ($contacts as $contact) {
-                fputcsv($handle, [
+                fputcsv($handle, $this->sanitizeCsvRow([
                     $contact->full_name,
                     $contact->job_title,
                     $contact->department,
@@ -30,7 +33,7 @@ class ContactExportController extends Controller
                     $contact->mobile,
                     $contact->preferred_channel?->value,
                     $contact->hasPortalAccess() ? 'Active' : '',
-                ]);
+                ]));
             }
 
             fclose($handle);

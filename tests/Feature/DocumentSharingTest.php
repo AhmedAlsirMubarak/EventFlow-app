@@ -27,6 +27,7 @@ beforeEach(function () {
 
 test('a team member can share a document with an entire organization', function () {
     $organization = Organization::factory()->create();
+    $this->event->organizations()->attach($organization->id);
 
     $response = $this->actingAs($this->member)->post(route('documents.shares.store', $this->document), [
         'organization_id' => $organization->id,
@@ -42,7 +43,9 @@ test('a team member can share a document with an entire organization', function 
 });
 
 test('a team member can share a document with a specific contact', function () {
-    $contact = Contact::factory()->create();
+    $organization = Organization::factory()->create();
+    $this->event->organizations()->attach($organization->id);
+    $contact = Contact::factory()->create(['organization_id' => $organization->id]);
 
     $this->actingAs($this->member)->post(route('documents.shares.store', $this->document), [
         'contact_id' => $contact->id,
@@ -51,6 +54,17 @@ test('a team member can share a document with a specific contact', function () {
     $share = DocumentShare::where('document_id', $this->document->id)->firstOrFail();
     expect($share->contact_id)->toBe($contact->id);
     expect($share->organization_id)->toBeNull();
+});
+
+test('a document cannot be shared with an organization unrelated to its event', function () {
+    $unrelatedOrganization = Organization::factory()->create();
+
+    $response = $this->actingAs($this->member)->post(route('documents.shares.store', $this->document), [
+        'organization_id' => $unrelatedOrganization->id,
+    ]);
+
+    $response->assertSessionHasErrors('organization_id');
+    expect(DocumentShare::where('document_id', $this->document->id)->exists())->toBeFalse();
 });
 
 test('sharing requires either an organization or a contact', function () {

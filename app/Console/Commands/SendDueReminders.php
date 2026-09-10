@@ -25,16 +25,23 @@ class SendDueReminders extends Command
             ->with('assignee', 'creator')
             ->get();
 
+        $notified = 0;
+
         foreach ($reminders as $reminder) {
             $recipient = $reminder->assignee ?? $reminder->creator;
 
-            if ($recipient) {
-                $recipient->notify(new ReminderDueNotification($reminder));
+            // Leave notified_at unset when there's no one to notify (both the assignee and the
+            // creator are gone) — stamping it here would permanently silence the reminder instead
+            // of retrying once it's reassigned.
+            if (! $recipient) {
+                continue;
             }
 
+            $recipient->notify(new ReminderDueNotification($reminder));
             $reminder->update(['notified_at' => now()]);
+            $notified++;
         }
 
-        $this->info("Notified {$reminders->count()} due reminder(s).");
+        $this->info("Notified {$notified} due reminder(s).");
     }
 }

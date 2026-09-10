@@ -24,16 +24,34 @@ test('an external user can request a sign-in code', function () {
     Notification::assertSentTo($user, LoginCodeNotification::class);
 });
 
-test('requesting a code for an internal account fails', function () {
+test('requesting a code for an internal account responds identically to a real one without sending anything', function () {
+    Notification::fake();
+
     $user = User::factory()->create();
 
-    $this->post('/login/code', ['email' => $user->email])
-        ->assertSessionHasErrors('email');
+    $response = $this->post('/login/code', ['email' => $user->email]);
+
+    // Same redirect and status as a genuine stakeholder request — a distinct response here
+    // would let an attacker use this form to discover which emails have accounts.
+    $response->assertRedirect(route('login.code.verify', ['email' => $user->email]));
+    $response->assertSessionHas('status');
+    $response->assertSessionDoesntHaveErrors();
+
+    expect(LoginCode::where('user_id', $user->id)->count())->toBe(0);
+    Notification::assertNothingSent();
 });
 
-test('requesting a code for an unknown email fails', function () {
-    $this->post('/login/code', ['email' => 'nobody@example.com'])
-        ->assertSessionHasErrors('email');
+test('requesting a code for an unknown email responds identically to a real one without sending anything', function () {
+    Notification::fake();
+
+    $response = $this->post('/login/code', ['email' => 'nobody@example.com']);
+
+    $response->assertRedirect(route('login.code.verify', ['email' => 'nobody@example.com']));
+    $response->assertSessionHas('status');
+    $response->assertSessionDoesntHaveErrors();
+
+    expect(LoginCode::count())->toBe(0);
+    Notification::assertNothingSent();
 });
 
 test('requesting a new code invalidates the previous unconsumed code', function () {
@@ -80,6 +98,26 @@ test('an incorrect code is rejected', function () {
     ])->assertSessionHasErrors('code');
 
     $this->assertGuest();
+});
+
+test('a code is locked out after five wrong attempts even from a different IP', function () {
+    // The attempts counter lives on the code row, not the per-IP RateLimiter, so it still
+    // caps guesses against an attacker who rotates IPs to dodge the request-level throttle.
+    $user = User::factory()->external()->create();
+    $loginCode = LoginCode::factory()->create([
+        'user_id' => $user->id,
+        'code_hash' => Hash::make('654321'),
+        'attempts' => 5,
+    ]);
+
+    $response = $this->post('/login/code/verify', [
+        'email' => $user->email,
+        'code' => '654321',
+    ]);
+
+    $response->assertSessionHasErrors('code');
+    $this->assertGuest();
+    expect($loginCode->refresh()->consumed_at)->not->toBeNull();
 });
 
 test('an expired code is rejected', function () {

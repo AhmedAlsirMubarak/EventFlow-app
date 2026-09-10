@@ -56,6 +56,21 @@ test('a non-image file is rejected as a logo', function () {
     expect(Event::where('code', 'bad-logo-event')->exists())->toBeFalse();
 });
 
+test('an svg is rejected as a logo', function () {
+    // SVG can carry inline <script>, and event logos are stored on the public disk —
+    // accepting one would be a stored-XSS vector served from the app's own origin.
+    $file = UploadedFile::fake()->create('logo.svg', 10, 'image/svg+xml');
+
+    $this->actingAs($this->user)->post(route('events.store'), [
+        'name' => 'SVG Logo Event',
+        'code' => 'svg-logo-event',
+        'status' => 'Planning',
+        'logo' => $file,
+    ])->assertSessionHasErrors('logo');
+
+    expect(Event::where('code', 'svg-logo-event')->exists())->toBeFalse();
+});
+
 test('uploading a new logo replaces and deletes the old file', function () {
     $event = Event::factory()->create(['logo_path' => 'event-logos/old.png']);
     Storage::disk('public')->put('event-logos/old.png', 'fake-content');

@@ -7,7 +7,10 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\StakeholderRequest;
 use App\Models\User;
+use App\Notifications\CommentPostedNotification;
+use App\Notifications\NewStakeholderRequestNotification;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -49,6 +52,26 @@ test('an external user can submit a request for an accessible event', function (
     expect($request->organization_id)->toBe($this->organization->id);
     expect($request->created_by)->toBeNull();
     expect($request->status->value)->toBe('Requested');
+});
+
+test('submitting a request notifies the event team by mail and in-app', function () {
+    Notification::fake();
+
+    $teamMember = User::factory()->create();
+    $teamMember->assignRole(RoleEnum::GeneralStaff->value);
+    $this->event->users()->attach($teamMember->id);
+
+    $this->actingAs($this->externalUser)->post(route('portal.requests.store'), [
+        'event_id' => $this->event->id,
+        'title' => 'Need updated badge list',
+        'priority' => 'High',
+    ]);
+
+    Notification::assertSentTo(
+        $teamMember,
+        NewStakeholderRequestNotification::class,
+        fn ($notification, $channels) => in_array('mail', $channels) && in_array('database', $channels)
+    );
 });
 
 test('an external user cannot submit a request for an event their organization is not part of', function () {
@@ -105,6 +128,28 @@ test('an external user can reply on their own request and the comment is forced 
     expect($comment->visibility->value)->toBe('External');
     expect($comment->contact_id)->toBe($this->contact->id);
     expect($comment->user_id)->toBeNull();
+});
+
+test('an external reply notifies the request\'s creator and assignee', function () {
+    Notification::fake();
+
+    $creator = User::factory()->create();
+    $assignee = User::factory()->create();
+    $this->event->users()->attach([$creator->id, $assignee->id]);
+    $request = StakeholderRequest::factory()->create([
+        'event_id' => $this->event->id,
+        'organization_id' => $this->organization->id,
+        'contact_id' => $this->contact->id,
+        'created_by' => $creator->id,
+        'assigned_to' => $assignee->id,
+    ]);
+
+    $this->actingAs($this->externalUser)->post(route('portal.requests.comments.store', $request), [
+        'body' => 'Any update on this?',
+    ]);
+
+    Notification::assertSentTo($creator, CommentPostedNotification::class);
+    Notification::assertSentTo($assignee, CommentPostedNotification::class);
 });
 
 test('the portal request page only shows external-visibility comments', function () {

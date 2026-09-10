@@ -8,9 +8,13 @@ use App\Models\Comment;
 use App\Models\Idea;
 use App\Models\StakeholderRequest;
 use App\Models\Task;
+use App\Models\User;
+use App\Notifications\CommentPostedNotification;
+use App\Notifications\StakeholderRequestCommentNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 
 class CommentController extends Controller
 {
@@ -48,7 +52,7 @@ class CommentController extends Controller
     {
         $user = $request->user();
 
-        $commentable->comments()->create([
+        $comment = $commentable->comments()->create([
             'user_id' => $user->isExternal() ? null : $user->id,
             'contact_id' => $user->isExternal() ? $user->contact->id : null,
             'visibility' => $user->isExternal()
@@ -56,5 +60,31 @@ class CommentController extends Controller
                 : CommentVisibility::from($request->validated('visibility') ?? CommentVisibility::Internal->value),
             'body' => $request->validated('body'),
         ]);
+
+        $this->notifyAboutComment($comment, $commentable, $user);
+    }
+
+    /**
+     * Staff previously had no way to learn about a new comment besides re-checking the
+     * page manually — this notifies whoever is already engaged with the commentable:
+     * its creator and (for tasks/requests) its assignee, skipping the person who just
+     * posted. A stakeholder-visible comment on a request also emails the contact.
+     */
+    private function notifyAboutComment(Comment $comment, Model $commentable, User $user): void
+    {
+        if (! $user->isExternal()
+            && $commentable instanceof StakeholderRequest
+            && $comment->visibility === CommentVisibility::External
+            && $commentable->contact) {
+            Notification::route('mail', $commentable->contact->email)
+                ->notify(new StakeholderRequestCommentNotification($comment));
+        }
+
+        $recipients = collect([$commentable->creator, $commentable->assignee ?? null])
+            ->filter()
+            ->unique('id')
+            ->reject(fn (User $recipient) => ! $user->isExternal() && $recipient->id === $user->id);
+
+        Notification::send($recipients, new CommentPostedNotification($comment));
     }
 }

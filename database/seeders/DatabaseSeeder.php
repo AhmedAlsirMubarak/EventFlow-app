@@ -18,11 +18,16 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RoleSeeder::class);
 
-        $admin = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Only seed a login-ready demo Super Administrator for local development —
+        // never ship a well-known account/password combination to a real environment.
+        if (app()->environment('local')) {
+            $admin = User::factory()->create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+                'password' => env('SEED_ADMIN_PASSWORD', 'password'),
+            ]);
 
-        $admin->assignRole(RoleEnum::SuperAdministrator->value);
+            $admin->assignRole(RoleEnum::SuperAdministrator->value);
+        }
     }
 }

@@ -10,6 +10,9 @@ beforeEach(function () {
 
     $this->admin = User::factory()->create();
     $this->admin->assignRole(RoleEnum::SuperAdministrator->value);
+
+    // Admin user management sits behind password.confirm; treat the password as freshly confirmed.
+    $this->withSession(['auth.password_confirmed_at' => time()]);
 });
 
 test('guests are redirected to login', function () {
@@ -116,4 +119,50 @@ test('an administrator cannot remove themselves', function () {
 
     $response->assertForbidden();
     expect(User::find($this->admin->id))->not->toBeNull();
+});
+
+test('management cannot grant the Super Administrator role', function () {
+    $manager = User::factory()->create();
+    $manager->assignRole(RoleEnum::Management->value);
+    $this->withSession(['auth.password_confirmed_at' => time()]);
+
+    $response = $this->actingAs($manager)->post(route('admin.users.store'), [
+        'name' => 'New Hire',
+        'email' => 'new-hire@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'roles' => [RoleEnum::SuperAdministrator->value],
+    ]);
+
+    $response->assertSessionHasErrors('roles.0');
+    expect(User::where('email', 'new-hire@example.com')->exists())->toBeFalse();
+});
+
+test('management cannot edit or delete a Super Administrator', function () {
+    $manager = User::factory()->create();
+    $manager->assignRole(RoleEnum::Management->value);
+    $this->withSession(['auth.password_confirmed_at' => time()]);
+
+    $this->actingAs($manager)->put(route('admin.users.update', $this->admin), [
+        'name' => 'Renamed',
+        'email' => $this->admin->email,
+    ])->assertForbidden();
+
+    $this->actingAs($manager)->delete(route('admin.users.destroy', $this->admin))
+        ->assertForbidden();
+
+    expect($this->admin->refresh()->name)->not->toBe('Renamed');
+});
+
+test('a Super Administrator can grant, edit, and delete another Super Administrator', function () {
+    $otherAdmin = User::factory()->create();
+    $otherAdmin->assignRole(RoleEnum::SuperAdministrator->value);
+
+    $this->actingAs($this->admin)->put(route('admin.users.update', $otherAdmin), [
+        'name' => 'Renamed',
+        'email' => $otherAdmin->email,
+        'roles' => [RoleEnum::SuperAdministrator->value],
+    ])->assertRedirect(route('admin.users.index'));
+
+    expect($otherAdmin->refresh()->name)->toBe('Renamed');
 });

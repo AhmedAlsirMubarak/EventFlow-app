@@ -31,7 +31,7 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'roles' => ['array'],
-            'roles.*' => [Rule::in(array_column(Role::cases(), 'value'))],
+            'roles.*' => [Rule::in(Role::assignableBy($this->user()))],
         ];
     }
 }

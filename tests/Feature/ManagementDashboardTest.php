@@ -6,6 +6,7 @@ use App\Enums\TaskStatus;
 use App\Models\Document;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\StakeholderRequest;
 use App\Models\Task;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -80,6 +81,38 @@ test('document indicators reflect shares, views, and pending acknowledgments', f
             ->where('documents_shared', 1)
             ->where('documents_viewed', 1)
             ->where('documents_awaiting_acknowledgment', 1)
+            ->etc()
+        )
+    );
+});
+
+test('pending approvals and open stakeholder requests are computed, not hardcoded', function () {
+    $event = Event::factory()->create();
+    $document = Document::factory()->create(['event_id' => $event->id]);
+    $version = $document->versions()->create([
+        'version_number' => 1,
+        'disk_path' => 'documents/'.$document->id.'/v1.pdf',
+        'original_filename' => 'v1.pdf',
+        'mime_type' => 'application/pdf',
+        'size' => 10,
+        'uploaded_by' => $this->admin->id,
+    ]);
+    $document->update(['current_version_id' => $version->id]);
+    $document->approvals()->create([
+        'document_version_id' => $version->id,
+        'requested_by' => $this->admin->id,
+        'status' => 'Pending',
+    ]);
+
+    StakeholderRequest::factory()->create(['event_id' => $event->id, 'status' => 'Requested']);
+    StakeholderRequest::factory()->create(['event_id' => $event->id, 'status' => 'Completed']);
+
+    $response = $this->actingAs($this->admin)->get(route('dashboard'));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->has('stats', fn (Assert $page) => $page
+            ->where('pending_approvals', 1)
+            ->where('open_stakeholder_requests', 1)
             ->etc()
         )
     );

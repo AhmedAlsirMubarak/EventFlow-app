@@ -30,7 +30,7 @@ class UpdateUserRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->route('user'))],
             'password' => ['nullable', 'confirmed', Password::defaults()],
             'roles' => ['array'],
-            'roles.*' => [Rule::in(array_column(Role::cases(), 'value'))],
+            'roles.*' => [Rule::in(Role::assignableBy($this->user()))],
         ];
     }
 }
