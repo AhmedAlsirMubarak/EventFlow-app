@@ -1,8 +1,9 @@
 import Card from '@/Components/UI/Card';
+import Pagination from '@/Components/UI/Pagination';
 import SecondaryButton from '@/Components/SecondaryButton';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
-import { Head, Link, router, usePoll } from '@inertiajs/react';
+import { Head, router, usePoll } from '@inertiajs/react';
 
 export default function Index({ notifications }) {
     usePoll(POLL_INTERVAL);
@@ -70,22 +71,7 @@ export default function Index({ notifications }) {
                 </ul>
             </Card>
 
-            {notifications.data.length > 0 && (
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                    {notifications.links.map((link, index) => (
-                        <Link
-                            key={index}
-                            href={link.url ?? '#'}
-                            className={`rounded-md px-3 py-1.5 text-sm ${
-                                link.active
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'text-slate-600 hover:bg-slate-100'
-                            } ${!link.url ? 'pointer-events-none opacity-40' : ''}`}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                    ))}
-                </div>
-            )}
+            <Pagination links={notifications.links} />
         </AuthenticatedLayout>
     );
 }

@@ -97,6 +97,13 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+
+            // Only needed when pg_dump isn't already on PATH (e.g. this Laragon dev
+            // box's bundled Postgres — see .ai/rules/general.md). Leave unset on a
+            // VPS where the OS's postgresql-client package already put it on PATH.
+            'dump' => [
+                'dump_binary_path' => env('PG_DUMP_BINARY_PATH', ''),
+            ],
         ],
 
         'sqlsrv' => [

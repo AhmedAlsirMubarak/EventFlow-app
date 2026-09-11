@@ -19,12 +19,20 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
 
 class DashboardController extends Controller
 {
+    /**
+     * How long a given filter combination's stats stay cached. Long enough to absorb
+     * the dashboard's 15s poll (see resources/js/pollInterval.js), short enough that
+     * new data and filter changes show up within a minute.
+     */
+    private const STATS_CACHE_SECONDS = 60;
+
     public function index(Request $request): Response
     {
         $eventId = $request->integer('event_id') ?: null;
@@ -32,14 +40,26 @@ class DashboardController extends Controller
         $from = $request->date('from');
         $to = $request->date('to');
 
+        $cacheKey = sprintf(
+            'dashboard:stats:%s:%s:%s:%s',
+            $eventId ?? 'all',
+            $organizationId ?? 'all',
+            $from?->toDateString() ?? 'none',
+            $to?->toDateString() ?? 'none',
+        );
+
         return Inertia::render('Dashboard', [
-            'stats' => [
-                'total_users' => User::query()->count(),
-                'internal_users' => User::query()->where('user_type', UserType::Internal)->count(),
-                'external_users' => User::query()->where('user_type', UserType::External)->count(),
-                'roles_configured' => Role::query()->count(),
-                ...$this->managementIndicators($eventId, $organizationId, $from, $to),
-            ],
+            'stats' => Cache::remember(
+                $cacheKey,
+                self::STATS_CACHE_SECONDS,
+                fn () => [
+                    'total_users' => User::query()->count(),
+                    'internal_users' => User::query()->where('user_type', UserType::Internal)->count(),
+                    'external_users' => User::query()->where('user_type', UserType::External)->count(),
+                    'roles_configured' => Role::query()->count(),
+                    ...$this->managementIndicators($eventId, $organizationId, $from, $to),
+                ],
+            ),
             'filters' => [
                 'event_id' => $eventId,
                 'organization_id' => $organizationId,

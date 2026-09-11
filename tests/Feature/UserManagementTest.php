@@ -43,8 +43,25 @@ test('the index page only lists internal users', function () {
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('Admin/Users/Index')
-        ->has('users', 3) // the admin plus the two internal factory users
+        ->has('users.data', 3) // the admin plus the two internal factory users
     );
+});
+
+test('the internal users list is paginated at 30 per page', function () {
+    User::factory()->count(35)->create();
+
+    $response = $this->actingAs($this->admin)->get(route('admin.users.index'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->component('Admin/Users/Index')
+        ->has('users.data', 30)
+        ->where('users.total', 36) // 35 factory users + the admin
+        ->where('users.last_page', 2)
+    );
+
+    $secondPage = $this->actingAs($this->admin)->get(route('admin.users.index', ['page' => 2]));
+
+    $secondPage->assertInertia(fn ($page) => $page->has('users.data', 6));
 });
 
 test('an administrator can create an internal user with roles', function () {

@@ -2,6 +2,7 @@ import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
 import ConfirmDialog from '@/Components/UI/ConfirmDialog';
 import DataTable from '@/Components/UI/DataTable';
+import Pagination from '@/Components/UI/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { useConfirm } from '@/utils/useConfirm';
@@ -84,10 +85,12 @@ export default function Index({ users }) {
             >
                 <DataTable
                     columns={columns}
-                    rows={users}
+                    rows={users.data}
                     emptyMessage="No internal users yet."
                 />
             </Card>
+
+            <Pagination links={users.links} />
 
             <ConfirmDialog {...dialogProps} />
         </AuthenticatedLayout>

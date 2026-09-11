@@ -25,7 +25,8 @@ class UserController extends Controller
                 ->where('user_type', UserType::Internal)
                 ->with('roles:id,name')
                 ->orderBy('name')
-                ->get(['id', 'name', 'email', 'created_at']),
+                ->paginate(30, ['id', 'name', 'email', 'created_at'])
+                ->withQueryString(),
         ]);
     }
 

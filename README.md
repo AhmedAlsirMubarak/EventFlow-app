@@ -71,8 +71,17 @@ Before deploying EventFlow to a real environment:
 - `APP_ENV=production` and `APP_DEBUG=false` — debug mode exposes stack traces and `.env` values.
 - `SESSION_SECURE_COOKIE=true` — only send the session cookie over HTTPS.
 - Set `SEED_ADMIN_PASSWORD` (or skip seeding the demo Super Administrator entirely) — `DatabaseSeeder` only seeds it in `local`.
-- Run `php artisan queue:work` (or a supervised equivalent) — every notification is queued (`ShouldQueue`); without a worker, mail/database notifications never send.
-- Run `php artisan schedule:work` (or a cron entry for `php artisan schedule:run`) — due reminders (`SendDueReminders`) only fire through the scheduler.
+- Install `deploy/eventflow-queue-worker.service` as a systemd service (see the comments at the top of that file for the exact steps) — every notification is queued (`ShouldQueue`); a `queue:work` process running manually in a terminal dies the moment that terminal closes, and nothing sends again until someone notices and restarts it by hand.
+- Add a cron entry for the scheduler: `* * * * * cd /path/to/eventflow-app && php artisan schedule:run >> /dev/null 2>&1` — this is what actually fires `SendDueReminders` (`routes/console.php`) and the daily backup commands below; without it, nothing scheduled ever runs on its own.
+
+## Backups
+
+- Configured via [`spatie/laravel-backup`](https://spatie.be/docs/laravel-backup) (`config/backup.php`) — backs up **both** the Postgres database and the uploaded files in `storage/app/private` + `storage/app/public` (documents, abstract submissions, avatars, logos, floor plan images). A database-only backup would silently miss every file a user has ever uploaded.
+- Scheduled daily via `routes/console.php` (`backup:run` + `backup:clean`, same mechanism as `SendDueReminders`) — requires the cron entry above to actually run.
+- Destination: local disk, outside the project directory (`BACKUP_ARCHIVE_PATH` in `.env`, defaulting to a sibling `../eventflow-backups` folder) — deliberately not inside `storage/`, so losing the project directory doesn't also destroy its backups.
+- Retention: the last 7 daily backups are kept (`config/backup.php`'s `cleanup` strategy); older ones are pruned automatically by `backup:clean`.
+- **An untested backup is not a backup.** Periodically verify you can actually restore one: `php artisan backup:run`, unzip the newest archive, restore the SQL dump into a scratch database (`pg_restore`/`psql`), and confirm the `storage/` folders extracted alongside it are intact.
+- Moving to off-machine storage later (e.g. S3, Backblaze B2) is a `config/backup.php` disk change, not a rewrite — `spatie/laravel-backup` supports it natively.
 
 ## Security Vulnerabilities
 

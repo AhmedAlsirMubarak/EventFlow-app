@@ -47,6 +47,28 @@ function initialTab() {
     return tabs.some((tab) => tab.key === requested) ? requested : 'overview';
 }
 
+// Every tab's data is loaded upfront in one request, but the page polls every
+// POLL_INTERVAL for live updates from other users — without this map, that poll
+// would re-fetch all ~15 relations on every tick regardless of which tab is
+// visible. Only reload the prop(s) the currently active tab actually renders.
+const TAB_PROPS = {
+    overview: ['event'],
+    deadlines: ['meetings', 'tasks', 'reminders', 'stakeholderRequests'],
+    team: ['team'],
+    organizations: ['organizations'],
+    ideas: ['ideas'],
+    tasks: ['tasks'],
+    meetings: ['meetings', 'documents'],
+    decisions: ['decisions', 'meetings', 'documents'],
+    requests: ['stakeholderRequests'],
+    reminders: ['reminders'],
+    documents: ['documents'],
+    'floor-plan': ['floorPlans', 'organizations'],
+    abstracts: ['abstractCall', 'committeeMembers'],
+    activity: ['activityLogs', 'documentActivities'],
+    closure: ['event', 'lessonsLearned'],
+};
+
 export default function Show({
     event,
     team,
@@ -82,7 +104,7 @@ export default function Show({
     lessonCategories,
 }) {
     const [activeTab, setActiveTab] = useState(initialTab);
-    usePoll(POLL_INTERVAL, { preserveScroll: true });
+    usePoll(POLL_INTERVAL, { preserveScroll: true, only: TAB_PROPS[activeTab] ?? [] });
 
     return (
         <AuthenticatedLayout

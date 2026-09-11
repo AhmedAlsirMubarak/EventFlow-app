@@ -47,6 +47,16 @@ return [
             'report' => false,
         ],
 
+        // Backup destination — deliberately outside the project directory (see
+        // config/backup.php and the README's "Backups" section), so losing the
+        // project directory itself doesn't also destroy its own backups.
+        'backups' => [
+            'driver' => 'local',
+            'root' => env('BACKUP_ARCHIVE_PATH', dirname(base_path()).'/eventflow-backups'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

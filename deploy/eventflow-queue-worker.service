@@ -1,0 +1,34 @@
+# systemd unit for the EventFlow notification queue worker.
+#
+# Install (as root, on the VPS):
+#   1. Copy this file to /etc/systemd/system/eventflow-queue-worker.service
+#   2. Replace every /path/to/eventflow-app below with the app's actual deploy path,
+#      and www-data with whichever user the app's PHP-FPM/web process runs as.
+#   3. sudo systemctl daemon-reload
+#   4. sudo systemctl enable --now eventflow-queue-worker
+#
+# Check status / logs:
+#   sudo systemctl status eventflow-queue-worker
+#   sudo journalctl -u eventflow-queue-worker -f
+#
+# After deploying new code (new/changed queued job or notification classes), the
+# running worker is holding old code in memory — restart it:
+#   sudo systemctl restart eventflow-queue-worker
+
+[Unit]
+Description=EventFlow queue worker (php artisan queue:work)
+After=network.target postgresql.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/eventflow-app
+# --tries=3: retry a failed job up to 3 times before it lands in failed_jobs.
+# --max-time=3600: restart the worker every hour so it never holds a stale PHP
+#   opcache/memory state for too long — systemd's Restart=always brings it right back.
+ExecStart=/usr/bin/php /path/to/eventflow-app/artisan queue:work --tries=3 --max-time=3600
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
