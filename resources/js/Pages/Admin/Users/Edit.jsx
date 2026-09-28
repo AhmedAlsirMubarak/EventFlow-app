@@ -32,7 +32,10 @@ export default function Edit({ user, assignedRoles, availableRoles }) {
     }
 
     return (
-        <AuthenticatedLayout header={`Edit ${user.name}`}>
+        <AuthenticatedLayout
+            header={`Edit ${user.name}`}
+            back={{ href: route('admin.users.index'), label: 'Back to Users' }}
+        >
             <Head title={`Edit ${user.name}`} />
 
             <Card className="max-w-2xl">

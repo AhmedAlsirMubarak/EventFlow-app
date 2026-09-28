@@ -26,6 +26,19 @@ const statusColors = {
     Completed: 'emerald',
 };
 
+// 'YYYY-MM-DD' → "Sep 10" (or "Sep 10, 2027" outside the current year). Parsed as a
+// local calendar date so it can't shift a day with the browser's timezone.
+function formatShortDate(value) {
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+
+    return date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        ...(year !== new Date().getFullYear() ? { year: 'numeric' } : {}),
+    });
+}
+
 const emptyTask = {
     title: '',
     description: '',
@@ -33,6 +46,7 @@ const emptyTask = {
     assigned_to: '',
     organization_id: '',
     priority: 'Medium',
+    start_date: '',
     due_date: '',
     status: 'Backlog',
 };
@@ -73,6 +87,7 @@ export default function TasksTab({
             assigned_to: task.assigned_to ?? '',
             organization_id: task.organization_id ?? '',
             priority: task.priority,
+            start_date: task.start_date ?? '',
             due_date: task.due_date ?? '',
             status: task.status,
         });
@@ -157,9 +172,27 @@ export default function TasksTab({
             ),
         },
         {
-            key: 'due_date',
-            header: 'Due',
-            render: (task) => task.due_date ?? '—',
+            key: 'dates',
+            header: 'Dates',
+            render: (task) => {
+                if (task.start_date && task.due_date) {
+                    return (
+                        <span className="whitespace-nowrap">
+                            {formatShortDate(task.start_date)} → {formatShortDate(task.due_date)}
+                        </span>
+                    );
+                }
+
+                if (task.start_date) {
+                    return <span className="whitespace-nowrap">From {formatShortDate(task.start_date)}</span>;
+                }
+
+                return task.due_date ? (
+                    <span className="whitespace-nowrap">Due {formatShortDate(task.due_date)}</span>
+                ) : (
+                    '—'
+                );
+            },
         },
         {
             key: 'checklist',
@@ -298,6 +331,35 @@ export default function TasksTab({
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
+                            <InputLabel htmlFor="start_date" value="Start Date (optional)" />
+                            <TextInput
+                                id="start_date"
+                                type="date"
+                                className="mt-1 block w-full"
+                                value={taskForm.data.start_date}
+                                max={taskForm.data.due_date || undefined}
+                                onChange={(e) => taskForm.setData('start_date', e.target.value)}
+                            />
+                            <InputError className="mt-2" message={taskForm.errors.start_date} />
+                        </div>
+                        <div>
+                            <InputLabel htmlFor="due_date" value="Due Date" />
+                            <TextInput
+                                id="due_date"
+                                type="date"
+                                className="mt-1 block w-full"
+                                value={taskForm.data.due_date}
+                                min={taskForm.data.start_date || undefined}
+                                onChange={(e) =>
+                                    taskForm.setData('due_date', e.target.value)
+                                }
+                            />
+                            <InputError className="mt-2" message={taskForm.errors.due_date} />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
                             <InputLabel htmlFor="priority" value="Priority" />
                             <SelectInput
                                 id="priority"
@@ -315,21 +377,6 @@ export default function TasksTab({
                             </SelectInput>
                         </div>
                         <div>
-                            <InputLabel htmlFor="due_date" value="Due Date" />
-                            <TextInput
-                                id="due_date"
-                                type="date"
-                                className="mt-1 block w-full"
-                                value={taskForm.data.due_date}
-                                onChange={(e) =>
-                                    taskForm.setData('due_date', e.target.value)
-                                }
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
                             <InputLabel htmlFor="status" value="Status" />
                             <SelectInput
                                 id="status"
@@ -346,6 +393,9 @@ export default function TasksTab({
                                 ))}
                             </SelectInput>
                         </div>
+                    </div>
+
+                    <div>
                         <div>
                             <InputLabel
                                 htmlFor="organization_id"

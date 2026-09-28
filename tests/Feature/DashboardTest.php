@@ -2,7 +2,10 @@
 
 use App\Enums\EventStatus;
 use App\Enums\Role as RoleEnum;
+use App\Enums\TaskStatus;
+use App\Models\ActivityLog;
 use App\Models\Event;
+use App\Models\Task;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Cache;
@@ -64,4 +67,67 @@ test('dashboard stats are cached per filter combination and expire on their own'
     Cache::flush();
     $afterExpiry = $this->actingAs($admin)->get('/dashboard');
     $afterExpiry->assertInertia(fn (Assert $page) => $page->where('stats.active_events', 1));
+});
+
+test('the task chart lists every status in workflow order, including empty ones', function () {
+    Cache::flush();
+    $this->seed(RoleSeeder::class);
+    $admin = User::factory()->create();
+    $admin->assignRole(RoleEnum::SuperAdministrator->value);
+    $event = Event::factory()->create();
+    Task::factory()->count(2)->create(['event_id' => $event->id, 'status' => TaskStatus::InProgress]);
+    Task::factory()->create(['event_id' => $event->id, 'status' => TaskStatus::Completed]);
+
+    $this->actingAs($admin)->get('/dashboard')->assertInertia(fn (Assert $page) => $page
+        ->where('charts.tasks_by_status', [
+            ['status' => 'Backlog', 'count' => 0],
+            ['status' => 'Planned', 'count' => 0],
+            ['status' => 'In Progress', 'count' => 2],
+            ['status' => 'Waiting / Blocked', 'count' => 0],
+            ['status' => 'Completed', 'count' => 1],
+        ])
+        ->where('stats.open_tasks', 2)
+    );
+});
+
+test('the activity trend covers the last 30 days, zeros included', function () {
+    Cache::flush();
+    $this->seed(RoleSeeder::class);
+    $admin = User::factory()->create();
+    $admin->assignRole(RoleEnum::SuperAdministrator->value);
+    $event = Event::factory()->create();
+    ActivityLog::factory()->count(3)->create(['event_id' => $event->id, 'created_at' => now()]);
+    ActivityLog::factory()->create(['event_id' => $event->id, 'created_at' => now()->subDays(40)]);
+
+    $this->actingAs($admin)->get('/dashboard')->assertInertia(fn (Assert $page) => $page
+        ->has('charts.activity_trend', 30)
+        ->where('charts.activity_trend.29.date', now()->toDateString())
+        ->where('charts.activity_trend.29.count', 3)
+        ->where('charts.activity_trend.0.count', 0)
+    );
+});
+
+test('the needs-attention and upcoming lists only show events you can open', function () {
+    Cache::flush();
+    $this->seed(RoleSeeder::class);
+    $staff = User::factory()->create();
+    $staff->assignRole(RoleEnum::GeneralStaff->value);
+
+    $mine = Event::factory()->create(['status' => EventStatus::Planning, 'start_date' => now()->addDays(10), 'end_date' => now()->addDays(12)]);
+    $mine->users()->attach($staff->id);
+    $notMine = Event::factory()->create(['status' => EventStatus::Planning, 'start_date' => now()->addDays(5), 'end_date' => now()->addDays(6)]);
+    $finished = Event::factory()->create(['status' => EventStatus::Active, 'start_date' => now()->subDays(10), 'end_date' => now()->subDays(8)]);
+    $finished->users()->attach($staff->id);
+
+    $overdue = Task::factory()->create(['event_id' => $mine->id, 'status' => TaskStatus::Planned, 'due_date' => now()->subDay()]);
+    Task::factory()->create(['event_id' => $mine->id, 'status' => TaskStatus::Completed, 'due_date' => now()->subDay()]);
+    Task::factory()->create(['event_id' => $mine->id, 'status' => TaskStatus::Planned, 'due_date' => now()->addDays(20)]);
+    Task::factory()->create(['event_id' => $notMine->id, 'status' => TaskStatus::Planned, 'due_date' => now()->subDay()]);
+
+    $this->actingAs($staff)->get('/dashboard')->assertInertia(fn (Assert $page) => $page
+        ->has('upcomingEvents', 1)
+        ->where('upcomingEvents.0.id', $mine->id)
+        ->has('attentionTasks', 1)
+        ->where('attentionTasks.0.id', $overdue->id)
+    );
 });

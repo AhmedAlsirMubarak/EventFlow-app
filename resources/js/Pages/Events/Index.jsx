@@ -1,10 +1,15 @@
 import Badge from '@/Components/UI/Badge';
 import Card from '@/Components/UI/Card';
+import ConfirmDialog from '@/Components/UI/ConfirmDialog';
 import DataTable from '@/Components/UI/DataTable';
+import RowActionsMenu from '@/Components/UI/RowActionsMenu';
 import EventLogo from '@/Components/EventLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
-import { Head, Link, usePoll } from '@inertiajs/react';
+import { useConfirm } from '@/utils/useConfirm';
+import { Head, Link, router, usePoll } from '@inertiajs/react';
+import { useState } from 'react';
+import DuplicateEventModal from './Partials/DuplicateEventModal';
 
 const statusColors = {
     Planning: 'amber',
@@ -15,6 +20,23 @@ const statusColors = {
 
 export default function Index({ events }) {
     usePoll(POLL_INTERVAL);
+    const [duplicating, setDuplicating] = useState(null);
+    const { confirm, dialogProps } = useConfirm();
+
+    function destroy(event) {
+        confirm({
+            title: `Delete ${event.name}?`,
+            message:
+                'This permanently deletes the event and everything in it — tasks, documents, meetings, decisions, requests, floor plans and abstract submissions. It cannot be undone.',
+            confirmLabel: 'Delete event',
+            danger: true,
+            requireText: event.name,
+        }).then((confirmed) => {
+            if (confirmed) {
+                router.delete(route('events.destroy', event.id), { preserveScroll: true });
+            }
+        });
+    }
 
     const columns = [
         {
@@ -55,6 +77,28 @@ export default function Index({ events }) {
         },
         { key: 'users_count', header: 'Team' },
         { key: 'organizations_count', header: 'Organizations' },
+        {
+            key: 'actions',
+            header: <span className="sr-only">Actions</span>,
+            render: (event) => (
+                <div className="flex justify-end">
+                    <RowActionsMenu
+                        label={`Actions for ${event.name}`}
+                        items={[
+                            { label: 'Open', href: route('events.show', event.id) },
+                            { label: 'Edit', href: route('events.edit', event.id) },
+                            { label: 'Duplicate', onClick: () => setDuplicating(event) },
+                            event.can_delete && {
+                                label: 'Delete',
+                                onClick: () => destroy(event),
+                                danger: true,
+                                separatorBefore: true,
+                            },
+                        ]}
+                    />
+                </div>
+            ),
+        },
     ];
 
     return (
@@ -77,8 +121,15 @@ export default function Index({ events }) {
                     columns={columns}
                     rows={events}
                     emptyMessage="No events yet."
+                    emptyAction={{ label: 'Create your first event', onClick: () => router.visit(route('events.create')) }}
                 />
             </Card>
+
+            {duplicating && (
+                <DuplicateEventModal event={duplicating} show onClose={() => setDuplicating(null)} />
+            )}
+
+            <ConfirmDialog {...dialogProps} />
         </AuthenticatedLayout>
     );
 }

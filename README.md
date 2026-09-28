@@ -72,7 +72,7 @@ Before deploying EventFlow to a real environment:
 - `SESSION_SECURE_COOKIE=true` — only send the session cookie over HTTPS.
 - Set `SEED_ADMIN_PASSWORD` (or skip seeding the demo Super Administrator entirely) — `DatabaseSeeder` only seeds it in `local`.
 - Install `deploy/eventflow-queue-worker.service` as a systemd service (see the comments at the top of that file for the exact steps) — every notification is queued (`ShouldQueue`); a `queue:work` process running manually in a terminal dies the moment that terminal closes, and nothing sends again until someone notices and restarts it by hand.
-- Add a cron entry for the scheduler: `* * * * * cd /path/to/eventflow-app && php artisan schedule:run >> /dev/null 2>&1` — this is what actually fires `SendDueReminders` (`routes/console.php`) and the daily backup commands below; without it, nothing scheduled ever runs on its own.
+- Add a cron entry for the scheduler: `* * * * * cd /path/to/eventflow-app && php artisan schedule:run >> /dev/null 2>&1` — this is what actually fires `SendDueReminders`, the 8 AM task-deadline digest (`SendTaskDeadlineAlerts`, in `APP_BUSINESS_TIMEZONE`) (`routes/console.php`), and the daily backup commands below; without it, nothing scheduled ever runs on its own.
 
 ## Backups
 

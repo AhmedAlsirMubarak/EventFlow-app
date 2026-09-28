@@ -319,7 +319,10 @@ export default function Show({
     ];
 
     return (
-        <AuthenticatedLayout header={organization.name}>
+        <AuthenticatedLayout
+            header={organization.name}
+            back={{ href: route('organizations.index'), label: 'Back to Organizations' }}
+        >
             <Head title={organization.name} />
 
             {displayedResetLink && (
@@ -409,7 +412,7 @@ export default function Show({
                         <div className="flex items-center gap-2">
                             <a
                                 href={route('organizations.contacts.export', organization.id)}
-                                className="inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-700 shadow-sm transition duration-150 ease-in-out hover:bg-slate-50"
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                             >
                                 Export CSV
                             </a>

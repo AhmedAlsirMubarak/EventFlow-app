@@ -16,7 +16,7 @@ export default function Show({ document, acknowledgment, canDownload }) {
     }
 
     return (
-        <PortalLayout header={document.title}>
+        <PortalLayout header={document.title} back={{ href: route('portal.dashboard'), label: 'Back to Documents' }}>
             <Head title={document.title} />
 
             <div className="space-y-6">

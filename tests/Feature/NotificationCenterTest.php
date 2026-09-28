@@ -9,8 +9,10 @@ use App\Notifications\DocumentPendingApprovalNotification;
 use App\Notifications\ReminderDueNotification;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -167,4 +169,43 @@ test('mark all read clears every unread notification for the user', function () 
 
     $response->assertRedirect();
     expect($user->unreadNotifications()->count())->toBe(0);
+});
+
+function makeNotification(User $user, string $title, array $attributes = []): DatabaseNotification
+{
+    return DatabaseNotification::create([
+        'id' => (string) Str::uuid(),
+        'type' => 'test',
+        'notifiable_type' => User::class,
+        'notifiable_id' => $user->id,
+        'data' => ['title' => $title, 'body' => 'Body of '.$title, 'url' => '/dashboard'],
+        ...$attributes,
+    ]);
+}
+
+test('the bell dropdown gets the latest 8 of my notifications, newest first', function () {
+    $user = User::factory()->create();
+    $someoneElse = User::factory()->create();
+
+    foreach (range(1, 10) as $i) {
+        makeNotification($user, "Mine {$i}", ['created_at' => now()->subMinutes(20 - $i)]);
+    }
+    makeNotification($someoneElse, 'Not mine');
+    $user->notifications()->latest()->first()->markAsRead();
+
+    $response = $this->actingAs($user)->getJson(route('notifications.recent'));
+
+    $response->assertOk()
+        ->assertJsonCount(8, 'notifications')
+        ->assertJsonPath('notifications.0.title', 'Mine 10')
+        ->assertJsonPath('notifications.0.body', 'Body of Mine 10')
+        ->assertJsonPath('unread_count', 9)
+        ->assertJsonMissing(['title' => 'Not mine']);
+
+    expect($response->json('notifications.0.read_at'))->not->toBeNull();
+    expect($response->json('notifications.1.read_at'))->toBeNull();
+});
+
+test('guests cannot read the bell dropdown feed', function () {
+    $this->getJson(route('notifications.recent'))->assertUnauthorized();
 });

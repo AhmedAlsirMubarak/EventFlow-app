@@ -53,7 +53,10 @@ export default function Edit({ event, statuses }) {
     }
 
     return (
-        <AuthenticatedLayout header={`Edit ${event.name}`}>
+        <AuthenticatedLayout
+            header={`Edit ${event.name}`}
+            back={{ href: route('events.show', event.id), label: `Back to ${event.name}` }}
+        >
             <Head title={`Edit ${event.name}`} />
 
             <Card className="max-w-2xl">

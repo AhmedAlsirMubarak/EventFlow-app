@@ -34,7 +34,7 @@ class MyWorkController extends Controller
             ->where('status', '!=', TaskStatus::Completed)
             ->with('event:id,name')
             ->orderByRaw('due_date is null, due_date')
-            ->get(['id', 'event_id', 'title', 'priority', 'status', 'due_date']);
+            ->get(['id', 'event_id', 'title', 'priority', 'status', 'start_date', 'due_date']);
 
         $requests = StakeholderRequest::query()
             ->whereIn('event_id', $eventIds)

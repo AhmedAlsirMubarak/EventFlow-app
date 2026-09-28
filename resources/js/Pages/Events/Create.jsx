@@ -51,7 +51,7 @@ export default function Create({ statuses }) {
     }
 
     return (
-        <AuthenticatedLayout header="New Event">
+        <AuthenticatedLayout header="New Event" back={{ href: route('events.index'), label: 'Back to Events' }}>
             <Head title="New Event" />
 
             <Card className="max-w-2xl">

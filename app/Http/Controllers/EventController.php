@@ -25,6 +25,7 @@ use App\Models\ActivityLog;
 use App\Models\CommitteeMember;
 use App\Models\Contact;
 use App\Models\DocumentActivity;
+use App\Models\DocumentVersion;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
@@ -45,7 +46,9 @@ class EventController extends Controller
         $query = Event::query()->accessibleTo($user)->withCount(['users', 'organizations'])->orderByDesc('start_date');
 
         return Inertia::render('Events/Index', [
-            'events' => $query->get(),
+            'events' => $query->get()->each(
+                fn (Event $event) => $event->setAttribute('can_delete', $user->can('delete', $event))
+            ),
         ]);
     }
 
@@ -229,9 +232,17 @@ class EventController extends Controller
             ->pluck('image_path')
             ->each(fn (string $path) => Storage::disk('public')->delete($path));
 
+        // The database cascade removes the document rows but not their files on the
+        // private disk — including documents already sitting in "Recently deleted".
+        DocumentVersion::query()
+            ->whereIn('document_id', $event->documents()->withTrashed()->select('id'))
+            ->pluck('disk_path')
+            ->each(fn (string $path) => Storage::disk('local')->delete($path));
+
+        $name = $event->name;
         $event->delete();
 
-        return to_route('events.index')->with('status', 'Event removed.');
+        return to_route('events.index')->with('status', "{$name} was deleted.");
     }
 
     public function attachUser(AttachEventMemberRequest $request, Event $event): RedirectResponse

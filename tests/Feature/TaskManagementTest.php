@@ -192,3 +192,38 @@ test('a non-member cannot manage checklist items', function () {
         'label' => 'Sneaky item',
     ])->assertForbidden();
 });
+
+test('a task can have a start date as well as a due date', function () {
+    $this->actingAs($this->member)->post(route('tasks.store', $this->event), [
+        'title' => 'Booth setup',
+        'priority' => 'Medium',
+        'status' => 'Planned',
+        'start_date' => '2026-09-10',
+        'due_date' => '2026-09-14',
+    ])->assertSessionHasNoErrors();
+
+    $task = Task::where('title', 'Booth setup')->firstOrFail();
+    expect($task->start_date->toDateString())->toBe('2026-09-10');
+    expect($task->due_date->toDateString())->toBe('2026-09-14');
+});
+
+test('a start date cannot be after the due date', function () {
+    $this->actingAs($this->member)->post(route('tasks.store', $this->event), [
+        'title' => 'Backwards',
+        'priority' => 'Medium',
+        'status' => 'Planned',
+        'start_date' => '2026-09-20',
+        'due_date' => '2026-09-14',
+    ])->assertSessionHasErrors('start_date');
+});
+
+test('a start date on its own, without a due date, is allowed', function () {
+    $this->actingAs($this->member)->post(route('tasks.store', $this->event), [
+        'title' => 'Open-ended',
+        'priority' => 'Medium',
+        'status' => 'Planned',
+        'start_date' => '2026-09-20',
+    ])->assertSessionHasNoErrors();
+
+    expect(Task::where('title', 'Open-ended')->firstOrFail()->start_date->toDateString())->toBe('2026-09-20');
+});

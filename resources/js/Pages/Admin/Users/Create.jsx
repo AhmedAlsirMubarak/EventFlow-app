@@ -32,7 +32,7 @@ export default function Create({ availableRoles }) {
     }
 
     return (
-        <AuthenticatedLayout header="New User">
+        <AuthenticatedLayout header="New User" back={{ href: route('admin.users.index'), label: 'Back to Users' }}>
             <Head title="New User" />
 
             <Card className="max-w-2xl">

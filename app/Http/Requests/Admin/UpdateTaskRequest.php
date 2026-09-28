@@ -32,6 +32,7 @@ class UpdateTaskRequest extends FormRequest
             'assigned_to' => ['nullable', 'exists:users,id'],
             'organization_id' => ['nullable', 'exists:organizations,id'],
             'priority' => ['required', Rule::in(array_column(TaskPriority::cases(), 'value'))],
+            'start_date' => ['nullable', 'date', ...($this->filled('due_date') ? ['before_or_equal:due_date'] : [])],
             'due_date' => ['nullable', 'date'],
             'status' => ['required', Rule::in(array_column(TaskStatus::cases(), 'value'))],
         ];

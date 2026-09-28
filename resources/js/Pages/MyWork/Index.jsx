@@ -65,6 +65,26 @@ function dueStatus(value) {
     return { label: `Due ${formatted}`, color: 'slate', overdue: false, thisWeek: false };
 }
 
+// "Starts Mon" / "Starts Sep 20" for a task whose start date is still ahead;
+// null once it has started (or has no start date).
+function startsLabel(value) {
+    const date = parseDate(value);
+
+    if (!date || date <= startOfToday()) {
+        return null;
+    }
+
+    const diffDays = Math.round((date - startOfToday()) / DAY);
+
+    if (diffDays === 1) {
+        return 'Starts tomorrow';
+    }
+
+    return diffDays <= 7
+        ? `Starts ${date.toLocaleDateString(undefined, { weekday: 'short' })}`
+        : `Starts ${date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+}
+
 function formatDateTime(value) {
     return new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
@@ -162,6 +182,7 @@ export default function Index({ tasks, requests, reminders, meetings, reviews })
                 <Section title="My Tasks" count={tasks.length} emptyMessage="No open tasks assigned to you.">
                     {tasks.map((task) => {
                         const due = dueStatus(task.due_date);
+                        const starts = startsLabel(task.start_date);
 
                         return (
                             <Row
@@ -169,7 +190,12 @@ export default function Index({ tasks, requests, reminders, meetings, reviews })
                                 href={eventLink(task.event_id, 'tasks')}
                                 title={task.title}
                                 meta={`${task.event.name} · ${task.status} · ${task.priority} priority`}
-                                badge={<Badge color={due.color}>{due.label}</Badge>}
+                                badge={
+                                    <>
+                                        {starts && <Badge color="slate">{starts}</Badge>}
+                                        <Badge color={due.color}>{due.label}</Badge>
+                                    </>
+                                }
                             />
                         );
                     })}

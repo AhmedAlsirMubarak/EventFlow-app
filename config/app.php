@@ -68,6 +68,14 @@ return [
     'timezone' => 'UTC',
 
     /*
+    | Where the team actually works. Dates are stored in UTC (above), but
+    | "today", "due tomorrow" and "8 AM" for deadline alerts mean the local
+    | calendar day here, not UTC's.
+    */
+
+    'business_timezone' => env('APP_BUSINESS_TIMEZONE', 'Asia/Muscat'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------

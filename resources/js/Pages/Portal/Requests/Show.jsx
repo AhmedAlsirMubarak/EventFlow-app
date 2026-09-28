@@ -29,7 +29,7 @@ export default function Show({ request }) {
     }
 
     return (
-        <PortalLayout header={request.title}>
+        <PortalLayout header={request.title} back={{ href: route('portal.requests.index'), label: 'Back to My Requests' }}>
             <Head title={request.title} />
 
             <div className="space-y-6">

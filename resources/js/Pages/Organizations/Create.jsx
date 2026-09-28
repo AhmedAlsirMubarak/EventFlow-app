@@ -44,7 +44,10 @@ export default function Create({ categories, accountManagers }) {
     }
 
     return (
-        <AuthenticatedLayout header="New Organization">
+        <AuthenticatedLayout
+            header="New Organization"
+            back={{ href: route('organizations.index'), label: 'Back to Organizations' }}
+        >
             <Head title="New Organization" />
 
             <Card className="max-w-2xl">

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['event_id', 'meeting_id', 'title', 'description', 'department', 'assigned_to', 'organization_id', 'priority', 'due_date', 'status', 'created_by'])]
+#[Fillable(['event_id', 'meeting_id', 'title', 'description', 'department', 'assigned_to', 'organization_id', 'priority', 'start_date', 'due_date', 'status', 'created_by'])]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
@@ -73,9 +73,31 @@ class Task extends Model
     protected function casts(): array
     {
         return [
+            'start_date' => 'date:Y-m-d',
             'due_date' => 'date:Y-m-d',
             'priority' => TaskPriority::class,
             'status' => TaskStatus::class,
+            'due_soon_alerted_at' => 'datetime',
+            'due_today_alerted_at' => 'datetime',
+            'overdue_alerted_at' => 'datetime',
+            'escalated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * A new deadline or a new owner is a fresh start: forget which deadline
+     * alerts already went out, so the new due date gets its own (see
+     * SendTaskDeadlineAlerts).
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (Task $task) {
+            if ($task->isDirty('due_date') || $task->isDirty('assigned_to')) {
+                $task->due_soon_alerted_at = null;
+                $task->due_today_alerted_at = null;
+                $task->overdue_alerted_at = null;
+                $task->escalated_at = null;
+            }
+        });
     }
 }

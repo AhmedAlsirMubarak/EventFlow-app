@@ -1,6 +1,7 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import { IconChevronDown, IconMenu } from '@/Components/Icons';
+import BackLink from '@/Components/UI/BackLink';
 import FlashBanner from '@/Components/UI/FlashBanner';
 import UserAvatar from '@/Components/UserAvatar';
 import { Link, usePage } from '@inertiajs/react';
@@ -9,7 +10,7 @@ import { useState } from 'react';
 const navLinkClass = 'text-sm font-medium text-slate-600 hover:text-slate-900';
 const mobileNavLinkClass = 'rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100';
 
-export default function PortalLayout({ header, children }) {
+export default function PortalLayout({ header, back, children }) {
     const { auth, hasCommitteeAssignments } = usePage().props;
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -99,6 +100,7 @@ export default function PortalLayout({ header, children }) {
             </header>
 
             <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+                {back && <BackLink href={back.href} label={back.label} />}
                 {header && (
                     <h1 className="mb-6 text-2xl font-semibold text-slate-900">
                         {header}

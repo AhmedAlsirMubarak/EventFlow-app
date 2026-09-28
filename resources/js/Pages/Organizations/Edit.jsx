@@ -54,7 +54,10 @@ export default function Edit({ organization, categories, accountManagers }) {
     }
 
     return (
-        <AuthenticatedLayout header={`Edit ${organization.name}`}>
+        <AuthenticatedLayout
+            header={`Edit ${organization.name}`}
+            back={{ href: route('organizations.show', organization.id), label: `Back to ${organization.name}` }}
+        >
             <Head title={`Edit ${organization.name}`} />
 
             <Card className="max-w-2xl">

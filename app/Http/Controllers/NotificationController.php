@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
@@ -14,6 +15,26 @@ class NotificationController extends Controller
     {
         return Inertia::render('Notifications/Index', [
             'notifications' => $request->user()->notifications()->paginate(20),
+        ]);
+    }
+
+    /**
+     * The latest few notifications for the top-bar bell dropdown. Fetched only
+     * when the dropdown opens, so it adds nothing to ordinary page loads.
+     */
+    public function recent(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'notifications' => $user->notifications()->limit(8)->get()->map(fn (DatabaseNotification $notification) => [
+                'id' => $notification->id,
+                'title' => $notification->data['title'] ?? 'Notification',
+                'body' => $notification->data['body'] ?? null,
+                'read_at' => $notification->read_at,
+                'created_at' => $notification->created_at,
+            ]),
+            'unread_count' => $user->unreadNotifications()->count(),
         ]);
     }
 

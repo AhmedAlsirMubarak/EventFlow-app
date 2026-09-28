@@ -73,6 +73,7 @@ class EventDuplicationController extends Controller
                         'assigned_to' => $include->contains('team') ? $task->assigned_to : null,
                         'organization_id' => $include->contains('organizations') ? $task->organization_id : null,
                         'priority' => $task->priority,
+                        'start_date' => $shift($task->start_date),
                         'due_date' => $shift($task->due_date),
                         'status' => TaskStatus::Backlog,
                         'created_by' => $userId,

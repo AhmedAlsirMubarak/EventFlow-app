@@ -1,7 +1,8 @@
+import NotificationBell from '@/Components/Dashboard/NotificationBell';
 import Dropdown from '@/Components/Dropdown';
-import { IconBell, IconChevronDown, IconMenu, IconSearch } from '@/Components/Icons';
+import { IconChevronDown, IconMenu, IconSearch } from '@/Components/Icons';
 import UserAvatar from '@/Components/UserAvatar';
-import { Link, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Topbar({ user, title, onToggleSidebar, unreadNotificationsCount = 0 }) {
@@ -48,22 +49,7 @@ export default function Topbar({ user, title, onToggleSidebar, unreadNotificatio
             </form>
 
             <div className="flex items-center gap-2">
-                <Link
-                    href={route('notifications.index')}
-                    aria-label={
-                        unreadNotificationsCount > 0
-                            ? `Notifications (${unreadNotificationsCount} unread)`
-                            : 'Notifications'
-                    }
-                    className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-                >
-                    <IconBell className="h-5 w-5" />
-                    {unreadNotificationsCount > 0 && (
-                        <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
-                            {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
-                        </span>
-                    )}
-                </Link>
+                <NotificationBell unreadCount={unreadNotificationsCount} />
 
                 <Dropdown>
                     <Dropdown.Trigger>

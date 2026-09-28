@@ -2,10 +2,13 @@
 
 use App\Enums\OrganizationCategory;
 use App\Enums\Role as RoleEnum;
+use App\Models\Document;
+use App\Models\DocumentVersion;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -199,4 +202,40 @@ test('event end date must be on or after the start date', function () {
     ]);
 
     $response->assertSessionHasErrors('end_date');
+});
+
+test('the events list tells each row whether the viewer may delete it', function () {
+    $event = Event::factory()->create(['created_by' => $this->admin->id]);
+    $event->users()->attach($this->staff->id);
+
+    $this->actingAs($this->staff)->get(route('events.index'))
+        ->assertInertia(fn ($page) => $page->where('events.0.can_delete', false));
+
+    $this->actingAs($this->admin)->get(route('events.index'))
+        ->assertInertia(fn ($page) => $page->where('events.0.can_delete', true));
+});
+
+test('deleting an event also removes its document files, including already-deleted documents', function () {
+    Storage::fake('local');
+    $event = Event::factory()->create(['created_by' => $this->admin->id]);
+
+    $live = Document::factory()->create(['event_id' => $event->id]);
+    DocumentVersion::factory()->create(['document_id' => $live->id, 'disk_path' => 'documents/1/live.pdf']);
+    $binned = Document::factory()->create(['event_id' => $event->id]);
+    DocumentVersion::factory()->create(['document_id' => $binned->id, 'disk_path' => 'documents/2/binned.pdf']);
+    $binned->delete();
+
+    $other = Document::factory()->create();
+    DocumentVersion::factory()->create(['document_id' => $other->id, 'disk_path' => 'documents/3/other.pdf']);
+
+    foreach (['documents/1/live.pdf', 'documents/2/binned.pdf', 'documents/3/other.pdf'] as $path) {
+        Storage::disk('local')->put($path, 'pdf');
+    }
+
+    $this->actingAs($this->admin)->delete(route('events.destroy', $event))->assertRedirect(route('events.index'));
+
+    Storage::disk('local')->assertMissing('documents/1/live.pdf');
+    Storage::disk('local')->assertMissing('documents/2/binned.pdf');
+    Storage::disk('local')->assertExists('documents/3/other.pdf');
+    expect(Event::find($event->id))->toBeNull();
 });

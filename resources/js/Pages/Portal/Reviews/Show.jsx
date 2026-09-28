@@ -32,7 +32,7 @@ export default function Show({ submission }) {
     }
 
     return (
-        <PortalLayout header="Submission Review">
+        <PortalLayout header="Submission Review" back={{ href: route('portal.reviews.index'), label: 'Back to My Reviews' }}>
             <Head title={submission.title} />
 
             <div className="space-y-6">

@@ -10,6 +10,13 @@ Artisan::command('inspire', function () {
 
 Schedule::command('app:send-due-reminders')->everyFiveMinutes();
 
+// One morning digest per person of tasks due tomorrow / today / newly overdue,
+// plus escalations for tasks 3+ days late. 8 AM in the team's own timezone.
+Schedule::command('app:send-task-deadline-alerts')
+    ->dailyAt('08:00')
+    ->timezone(config('app.business_timezone'))
+    ->onOneServer();
+
 // Prune backups older than the retention window (config/backup.php) before today's
 // backup runs, then take today's backup — same order spatie/laravel-backup's own
 // docs recommend. Both need `php artisan schedule:run` actually firing (a cron

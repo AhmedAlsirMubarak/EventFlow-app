@@ -44,6 +44,7 @@ beforeEach(function () {
         'title' => 'Book the venue',
         'assigned_to' => $this->colleague->id,
         'organization_id' => $this->organization->id,
+        'start_date' => '2026-02-01',
         'due_date' => '2026-02-15',
         'status' => TaskStatus::Completed,
     ]);
@@ -93,6 +94,7 @@ test('duplicating an event carries over the reusable setup and shifts dates', fu
     $task = $copy->tasks()->with('checklistItems')->firstOrFail();
     expect($task->title)->toBe('Book the venue');
     expect($task->status)->toBe(TaskStatus::Backlog);
+    expect($task->start_date->toDateString())->toBe('2027-02-01');
     expect($task->due_date->toDateString())->toBe('2027-02-15');
     expect($task->assigned_to)->toBe($this->colleague->id);
     expect($task->checklistItems->first()->is_done)->toBeFalse();

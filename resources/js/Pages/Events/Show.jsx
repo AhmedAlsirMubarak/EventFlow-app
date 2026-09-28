@@ -162,6 +162,7 @@ export default function Show({
                     <span>{event.name}</span>
                 </div>
             }
+            back={{ href: route('events.index'), label: 'Back to Events' }}
         >
             <Head title={event.name} />
 
