@@ -44,6 +44,8 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'status' => $request->session()->get('status'),
                 'error' => $request->session()->get('error'),
+                // Restore URL for the record just deleted, rendered as an "Undo" button.
+                'undo' => $request->session()->get('undo'),
             ],
         ];
     }

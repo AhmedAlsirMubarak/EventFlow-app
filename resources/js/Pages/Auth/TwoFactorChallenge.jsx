@@ -1,9 +1,7 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
+import AuthButton from '@/Components/Auth/AuthButton';
+import FloatingField from '@/Components/Auth/FloatingField';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function TwoFactorChallenge({ status }) {
     const { data, setData, post, processing, errors } = useForm({ code: '' });
@@ -15,44 +13,34 @@ export default function TwoFactorChallenge({ status }) {
     };
 
     return (
-        <GuestLayout>
+        <GuestLayout
+            title="Two-factor authentication"
+            subtitle="Enter the 6-digit code from your authenticator app."
+            status={status}
+            footer={
+                <Link href={route('login')} className="font-medium text-indigo-600 hover:text-indigo-500">
+                    Back to sign in
+                </Link>
+            }
+        >
             <Head title="Two-Factor Authentication" />
 
-            <div className="mb-4 text-sm text-gray-600">
-                Enter the 6-digit code from your authenticator app.
-            </div>
+            <form onSubmit={submit} className="space-y-4">
+                <FloatingField
+                    id="code"
+                    label="6-digit code"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={data.code}
+                    onChange={(e) => setData('code', e.target.value)}
+                    autoComplete="one-time-code"
+                    autoFocus
+                    error={errors.code}
+                    className="text-lg tracking-[0.5em]"
+                />
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
-
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="code" value="6-Digit Code" />
-
-                    <TextInput
-                        id="code"
-                        type="text"
-                        name="code"
-                        inputMode="numeric"
-                        maxLength={6}
-                        value={data.code}
-                        className="mt-1 block w-full tracking-widest"
-                        autoComplete="one-time-code"
-                        isFocused={true}
-                        onChange={(e) => setData('code', e.target.value)}
-                    />
-
-                    <InputError message={errors.code} className="mt-2" />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Verify
-                    </PrimaryButton>
-                </div>
+                <AuthButton disabled={processing}>Verify</AuthButton>
             </form>
         </GuestLayout>
     );

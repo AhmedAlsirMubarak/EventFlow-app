@@ -7,6 +7,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import SearchableSelect from '@/Components/SearchableSelect';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
@@ -247,7 +248,6 @@ export default function AbstractsTab({
 
     function openCommitteeModal() {
         committeeForm.reset();
-        committeeForm.setData('user_id', addableUsers[0]?.id ?? '');
         setCommitteeModalOpen(true);
     }
 
@@ -537,6 +537,7 @@ export default function AbstractsTab({
                         columns={committeeColumns}
                         rows={committeeMembers}
                         emptyMessage="No committee members assigned yet."
+                        emptyAction={{ label: 'Add a committee member', onClick: openCommitteeModal }}
                     />
                 </Card>
             )}
@@ -560,6 +561,7 @@ export default function AbstractsTab({
                             columns={trackColumns}
                             rows={abstractCall.tracks}
                             emptyMessage="No tracks yet — submitters will see a single general category."
+                            emptyAction={{ label: 'Add a track', onClick: openCreateTrack }}
                         />
                     </Card>
                 ) : (
@@ -692,19 +694,18 @@ export default function AbstractsTab({
 
                         <div>
                             <InputLabel htmlFor="committee_user_id" value="User" />
-                            <SelectInput
+                            <SearchableSelect
                                 id="committee_user_id"
-                                className="mt-1 block w-full"
+                                className="mt-1"
                                 value={committeeForm.data.user_id}
-                                onChange={(e) => committeeForm.setData('user_id', e.target.value)}
-                            >
-                                {addableUsers.map((user) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.name}
-                                        {user.user_type === 'external' ? ' (External)' : ''}
-                                    </option>
-                                ))}
-                            </SelectInput>
+                                onChange={(value) => committeeForm.setData('user_id', value)}
+                                options={addableUsers.map((user) => ({
+                                    value: user.id,
+                                    label: user.name,
+                                    hint: user.user_type === 'external' ? 'External' : undefined,
+                                }))}
+                                placeholder="Search people…"
+                            />
                         </div>
 
                         <div>

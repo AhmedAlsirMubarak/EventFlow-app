@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ReminderStatus;
+use App\Models\Concerns\Restorable;
 use Database\Factories\ReminderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Reminder extends Model
 {
     /** @use HasFactory<ReminderFactory> */
-    use HasFactory;
+    use HasFactory, Restorable;
 
     /**
      * @return BelongsTo<Event, $this>

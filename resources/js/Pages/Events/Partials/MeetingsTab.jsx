@@ -8,6 +8,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import SearchableSelect from '@/Components/SearchableSelect';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
@@ -251,6 +252,7 @@ export default function MeetingsTab({
                     columns={columns}
                     rows={meetings}
                     emptyMessage="No meetings recorded yet."
+                    emptyAction={{ label: 'Record the first meeting', onClick: openCreateModal }}
                 />
             </Card>
 
@@ -469,17 +471,12 @@ export default function MeetingsTab({
                                     onChange={(e) => actionItemForm.setData('title', e.target.value)}
                                 />
                                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                                    <SelectInput
+                                    <SearchableSelect
                                         value={actionItemForm.data.assigned_to}
-                                        onChange={(e) => actionItemForm.setData('assigned_to', e.target.value)}
-                                    >
-                                        <option value="">Unassigned</option>
-                                        {availableUsers.map((user) => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.name}
-                                            </option>
-                                        ))}
-                                    </SelectInput>
+                                        onChange={(value) => actionItemForm.setData('assigned_to', value)}
+                                        options={availableUsers.map((user) => ({ value: user.id, label: user.name }))}
+                                        emptyLabel="Unassigned"
+                                    />
                                     <SelectInput
                                         value={actionItemForm.data.priority}
                                         onChange={(e) => actionItemForm.setData('priority', e.target.value)}

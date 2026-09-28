@@ -6,6 +6,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import SearchableSelect from '@/Components/SearchableSelect';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
@@ -227,6 +228,7 @@ export default function RemindersTab({
                     columns={columns}
                     rows={reminders}
                     emptyMessage="No reminders set yet."
+                    emptyAction={{ label: 'Set the first reminder', onClick: openCreateModal }}
                 />
             </Card>
 
@@ -310,19 +312,14 @@ export default function RemindersTab({
 
                     <div>
                         <InputLabel htmlFor="assigned_to" value="Assigned To" />
-                        <SelectInput
+                        <SearchableSelect
                             id="assigned_to"
-                            className="mt-1 block w-full"
+                            className="mt-1"
                             value={form.data.assigned_to}
-                            onChange={(e) => form.setData('assigned_to', e.target.value)}
-                        >
-                            <option value="">Unassigned</option>
-                            {availableUsers.map((user) => (
-                                <option key={user.id} value={user.id}>
-                                    {user.name}
-                                </option>
-                            ))}
-                        </SelectInput>
+                            onChange={(value) => form.setData('assigned_to', value)}
+                            options={availableUsers.map((user) => ({ value: user.id, label: user.name }))}
+                            emptyLabel="Unassigned"
+                        />
                     </div>
 
                     {editingReminder && (

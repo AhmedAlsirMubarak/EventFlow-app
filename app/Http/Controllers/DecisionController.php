@@ -48,6 +48,7 @@ class DecisionController extends Controller
         $eventId = $decision->event_id;
         $decision->delete();
 
-        return to_route('events.show', ['event' => $eventId, 'tab' => 'decisions'])->with('status', 'Decision removed.');
+        return to_route('events.show', ['event' => $eventId, 'tab' => 'decisions'])->with('status', 'Decision removed.')
+            ->with('undo', RestoreController::undoUrl($decision));
     }
 }

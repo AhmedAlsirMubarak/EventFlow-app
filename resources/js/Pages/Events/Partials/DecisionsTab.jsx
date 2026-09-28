@@ -6,6 +6,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import SearchableSelect from '@/Components/SearchableSelect';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
@@ -171,6 +172,7 @@ export default function DecisionsTab({
                     columns={columns}
                     rows={decisions}
                     emptyMessage="No decisions recorded yet."
+                    emptyAction={{ label: 'Record the first decision', onClick: openCreateModal }}
                 />
 
                 {expandedDecision && (
@@ -253,19 +255,14 @@ export default function DecisionsTab({
                         </div>
                         <div>
                             <InputLabel htmlFor="decided_by" value="Decided By" />
-                            <SelectInput
+                            <SearchableSelect
                                 id="decided_by"
-                                className="mt-1 block w-full"
+                                className="mt-1"
                                 value={form.data.decided_by}
-                                onChange={(e) => form.setData('decided_by', e.target.value)}
-                            >
-                                <option value="">Not specified</option>
-                                {availableUsers.map((user) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.name}
-                                    </option>
-                                ))}
-                            </SelectInput>
+                                onChange={(value) => form.setData('decided_by', value)}
+                                options={availableUsers.map((user) => ({ value: user.id, label: user.name }))}
+                                emptyLabel="Not specified"
+                            />
                         </div>
                     </div>
 

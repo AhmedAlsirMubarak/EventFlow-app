@@ -2,6 +2,7 @@ import {
     IconActivity,
     IconBuildingOffice,
     IconCalendar,
+    IconCheckCircle,
     IconDashboard,
     IconUsers,
 } from '@/Components/Icons';
@@ -17,6 +18,12 @@ export const navigation = [
         name: 'Dashboard',
         routeName: 'dashboard',
         icon: IconDashboard,
+        section: 'Workspace',
+    },
+    {
+        name: 'My Work',
+        routeName: 'my-work.index',
+        icon: IconCheckCircle,
         section: 'Workspace',
     },
     {

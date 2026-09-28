@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Models\Concerns\HasComments;
+use App\Models\Concerns\Restorable;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
-    use HasComments, HasFactory;
+    use HasComments, HasFactory, Restorable;
 
     /**
      * @return BelongsTo<Event, $this>

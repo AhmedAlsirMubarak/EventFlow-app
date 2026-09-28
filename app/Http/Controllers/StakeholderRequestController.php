@@ -64,6 +64,7 @@ class StakeholderRequestController extends Controller
         $eventId = $stakeholderRequest->event_id;
         $stakeholderRequest->delete();
 
-        return to_route('events.show', ['event' => $eventId, 'tab' => 'requests'])->with('status', 'Request removed.');
+        return to_route('events.show', ['event' => $eventId, 'tab' => 'requests'])->with('status', 'Request removed.')
+            ->with('undo', RestoreController::undoUrl($stakeholderRequest));
     }
 }

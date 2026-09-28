@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\RequestStatus;
 use App\Enums\TaskPriority;
 use App\Models\Concerns\HasComments;
+use App\Models\Concerns\Restorable;
 use Database\Factories\StakeholderRequestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class StakeholderRequest extends Model
 {
     /** @use HasFactory<StakeholderRequestFactory> */
-    use HasComments, HasFactory;
+    use HasComments, HasFactory, Restorable;
 
     /**
      * @return BelongsTo<Event, $this>

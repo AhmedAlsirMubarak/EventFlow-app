@@ -100,7 +100,8 @@ class MeetingController extends Controller
         $eventId = $meeting->event_id;
         $meeting->delete();
 
-        return to_route('events.show', ['event' => $eventId, 'tab' => 'meetings'])->with('status', 'Meeting removed.');
+        return to_route('events.show', ['event' => $eventId, 'tab' => 'meetings'])->with('status', 'Meeting removed.')
+            ->with('undo', RestoreController::undoUrl($meeting));
     }
 
     public function storeActionItem(StoreActionItemRequest $request, Meeting $meeting): RedirectResponse

@@ -83,6 +83,7 @@ class PortalController extends Controller
     {
         $contact = $request->user()->contact;
         $document = $version->document;
+        abort_unless($document, 404); // the document has been deleted
         $share = $document->shareFor($contact);
 
         abort_unless($share, 403);

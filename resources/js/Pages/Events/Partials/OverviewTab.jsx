@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SelectInput from '@/Components/SelectInput';
 import { Link } from '@inertiajs/react';
 import { useState } from 'react';
+import DuplicateEventModal from './DuplicateEventModal';
 
 const statusColors = {
     Planning: 'amber',
@@ -14,6 +15,7 @@ const statusColors = {
 
 export default function OverviewTab({ event, availableOrganizations }) {
     const [reportOrganizationId, setReportOrganizationId] = useState('');
+    const [duplicateOpen, setDuplicateOpen] = useState(false);
 
     const reportUrl = route('events.communication-report', {
         event: event.id,
@@ -25,12 +27,18 @@ export default function OverviewTab({ event, availableOrganizations }) {
             <Card
                 title="Event Details"
                 actions={
-                    <Link
-                        href={route('events.edit', event.id)}
-                        className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                    >
-                        Edit
-                    </Link>
+                    <div className="flex items-center gap-4 text-sm font-medium">
+                        <button
+                            type="button"
+                            onClick={() => setDuplicateOpen(true)}
+                            className="text-slate-500 hover:text-slate-700"
+                        >
+                            Duplicate
+                        </button>
+                        <Link href={route('events.edit', event.id)} className="text-indigo-600 hover:text-indigo-500">
+                            Edit
+                        </Link>
+                    </div>
                 }
             >
                 <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
@@ -98,6 +106,8 @@ export default function OverviewTab({ event, availableOrganizations }) {
                     </a>
                 </div>
             </Card>
+
+            <DuplicateEventModal event={event} show={duplicateOpen} onClose={() => setDuplicateOpen(false)} />
         </div>
     );
 }

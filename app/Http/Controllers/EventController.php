@@ -29,6 +29,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -135,6 +136,9 @@ class EventController extends Controller
                 ->with('booths.organization:id,name,logo_path')
                 ->orderBy('name')
                 ->get(),
+            // Only loaded when the "Recently deleted" tab asks for it (router.reload({ only })),
+            // not on every event page view.
+            'recentlyDeleted' => Inertia::optional(fn () => $this->recentlyDeleted($event)),
             'committeeRoles' => array_column(CommitteeRole::cases(), 'value'),
             'reviewRecommendations' => array_column(ReviewRecommendation::cases(), 'value'),
             'availableUsers' => User::query()->where('user_type', UserType::Internal)->orderBy('name')->get(['id', 'name']),
@@ -152,6 +156,34 @@ class EventController extends Controller
             'reminderStatuses' => array_column(ReminderStatus::cases(), 'value'),
             'lessonCategories' => array_column(LessonCategory::cases(), 'value'),
         ]);
+    }
+
+    /**
+     * Everything deleted from this event that can still be restored, newest first.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function recentlyDeleted(Event $event): Collection
+    {
+        $user = request()->user();
+
+        return collect(RestoreController::TYPES)
+            ->flatMap(fn (array $entry, string $type) => $entry[0]::onlyTrashed()
+                ->where('event_id', $event->id)
+                ->latest('deleted_at')
+                ->limit(50)
+                ->get()
+                ->map(fn ($model) => [
+                    'key' => "{$type}-{$model->id}",
+                    'type' => $entry[1],
+                    'title' => $model->title,
+                    'deleted_at' => $model->deleted_at,
+                    'purges_at' => $model->deleted_at->copy()->addDays($model::RETENTION_DAYS),
+                    'restore_url' => route('trash.restore', ['type' => $type, 'id' => $model->id]),
+                    'can_restore' => $user->can('delete', $model),
+                ]))
+            ->sortByDesc('deleted_at')
+            ->values();
     }
 
     public function edit(Event $event): Response

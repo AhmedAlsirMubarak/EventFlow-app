@@ -59,6 +59,7 @@ class TaskController extends Controller
         $eventId = $task->event_id;
         $task->delete();
 
-        return to_route('events.show', ['event' => $eventId, 'tab' => 'tasks'])->with('status', 'Task removed.');
+        return to_route('events.show', ['event' => $eventId, 'tab' => 'tasks'])->with('status', 'Task removed.')
+            ->with('undo', RestoreController::undoUrl($task));
     }
 }

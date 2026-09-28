@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import SearchableSelect from '@/Components/SearchableSelect';
 import SelectInput from '@/Components/SelectInput';
 import ConfirmDialog from '@/Components/UI/ConfirmDialog';
 import UserAvatar from '@/Components/UserAvatar';
@@ -31,7 +32,6 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
 
     function openModal() {
         form.reset();
-        form.setData('user_id', addableUsers[0]?.id ?? '');
         setModalOpen(true);
     }
 
@@ -114,6 +114,7 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
                     columns={columns}
                     rows={team}
                     emptyMessage="No team members assigned yet."
+                    emptyAction={{ label: 'Add a team member', onClick: openModal }}
                 />
             </Card>
 
@@ -139,20 +140,14 @@ export default function TeamTab({ event, team, availableUsers, roles }) {
 
                         <div>
                             <InputLabel htmlFor="user_id" value="User" />
-                            <SelectInput
+                            <SearchableSelect
                                 id="user_id"
-                                className="mt-1 block w-full"
+                                className="mt-1"
                                 value={form.data.user_id}
-                                onChange={(e) =>
-                                    form.setData('user_id', e.target.value)
-                                }
-                            >
-                                {addableUsers.map((user) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.name}
-                                    </option>
-                                ))}
-                            </SelectInput>
+                                onChange={(value) => form.setData('user_id', value)}
+                                options={addableUsers.map((user) => ({ value: user.id, label: user.name }))}
+                                placeholder="Search people…"
+                            />
                         </div>
 
                         <div>

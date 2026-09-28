@@ -116,6 +116,11 @@ export default function OrganizationsTab({
                     columns={columns}
                     rows={organizations}
                     emptyMessage="No organizations linked to this event yet."
+                    emptyAction={
+                        addableOrganizations.length > 0
+                            ? { label: 'Link an organization', onClick: openModal }
+                            : undefined
+                    }
                 />
             </Card>
 

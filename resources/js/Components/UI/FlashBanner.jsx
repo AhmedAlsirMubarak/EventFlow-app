@@ -1,5 +1,5 @@
 import { IconCheckCircle, IconExclamationTriangle } from '@/Components/Icons';
-import { usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 /**
@@ -13,6 +13,13 @@ export default function FlashBanner() {
 
     const message = flash?.error ?? flash?.status;
     const isError = Boolean(flash?.error);
+    const undoUrl = !isError ? flash?.undo : null;
+    const [undoing, setUndoing] = useState(false);
+
+    function undo() {
+        setUndoing(true);
+        router.post(undoUrl, {}, { preserveScroll: true, onFinish: () => setUndoing(false) });
+    }
 
     // A fresh flash message (new status/error text) should always show, even if the
     // previous one was dismissed.
@@ -35,6 +42,16 @@ export default function FlashBanner() {
         >
             <Icon className="mt-0.5 h-5 w-5 shrink-0" />
             <span className="flex-1">{message}</span>
+            {undoUrl && (
+                <button
+                    type="button"
+                    onClick={undo}
+                    disabled={undoing}
+                    className="shrink-0 rounded-md bg-white/70 px-2.5 py-0.5 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-600/20 transition hover:bg-white disabled:opacity-50"
+                >
+                    Undo
+                </button>
+            )}
             <button
                 type="button"
                 onClick={() => setDismissed(true)}

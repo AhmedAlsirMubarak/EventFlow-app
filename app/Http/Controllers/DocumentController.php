@@ -10,7 +10,6 @@ use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
@@ -49,13 +48,11 @@ class DocumentController extends Controller
 
         $eventId = $document->event_id;
 
-        foreach ($document->versions as $version) {
-            Storage::disk('local')->delete($version->disk_path);
-        }
-
+        // Soft delete — files are removed only when the document is pruned (Document::pruning()).
         $document->delete();
 
-        return to_route('events.show', ['event' => $eventId, 'tab' => 'documents'])->with('status', 'Document removed.');
+        return to_route('events.show', ['event' => $eventId, 'tab' => 'documents'])->with('status', 'Document removed.')
+            ->with('undo', RestoreController::undoUrl($document));
     }
 
     /**

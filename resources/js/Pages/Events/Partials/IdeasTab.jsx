@@ -151,6 +151,7 @@ export default function IdeasTab({ event, ideas, statuses }) {
                     columns={columns}
                     rows={ideas}
                     emptyMessage="No ideas captured yet."
+                    emptyAction={{ label: 'Capture the first idea', onClick: openCreateModal }}
                 />
             </Card>
 

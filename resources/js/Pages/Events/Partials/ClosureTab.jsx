@@ -192,6 +192,7 @@ export default function ClosureTab({ event, lessonsLearned, lessonCategories }) 
                     columns={columns}
                     rows={lessonsLearned}
                     emptyMessage="No lessons recorded yet."
+                    emptyAction={{ label: 'Add the first lesson', onClick: openCreateLesson }}
                 />
             </Card>
 

@@ -94,6 +94,8 @@ class Contact extends Model
             ->where(fn ($query) => $query
                 ->where('contact_id', $this->id)
                 ->orWhere('organization_id', $this->organization_id))
+            // Skip shares whose document has been deleted (soft-deleted, restorable).
+            ->whereHas('document')
             ->with(['document.currentVersion', 'document.event'])
             ->get();
     }

@@ -1,6 +1,10 @@
 import { IconInbox } from '@/Components/Icons';
 
-export default function DataTable({ columns, rows, emptyMessage = 'No records found.' }) {
+/**
+ * `emptyAction` ({ label, onClick }) turns the empty state into a next step
+ * ("Create the first task") instead of a dead end.
+ */
+export default function DataTable({ columns, rows, emptyMessage = 'No records found.', emptyAction }) {
     return (
         <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
@@ -25,6 +29,16 @@ export default function DataTable({ columns, rows, emptyMessage = 'No records fo
                                         <IconInbox className="h-5 w-5" />
                                     </span>
                                     <p className="text-sm text-slate-400">{emptyMessage}</p>
+                                    {emptyAction && (
+                                        <button
+                                            type="button"
+                                            onClick={emptyAction.onClick}
+                                            className="mt-1 inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-100"
+                                        >
+                                            <span aria-hidden="true">+</span>
+                                            {emptyAction.label}
+                                        </button>
+                                    )}
                                 </div>
                             </td>
                         </tr>

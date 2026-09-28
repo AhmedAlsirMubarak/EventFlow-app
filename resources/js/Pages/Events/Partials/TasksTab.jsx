@@ -8,6 +8,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import SearchableSelect from '@/Components/SearchableSelect';
 import SelectInput from '@/Components/SelectInput';
 import TextareaInput from '@/Components/TextareaInput';
 import TextInput from '@/Components/TextInput';
@@ -232,6 +233,7 @@ export default function TasksTab({
                     columns={columns}
                     rows={tasks}
                     emptyMessage="No tasks created yet."
+                    emptyAction={{ label: 'Create the first task', onClick: openCreateModal }}
                 />
             </Card>
 
@@ -283,21 +285,14 @@ export default function TasksTab({
                         </div>
                         <div>
                             <InputLabel htmlFor="assigned_to" value="Assigned To" />
-                            <SelectInput
+                            <SearchableSelect
                                 id="assigned_to"
-                                className="mt-1 block w-full"
+                                className="mt-1"
                                 value={taskForm.data.assigned_to}
-                                onChange={(e) =>
-                                    taskForm.setData('assigned_to', e.target.value)
-                                }
-                            >
-                                <option value="">Unassigned</option>
-                                {availableUsers.map((user) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.name}
-                                    </option>
-                                ))}
-                            </SelectInput>
+                                onChange={(value) => taskForm.setData('assigned_to', value)}
+                                options={availableUsers.map((user) => ({ value: user.id, label: user.name }))}
+                                emptyLabel="Unassigned"
+                            />
                         </div>
                     </div>
 

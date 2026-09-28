@@ -121,7 +121,10 @@ test('a non-member cannot download a document version', function () {
     $this->actingAs($outsider)->get(route('document-versions.download', $version))->assertForbidden();
 });
 
-test('deleting a document removes its files from disk', function () {
+// Deleting only moves the document to "Recently deleted"; its files must survive
+// so a restore works. They're removed when the document is pruned after 30 days
+// (covered in RestoreDeletedRecordsTest).
+test('deleting a document hides it but keeps its files for a restore', function () {
     $document = Document::factory()->create([
         'event_id' => $this->event->id,
         'created_by' => $this->member->id,
@@ -139,7 +142,8 @@ test('deleting a document removes its files from disk', function () {
     $this->actingAs($this->member)->delete(route('documents.destroy', $document))->assertRedirect();
 
     expect(Document::find($document->id))->toBeNull();
-    Storage::disk('local')->assertMissing($version->disk_path);
+    $this->assertSoftDeleted($document);
+    Storage::disk('local')->assertExists($version->disk_path);
 });
 
 test('the local disk does not expose a public url for uploaded documents', function () {

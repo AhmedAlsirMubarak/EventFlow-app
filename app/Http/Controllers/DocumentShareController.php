@@ -36,6 +36,7 @@ class DocumentShareController extends Controller
 
     public function destroy(DocumentShare $documentShare): RedirectResponse
     {
+        abort_unless($documentShare->document, 404); // the document has been deleted
         Gate::authorize('share', $documentShare->document);
 
         $eventId = $documentShare->document->event_id;

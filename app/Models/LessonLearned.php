@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LessonCategory;
+use App\Models\Concerns\Restorable;
 use Database\Factories\LessonLearnedFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class LessonLearned extends Model
 {
     /** @use HasFactory<LessonLearnedFactory> */
-    use HasFactory;
+    use HasFactory, Restorable;
 
     protected $table = 'lessons_learned';
 

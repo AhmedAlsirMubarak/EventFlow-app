@@ -55,7 +55,7 @@ test('dashboard stats are cached per filter combination and expire on their own'
     $stillCached->assertInertia(fn (Assert $page) => $page->where('stats.active_events', 0));
 
     // A different filter combination is a different cache key, so it computes fresh.
-    $otherEvent = Event::factory()->create();
+    $otherEvent = Event::factory()->create(['status' => EventStatus::Planning]);
     $differentFilters = $this->actingAs($admin)->get('/dashboard?event_id='.$otherEvent->id);
     $differentFilters->assertInertia(fn (Assert $page) => $page->where('stats.active_events', 1));
 

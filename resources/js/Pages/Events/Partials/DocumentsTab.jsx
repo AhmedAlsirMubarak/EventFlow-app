@@ -335,6 +335,7 @@ export default function DocumentsTab({
                     columns={columns}
                     rows={documents}
                     emptyMessage="No documents uploaded yet."
+                    emptyAction={{ label: 'Upload the first document', onClick: openCreateModal }}
                 />
             </Card>
 

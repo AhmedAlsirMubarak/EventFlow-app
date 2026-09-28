@@ -44,6 +44,7 @@ class IdeaController extends Controller
         $eventId = $idea->event_id;
         $idea->delete();
 
-        return to_route('events.show', ['event' => $eventId, 'tab' => 'ideas'])->with('status', 'Idea removed.');
+        return to_route('events.show', ['event' => $eventId, 'tab' => 'ideas'])->with('status', 'Idea removed.')
+            ->with('undo', RestoreController::undoUrl($idea));
     }
 }

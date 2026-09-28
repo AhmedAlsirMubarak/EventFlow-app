@@ -4,7 +4,6 @@ import { IconPencil } from '@/Components/Icons';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
-import OrganizationLogo from '@/Components/OrganizationLogo';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import SelectInput from '@/Components/SelectInput';
@@ -20,6 +19,100 @@ import { Rnd } from 'react-rnd';
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 const DEFAULT_BOOTH = { x: 40, y: 40, width: 12, height: 10 };
+
+// A visible, finger-sized corner grip (the default handles are invisible 10px
+// strips, fine for a mouse but impossible to hit on a tablet). Hidden until
+// hover on desktop; always shown on touch devices, which have no hover. Booths
+// also get `touch-none` so the page doesn't scroll under a finger dragging one.
+const RESIZE_GRIP_STYLE = { width: 22, height: 22, right: -6, bottom: -6 };
+
+function ResizeGrip() {
+    return (
+        <span className="flex h-full w-full items-center justify-center opacity-0 transition group-hover:opacity-100 [@media(hover:none)]:opacity-100">
+            <span className="h-3 w-3 rounded-sm border-2 border-indigo-500 bg-white shadow" />
+        </span>
+    );
+}
+
+function initials(name) {
+    return name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((word) => word[0].toUpperCase())
+        .join('');
+}
+
+/**
+ * One booth on the floor plan. The logo scales to fill the booth (rather than
+ * sitting at a fixed tiny size) so wide wordmarks stay legible, and details
+ * drop away progressively as the booth gets too small to hold them.
+ */
+function BoothCard({ booth, widthPx, heightPx, onEdit }) {
+    const assigned = Boolean(booth.organization);
+    const showName = heightPx >= 64 && widthPx >= 56;
+    const showLogo = heightPx >= 36 && widthPx >= 36;
+
+    return (
+        <div
+            className={`relative flex h-full w-full flex-col overflow-hidden rounded-lg border-2 transition group-hover:shadow-lg group-hover:ring-2 group-hover:ring-indigo-400/60 ${
+                assigned
+                    ? 'border-emerald-500 bg-white shadow-md'
+                    : 'border-dashed border-slate-400 bg-white/75 backdrop-blur-[1px]'
+            }`}
+            title={assigned ? `${booth.booth_number} · ${booth.organization.name}` : `${booth.booth_number} · Available`}
+        >
+            <span
+                className={`absolute left-1 top-1 z-10 rounded px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+                    assigned ? 'bg-emerald-600 text-white' : 'bg-slate-700/80 text-white'
+                }`}
+            >
+                {booth.booth_number}
+            </span>
+
+            <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={onEdit}
+                title="Edit booth"
+                aria-label={`Edit booth ${booth.booth_number}`}
+                className="absolute right-1 top-1 z-10 rounded bg-white/90 p-0.5 text-slate-500 opacity-0 shadow-sm transition hover:text-indigo-600 focus:opacity-100 group-hover:opacity-100 [@media(hover:none)]:p-1.5 [@media(hover:none)]:opacity-100"
+            >
+                <IconPencil className="h-3 w-3" />
+            </button>
+
+            {assigned ? (
+                <>
+                    <div className="flex min-h-0 flex-1 items-center justify-center px-2 pb-1 pt-5">
+                        {showLogo &&
+                            (booth.organization.logo_url ? (
+                                <img
+                                    src={booth.organization.logo_url}
+                                    alt={booth.organization.name}
+                                    draggable={false}
+                                    className="max-h-full max-w-full select-none object-contain"
+                                />
+                            ) : (
+                                <span className="flex aspect-square h-full max-h-12 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
+                                    {initials(booth.organization.name)}
+                                </span>
+                            ))}
+                    </div>
+                    {showName && (
+                        <div className="truncate border-t border-emerald-100 bg-emerald-50 px-1.5 py-1 text-center text-[11px] font-semibold text-emerald-900">
+                            {booth.organization.name}
+                        </div>
+                    )}
+                </>
+            ) : (
+                <div className="flex flex-1 items-center justify-center pt-4 text-[11px] font-medium uppercase tracking-wide text-slate-400">
+                    Available
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function FloorPlanTab({ event, floorPlans, organizations }) {
     const [activeFloorPlanId, setActiveFloorPlanId] = useState(floorPlans[0]?.id ?? null);
@@ -261,62 +354,76 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
             const assigned = Boolean(booth.organization_id);
             const logoImage = booth.organization?.logo_url ? logoImages[booth.organization.logo_url] : null;
 
-            ctx.fillStyle = assigned ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.85)';
-            ctx.fillRect(x, y, w, h);
-
-            ctx.lineWidth = Math.max(1, canvas.width * 0.0015);
-            ctx.strokeStyle = assigned ? '#10b981' : '#94a3b8';
-            ctx.setLineDash(assigned ? [] : [6, 4]);
-            ctx.strokeRect(x, y, w, h);
-            ctx.setLineDash([]);
+            // Mirrors BoothCard: white card, booth-number pill, logo filling the
+            // body, organization name on a tinted strip along the bottom.
+            const radius = Math.min(w, h) * 0.08;
+            const unit = Math.min(w, h);
 
             ctx.save();
             ctx.beginPath();
-            ctx.rect(x, y, w, h);
+            ctx.roundRect(x, y, w, h, radius);
+            ctx.fillStyle = assigned ? '#ffffff' : 'rgba(255, 255, 255, 0.8)';
+            ctx.fill();
+            ctx.lineWidth = Math.max(2, canvas.width * 0.002);
+            ctx.strokeStyle = assigned ? '#10b981' : '#94a3b8';
+            ctx.setLineDash(assigned ? [] : [8, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
             ctx.clip();
 
-            const numberFontSize = Math.max(10, Math.min(w, h) * 0.16);
-            ctx.fillStyle = '#0f172a';
+            const pillFont = Math.max(10, unit * 0.13);
+            ctx.font = `bold ${pillFont}px sans-serif`;
+            const pillPad = pillFont * 0.35;
+            const pillW = ctx.measureText(booth.booth_number).width + pillPad * 2;
+            ctx.fillStyle = assigned ? '#059669' : 'rgba(51, 65, 85, 0.85)';
+            ctx.beginPath();
+            ctx.roundRect(x + pillPad, y + pillPad, pillW, pillFont + pillPad, pillFont * 0.2);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
             ctx.textBaseline = 'top';
             ctx.textAlign = 'left';
-            ctx.font = `bold ${numberFontSize}px sans-serif`;
-            ctx.fillText(booth.booth_number, x + 4, y + 4);
+            ctx.fillText(booth.booth_number, x + pillPad * 2, y + pillPad * 1.5);
+
+            const bodyTop = y + pillFont + pillPad * 3;
 
             if (booth.organization) {
-                const nameFontSize = numberFontSize * 0.75;
-                const nameY = y + h - nameFontSize - 4;
+                const nameFont = Math.max(9, unit * 0.11);
+                const stripH = nameFont + nameFont * 0.8;
+                const stripY = y + h - stripH;
 
-                if (logoImage) {
-                    const padding = Math.min(w, h) * 0.1;
-                    const logoTop = y + numberFontSize + padding + 4;
-                    const availableW = w - padding * 2;
-                    const availableH = Math.max(0, nameY - logoTop - 4);
-                    const scale = Math.min(
-                        availableW / logoImage.naturalWidth,
-                        availableH / logoImage.naturalHeight,
-                        1,
-                    );
-
-                    if (scale > 0) {
-                        const drawW = logoImage.naturalWidth * scale;
-                        const drawH = logoImage.naturalHeight * scale;
-                        ctx.drawImage(
-                            logoImage,
-                            x + (w - drawW) / 2,
-                            logoTop + (availableH - drawH) / 2,
-                            drawW,
-                            drawH,
-                        );
-                    }
-                }
-
-                ctx.font = `${nameFontSize}px sans-serif`;
+                ctx.fillStyle = '#ecfdf5';
+                ctx.fillRect(x, stripY, w, stripH);
+                ctx.fillStyle = '#064e3b';
+                ctx.font = `600 ${nameFont}px sans-serif`;
                 ctx.textAlign = 'center';
-                ctx.fillText(booth.organization.name, x + w / 2, nameY);
-                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(booth.organization.name, x + w / 2, stripY + stripH / 2, w - nameFont);
+
+                const pad = unit * 0.08;
+                const availableW = w - pad * 2;
+                const availableH = Math.max(0, stripY - bodyTop - pad);
+
+                if (logoImage && availableH > 0) {
+                    const scale = Math.min(availableW / logoImage.naturalWidth, availableH / logoImage.naturalHeight);
+                    const drawW = logoImage.naturalWidth * scale;
+                    const drawH = logoImage.naturalHeight * scale;
+                    ctx.drawImage(logoImage, x + (w - drawW) / 2, bodyTop + (availableH - drawH) / 2, drawW, drawH);
+                } else if (availableH > 0) {
+                    const r = Math.min(availableW, availableH, unit * 0.5) / 2;
+                    ctx.fillStyle = '#d1fae5';
+                    ctx.beginPath();
+                    ctx.arc(x + w / 2, bodyTop + availableH / 2, r, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#047857';
+                    ctx.font = `bold ${r * 0.8}px sans-serif`;
+                    ctx.fillText(initials(booth.organization.name), x + w / 2, bodyTop + availableH / 2);
+                }
             } else {
-                ctx.font = `${numberFontSize * 0.85}px sans-serif`;
-                ctx.fillText('Available', x + 4, y + numberFontSize + 6);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = `600 ${Math.max(9, unit * 0.11)}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('AVAILABLE', x + w / 2, (bodyTop + y + h) / 2);
             }
 
             ctx.restore();
@@ -508,36 +615,16 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
                                                 height: toPercent(ref.offsetHeight, containerSize.height),
                                             })
                                         }
-                                        className={`group flex cursor-move flex-col overflow-hidden rounded-md border-2 text-xs shadow-sm ${
-                                            booth.organization_id
-                                                ? 'border-emerald-500 bg-emerald-50'
-                                                : 'border-dashed border-slate-400 bg-white/90'
-                                        }`}
+                                        className="group cursor-move touch-none"
+                                        resizeHandleComponent={{ bottomRight: <ResizeGrip /> }}
+                                        resizeHandleStyles={{ bottomRight: RESIZE_GRIP_STYLE }}
                                     >
-                                        <div className="flex items-center justify-between gap-1 truncate bg-slate-900/80 px-1.5 py-0.5 font-semibold text-white">
-                                            <span className="truncate">{booth.booth_number}</span>
-                                            <button
-                                                type="button"
-                                                onMouseDown={(e) => e.stopPropagation()}
-                                                onClick={() => openEditBooth(booth)}
-                                                title="Edit booth"
-                                                className="shrink-0 rounded p-0.5 opacity-70 hover:bg-white/20 hover:opacity-100"
-                                            >
-                                                <IconPencil className="h-3 w-3" />
-                                            </button>
-                                        </div>
-                                        {booth.organization ? (
-                                            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden p-1">
-                                                <OrganizationLogo organization={booth.organization} size="sm" />
-                                                <span className="w-full truncate text-center text-[9px] text-slate-600">
-                                                    {booth.organization.name}
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <div className="flex min-h-0 flex-1 items-center justify-center text-slate-400">
-                                                Available
-                                            </div>
-                                        )}
+                                        <BoothCard
+                                            booth={booth}
+                                            widthPx={(booth.width / 100) * containerSize.width}
+                                            heightPx={(booth.height / 100) * containerSize.height}
+                                            onEdit={() => openEditBooth(booth)}
+                                        />
                                     </Rnd>
                                 ))}
                         </div>

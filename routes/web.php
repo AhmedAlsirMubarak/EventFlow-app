@@ -23,10 +23,12 @@ use App\Http\Controllers\DocumentShareController;
 use App\Http\Controllers\DocumentVersionController;
 use App\Http\Controllers\EventClosureController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventDuplicationController;
 use App\Http\Controllers\FloorPlanController;
 use App\Http\Controllers\IdeaController;
 use App\Http\Controllers\LessonLearnedController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MyWorkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\Portal\AbstractReviewController as PortalAbstractReviewController;
@@ -35,6 +37,7 @@ use App\Http\Controllers\Portal\StakeholderRequestController as PortalStakeholde
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\CallForAbstractsController;
 use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\RestoreController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StakeholderRequestController;
 use App\Http\Controllers\TaskChecklistItemController;
@@ -67,6 +70,10 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/search', [SearchController::class, 'index'])->name('search.index');
     Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
+    Route::get('/my-work', [MyWorkController::class, 'index'])->name('my-work.index');
+    Route::post('/trash/{type}/{id}/restore', [RestoreController::class, 'store'])
+        ->whereNumber('id')
+        ->name('trash.restore');
 
     Route::get('/settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])->name('two-factor.show');
     Route::post('/settings/two-factor', [TwoFactorAuthenticationController::class, 'enable'])->name('two-factor.enable');
@@ -93,6 +100,7 @@ Route::middleware(['auth', 'verified', 'internal'])->group(function () {
     Route::post('contacts/{contact}/portal-access/resend', [ContactController::class, 'resendPortalAccess'])->name('contacts.portal-access.resend');
 
     Route::resource('events', EventController::class);
+    Route::post('events/{event}/duplicate', [EventDuplicationController::class, 'store'])->name('events.duplicate');
     Route::get('events/{event}/communication-report', [CommunicationReportController::class, 'show'])->name('events.communication-report');
     Route::post('events/{event}/close', [EventClosureController::class, 'close'])->name('events.close');
     Route::post('events/{event}/reopen', [EventClosureController::class, 'reopen'])->name('events.reopen');

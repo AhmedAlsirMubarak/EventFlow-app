@@ -1,8 +1,7 @@
 import EventLogo from '@/Components/EventLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
-import { Head, usePoll } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router, usePage, usePoll } from '@inertiajs/react';
 import AbstractsTab from './Partials/AbstractsTab';
 import ActivityTab from './Partials/ActivityTab';
 import ClosureTab from './Partials/ClosureTab';
@@ -14,37 +13,71 @@ import IdeasTab from './Partials/IdeasTab';
 import MeetingsTab from './Partials/MeetingsTab';
 import OrganizationsTab from './Partials/OrganizationsTab';
 import OverviewTab from './Partials/OverviewTab';
+import RecentlyDeletedTab from './Partials/RecentlyDeletedTab';
 import RemindersTab from './Partials/RemindersTab';
 import RequestsTab from './Partials/RequestsTab';
 import TasksTab from './Partials/TasksTab';
 import TeamTab from './Partials/TeamTab';
 
-const tabs = [
-    { key: 'overview', label: 'Overview' },
-    { key: 'deadlines', label: 'Deadlines' },
-    { key: 'team', label: 'Team' },
-    { key: 'organizations', label: 'Organizations' },
-    { key: 'ideas', label: 'Ideas' },
-    { key: 'tasks', label: 'Tasks' },
-    { key: 'meetings', label: 'Meetings' },
-    { key: 'decisions', label: 'Decisions' },
-    { key: 'requests', label: 'Requests' },
-    { key: 'reminders', label: 'Reminders' },
-    { key: 'documents', label: 'Documents' },
-    { key: 'floor-plan', label: 'Floor Plan' },
-    { key: 'abstracts', label: 'Abstracts' },
-    { key: 'activity', label: 'Activity' },
-    { key: 'closure', label: 'Closure' },
+// Fifteen flat tabs were too many to scan, so they're grouped into sections;
+// a section's sub-tabs only appear once you're in it.
+const tabGroups = [
+    {
+        key: 'overview',
+        label: 'Overview',
+        tabs: [
+            { key: 'overview', label: 'Summary' },
+            { key: 'deadlines', label: 'Deadlines' },
+        ],
+    },
+    {
+        key: 'planning',
+        label: 'Planning',
+        tabs: [
+            { key: 'tasks', label: 'Tasks' },
+            { key: 'ideas', label: 'Ideas' },
+            { key: 'meetings', label: 'Meetings' },
+            { key: 'decisions', label: 'Decisions' },
+        ],
+    },
+    {
+        key: 'people',
+        label: 'People',
+        tabs: [
+            { key: 'team', label: 'Team' },
+            { key: 'organizations', label: 'Organizations' },
+            { key: 'requests', label: 'Requests' },
+            { key: 'reminders', label: 'Reminders' },
+        ],
+    },
+    {
+        key: 'content',
+        label: 'Content',
+        tabs: [
+            { key: 'documents', label: 'Documents' },
+            { key: 'abstracts', label: 'Abstracts' },
+        ],
+    },
+    { key: 'venue', label: 'Floor Plan', tabs: [{ key: 'floor-plan', label: 'Floor Plan' }] },
+    {
+        key: 'wrap-up',
+        label: 'Wrap-up',
+        tabs: [
+            { key: 'activity', label: 'Activity' },
+            { key: 'closure', label: 'Closure' },
+            { key: 'deleted', label: 'Recently deleted' },
+        ],
+    },
 ];
 
-function initialTab() {
-    if (typeof window === 'undefined') {
-        return 'overview';
-    }
+const allTabKeys = tabGroups.flatMap((group) => group.tabs.map((tab) => tab.key));
 
-    const requested = new URLSearchParams(window.location.search).get('tab');
+// The active tab lives in the URL (?tab=), not component state, so the back
+// button, a page refresh, and a shared link all land on the same tab.
+function tabFromUrl(url) {
+    const requested = new URL(url, 'http://localhost').searchParams.get('tab');
 
-    return tabs.some((tab) => tab.key === requested) ? requested : 'overview';
+    return allTabKeys.includes(requested) ? requested : 'overview';
 }
 
 // Every tab's data is loaded upfront in one request, but the page polls every
@@ -67,6 +100,7 @@ const TAB_PROPS = {
     abstracts: ['abstractCall', 'committeeMembers'],
     activity: ['activityLogs', 'documentActivities'],
     closure: ['event', 'lessonsLearned'],
+    deleted: ['recentlyDeleted'],
 };
 
 export default function Show({
@@ -102,9 +136,23 @@ export default function Show({
     requestStatuses,
     reminderStatuses,
     lessonCategories,
+    recentlyDeleted,
 }) {
-    const [activeTab, setActiveTab] = useState(initialTab);
+    const { url } = usePage();
+    const activeTab = tabFromUrl(url);
+    const activeGroup = tabGroups.find((group) => group.tabs.some((tab) => tab.key === activeTab));
     usePoll(POLL_INTERVAL, { preserveScroll: true, only: TAB_PROPS[activeTab] ?? [] });
+
+    function setActiveTab(key) {
+        if (key === activeTab) {
+            return;
+        }
+
+        const next = new URL(url, window.location.origin);
+        next.searchParams.set('tab', key);
+
+        router.push({ url: next.pathname + next.search, preserveScroll: true, preserveState: true });
+    }
 
     return (
         <AuthenticatedLayout
@@ -118,22 +166,45 @@ export default function Show({
             <Head title={event.name} />
 
 
-            <div className="mb-6 flex items-center gap-2 overflow-x-auto border-b border-slate-200">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.key}
-                        type="button"
-                        onClick={() => setActiveTab(tab.key)}
-                        className={`shrink-0 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition ${
-                            activeTab === tab.key
-                                ? 'border-indigo-600 text-indigo-600'
-                                : 'border-transparent text-slate-500 hover:text-slate-700'
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+            <nav aria-label="Event sections" className="mb-6">
+                <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200">
+                    {tabGroups.map((group) => (
+                        <button
+                            key={group.key}
+                            type="button"
+                            onClick={() => setActiveTab(group.tabs[0].key)}
+                            aria-current={activeGroup?.key === group.key ? 'page' : undefined}
+                            className={`shrink-0 border-b-2 px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition ${
+                                activeGroup?.key === group.key
+                                    ? 'border-indigo-600 text-indigo-600'
+                                    : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                            }`}
+                        >
+                            {group.label}
+                        </button>
+                    ))}
+                </div>
+
+                {activeGroup && activeGroup.tabs.length > 1 && (
+                    <div className="mt-3 flex items-center gap-1.5 overflow-x-auto">
+                        {activeGroup.tabs.map((tab) => (
+                            <button
+                                key={tab.key}
+                                type="button"
+                                onClick={() => setActiveTab(tab.key)}
+                                aria-current={activeTab === tab.key ? 'true' : undefined}
+                                className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition ${
+                                    activeTab === tab.key
+                                        ? 'bg-indigo-600 text-white shadow-sm'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </nav>
 
             {activeTab === 'overview' && (
                 <OverviewTab event={event} availableOrganizations={availableOrganizations} />
@@ -258,6 +329,8 @@ export default function Show({
             {activeTab === 'activity' && (
                 <ActivityTab activityLogs={activityLogs} documentActivities={documentActivities} />
             )}
+
+            {activeTab === 'deleted' && <RecentlyDeletedTab items={recentlyDeleted} />}
 
             {activeTab === 'closure' && (
                 <ClosureTab

@@ -16,3 +16,8 @@ Schedule::command('app:send-due-reminders')->everyFiveMinutes();
 // entry or `schedule:work`) to ever execute — see the README's "Backups" section.
 Schedule::command('backup:clean')->daily()->at('01:00')->onOneServer();
 Schedule::command('backup:run')->daily()->at('01:30')->onOneServer();
+
+// Permanently remove records that have sat in "Recently deleted" for 30 days
+// (App\Models\Concerns\Restorable). Runs after the nightly backup, so anything
+// purged is still in the previous night's backup.
+Schedule::command('model:prune')->daily()->at('02:30')->onOneServer();

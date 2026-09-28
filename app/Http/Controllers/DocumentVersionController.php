@@ -51,6 +51,7 @@ class DocumentVersionController extends Controller
 
     public function download(DocumentVersion $version): StreamedResponse
     {
+        abort_unless($version->document, 404); // the document has been deleted
         Gate::authorize('view', $version->document);
 
         return Storage::disk('local')->download($version->disk_path, $version->original_filename);

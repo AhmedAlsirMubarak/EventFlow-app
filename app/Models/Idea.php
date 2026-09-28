@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\IdeaStatus;
 use App\Models\Concerns\HasComments;
+use App\Models\Concerns\Restorable;
 use Database\Factories\IdeaFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Idea extends Model
 {
     /** @use HasFactory<IdeaFactory> */
-    use HasComments, HasFactory;
+    use HasComments, HasFactory, Restorable;
 
     /**
      * @return BelongsTo<Event, $this>

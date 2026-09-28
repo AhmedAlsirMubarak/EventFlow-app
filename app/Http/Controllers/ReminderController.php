@@ -39,6 +39,7 @@ class ReminderController extends Controller
         $eventId = $reminder->event_id;
         $reminder->delete();
 
-        return to_route('events.show', ['event' => $eventId, 'tab' => 'reminders'])->with('status', 'Reminder removed.');
+        return to_route('events.show', ['event' => $eventId, 'tab' => 'reminders'])->with('status', 'Reminder removed.')
+            ->with('undo', RestoreController::undoUrl($reminder));
     }
 }

@@ -35,6 +35,7 @@ class LessonLearnedController extends Controller
         $eventId = $lessonLearned->event_id;
         $lessonLearned->delete();
 
-        return to_route('events.show', ['event' => $eventId, 'tab' => 'closure'])->with('status', 'Lesson removed.');
+        return to_route('events.show', ['event' => $eventId, 'tab' => 'closure'])->with('status', 'Lesson removed.')
+            ->with('undo', RestoreController::undoUrl($lessonLearned));
     }
 }

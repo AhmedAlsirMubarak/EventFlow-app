@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Restorable;
 use Database\Factories\MeetingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Meeting extends Model
 {
     /** @use HasFactory<MeetingFactory> */
-    use HasFactory;
+    use HasFactory, Restorable;
 
     protected $appends = ['provider'];
 
