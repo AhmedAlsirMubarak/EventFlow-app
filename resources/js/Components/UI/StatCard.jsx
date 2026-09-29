@@ -19,18 +19,19 @@ const hintTones = {
  */
 export default function StatCard({ label, value, icon, accent = 'indigo', hint, hintTone = 'muted', href }) {
     const body = (
-        <div className="group flex h-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        <div className="group flex h-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
             {icon && (
+                // Hidden on phones, where tiles sit two to a row and need the width for the text.
                 <div
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition group-hover:scale-105 ${accents[accent]}`}
+                    className={`hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl transition group-hover:scale-105 sm:flex ${accents[accent]}`}
                 >
                     {icon}
                 </div>
             )}
             <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-slate-500">{label}</p>
-                <p className="mt-1 text-3xl font-bold tracking-tight text-slate-900">{value}</p>
-                {hint && <p className={`mt-0.5 truncate text-xs ${hintTones[hintTone]}`}>{hint}</p>}
+                <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{value}</p>
+                {hint && <p className={`mt-0.5 line-clamp-2 text-xs sm:truncate ${hintTones[hintTone]}`}>{hint}</p>}
             </div>
         </div>
     );

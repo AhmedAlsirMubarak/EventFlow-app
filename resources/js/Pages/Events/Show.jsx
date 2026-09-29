@@ -2,6 +2,7 @@ import EventLogo from '@/Components/EventLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { POLL_INTERVAL } from '@/pollInterval';
 import { Head, router, usePage, usePoll } from '@inertiajs/react';
+import { useEffect, useRef } from 'react';
 import AbstractsTab from './Partials/AbstractsTab';
 import ActivityTab from './Partials/ActivityTab';
 import ClosureTab from './Partials/ClosureTab';
@@ -141,6 +142,15 @@ export default function Show({
     const { url } = usePage();
     const activeTab = tabFromUrl(url);
     const activeGroup = tabGroups.find((group) => group.tabs.some((tab) => tab.key === activeTab));
+    const tabsRef = useRef(null);
+
+    // On a phone the section and sub-tab rows scroll sideways; keep whichever
+    // tab is active (e.g. "Floor Plan", far to the right) in view.
+    useEffect(() => {
+        tabsRef.current
+            ?.querySelectorAll('[aria-current]')
+            .forEach((tab) => tab.scrollIntoView({ block: 'nearest', inline: 'nearest' }));
+    }, [activeTab]);
     usePoll(POLL_INTERVAL, { preserveScroll: true, only: TAB_PROPS[activeTab] ?? [] });
 
     function setActiveTab(key) {
@@ -157,9 +167,12 @@ export default function Show({
     return (
         <AuthenticatedLayout
             header={
-                <div className="flex items-center gap-3">
-                    <EventLogo event={event} size="md" />
-                    <span>{event.name}</span>
+                <div className="flex min-w-0 items-center gap-3">
+                    {/* Logo hidden on phones — the top bar is too narrow for logo + name. */}
+                    <span className="hidden shrink-0 sm:block">
+                        <EventLogo event={event} size="md" />
+                    </span>
+                    <span className="truncate">{event.name}</span>
                 </div>
             }
             back={{ href: route('events.index'), label: 'Back to Events' }}
@@ -167,8 +180,8 @@ export default function Show({
             <Head title={event.name} />
 
 
-            <nav aria-label="Event sections" className="mb-6">
-                <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200">
+            <nav ref={tabsRef} aria-label="Event sections" className="mb-6">
+                <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200 pr-8 mask-[linear-gradient(to_right,black_calc(100%-2rem),transparent)] sm:pr-0 sm:mask-none">
                     {tabGroups.map((group) => (
                         <button
                             key={group.key}
@@ -187,7 +200,7 @@ export default function Show({
                 </div>
 
                 {activeGroup && activeGroup.tabs.length > 1 && (
-                    <div className="mt-3 flex items-center gap-1.5 overflow-x-auto">
+                    <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pr-8 mask-[linear-gradient(to_right,black_calc(100%-2rem),transparent)] sm:pr-0 sm:mask-none">
                         {activeGroup.tabs.map((tab) => (
                             <button
                                 key={tab.key}

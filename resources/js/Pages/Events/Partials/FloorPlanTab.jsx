@@ -539,7 +539,7 @@ export default function FloorPlanTab({ event, floorPlans, organizations }) {
                 <Card
                     title={activeFloorPlan.name}
                     actions={
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 whitespace-nowrap text-sm">
                             <span className="text-slate-500">
                                 {assignedCount} of {booths.length} booths assigned
                             </span>
